@@ -1,0 +1,111 @@
+#!/usr/local/bin/ruby
+
+require 'apes/resolve'
+require 'apes/depend'
+require 'tmpdir'
+
+def program_usage
+  puts "Usage: apes-build <name>"
+end
+
+if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
+  abort "The APES_ROOT variable is not defined."
+end
+
+if ARGV.count != 1 then
+  program_usage
+  abort
+end
+
+components = []
+dependencies = []
+components_list = []
+
+APEParseLibrary(Dir.pwd, components_list)
+APEParseLibrary(ENV["APES_ROOT"], components_list)
+
+components = components_list.find_all do |e|
+  e.id.name == ARGV[0]
+end
+
+if components == nil || components.empty? then
+  abort ARGV[0] + ": no match found."
+
+elsif components.length != 1 then
+  abort name + ": multiple matches found."
+else
+  dependencies = component_resolve(components[0], components_list, [])
+
+  if dependencies.empty? then
+    abort "No dependencies for: " + ARGV[0]
+  end
+end
+
+#
+# Make a temporary directory
+#
+
+tmpdir = Dir.mktmpdir(["apes-", "-" + components[0].id.to_s])
+puts "[mktmpdir] " + tmpdir
+
+#
+# Create the main makefile
+#
+
+makefile = File.open(tmpdir + "/Makefile", "w+")
+makefile.puts "SUBDIRS = "
+
+dependencies.each do |d|
+  if not d.wrapper then makefile.puts "SUBDIRS += " + d.id.name end
+end
+makefile.puts
+
+makefile.puts "all:"
+makefile.puts "\tfor i in $(SUBDIRS); do echo '[' $$i '\\c'; make -C $$i all || exit $?; done;"
+
+makefile.close
+
+#
+# Populate the temporary directory
+#
+
+dependencies.each do |d|
+  if not d.wrapper then
+    Dir.mkdir(tmpdir + "/" + d.id.name)
+    makefile = File.open(tmpdir + "/" + d.id.name + "/Makefile", "w+")
+
+    makefile.puts "CFLAGS = $(TARGET_CFLAGS) -I" + d.path + "/headers"
+    local_deps = component_depend(d, dependencies)
+    local_deps.each do |l|
+      if not l.wrapper then
+        makefile.puts "CFLAGS += -I" + l.path + "/headers/public"
+      end
+    end
+
+    makefile.puts
+    makefile.puts "SRCDIR = " + d.path + "/sources"
+    makefile.puts "SRCS = $(wildcard $(SRCDIR)/*.c)" 
+    makefile.puts "SRCS += $(wildcard $(SRCDIR)/*.S)" 
+    makefile.puts "OBJS = $(SRCS:$(SRCDIR)/%.c=%.o)" 
+    makefile.puts "OBJS += $(SRCS:$(SRCDIR)/%.S=%.o)" 
+
+    makefile.puts
+    makefile.puts "all: $(OBJS) suffix"
+
+    makefile.puts
+    makefile.puts "suffix:"
+    makefile.puts "\techo ']'"
+
+    makefile.puts
+    makefile.puts "%.o : $(SRCDIR)/%.c"
+    makefile.puts "\techo -n '+\e[D'"
+	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+    makefile.puts "\techo -n '-'"
+
+    makefile.puts
+    makefile.puts "%.o : $(SRCDIR)/%.S"
+    makefile.puts "\techo -n '+\e[D'"
+	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+    makefile.puts "\techo -n '-'"
+  end
+end

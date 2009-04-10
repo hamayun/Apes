@@ -1,0 +1,46 @@
+# Example robodoc.rc
+
+items:
+	SUMMARY
+	SYNOPSIS
+	FUNCTION
+	ARGUMENTS
+	RESULT
+	SIDE EFFECTS
+	HISTORY
+	BUGS
+	TODO
+	EXAMPLE
+	NOTES
+
+source items:
+	SYNOPSIS
+
+ignore items:
+	HISTORY
+	BUGS
+
+options:
+	--html
+	--multidoc
+	--index
+	--tabsize 4
+	--sections
+	--cmode
+	--nogeneratedwith
+	--documenttitle "DNA Operating System Documentation"
+	--source_line_numbers
+	--nopre
+
+ignore files:
+	README
+	CVS
+	*.bak
+	*~
+	"a test_*"
+	.*
+	Makefile
+
+accept files:
+	*.c
+	*.h

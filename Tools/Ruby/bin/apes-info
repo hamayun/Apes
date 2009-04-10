@@ -1,0 +1,75 @@
+#!/usr/local/bin/ruby
+
+require 'apes/parse'
+require 'pp'
+
+def program_usage
+  puts "Usage: apes-info <name>"
+end
+
+if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
+  abort "The APES_ROOT variable is not defined."
+end
+
+if ARGV.count != 1 then
+  program_usage
+else
+  components = []
+
+  APEParseLibrary(Dir.pwd, components)
+  APEParseLibrary(ENV["APES_ROOT"], components)
+
+  match_list = components.find_all do |e|
+    e.id.name == ARGV[0]
+  end
+
+  if match_list.empty? then
+    abort ARGV[0] + ": no match found."
+  else
+    match_list.each do |e| 
+      puts "[Component information -------------------]"
+      puts @id.to_s + ", author = " + @author
+      puts
+
+      puts "[Path:] "
+      puts @path
+      puts
+
+      if not (@provided_methods.empty? and @provided_definitions.empty? \
+              and provided_types.empty?) then
+        puts "[Provides]"
+
+        @provided_types.each do |t|
+          puts t.to_s
+        end
+
+        @provided_definitions.each do |d|
+          puts d.to_s
+        end
+
+        @provided_methods.each do |m|
+          puts m.to_s
+        end
+      end
+
+      puts
+
+      if not (@required_methods.empty? and @required_definitions.empty? \
+              and required_types.empty?) then
+        puts "[Requires:]"
+
+        @required_types.each do |t|
+          puts t.to_s
+        end
+
+        @required_definitions.each do |d|
+          puts d.to_s
+        end
+
+        @required_methods.each do |m|
+          puts m.to_s
+        end
+      end
+    end
+  end
+
