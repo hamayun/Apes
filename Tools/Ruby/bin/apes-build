@@ -45,7 +45,7 @@ end
 # Make a temporary directory
 #
 
-tmpdir = Dir.mktmpdir(["apes-", "-" + components[0].id.to_s])
+tmpdir = Dir.mktmpdir("apes-")
 puts "[mktmpdir] " + tmpdir
 
 #
@@ -60,8 +60,8 @@ dependencies.each do |d|
 end
 makefile.puts
 
-makefile.puts "all:"
-makefile.puts "\tfor i in $(SUBDIRS); do echo '[' $$i '\\c'; make -C $$i all || exit $?; done;"
+makefile.puts "default:"
+makefile.puts "\tfor i in $(SUBDIRS); do echo '[' $$i '\\c'; make -C $$i default || exit $?; done;"
 
 makefile.close
 
@@ -90,7 +90,7 @@ dependencies.each do |d|
     makefile.puts "OBJS += $(SRCS:$(SRCDIR)/%.S=%.o)" 
 
     makefile.puts
-    makefile.puts "all: $(OBJS) suffix"
+    makefile.puts "default: $(OBJS) suffix"
 
     makefile.puts
     makefile.puts "suffix:"
@@ -99,13 +99,20 @@ dependencies.each do |d|
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.c"
     makefile.puts "\techo -n '+\e[D'"
-	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.S"
     makefile.puts "\techo -n '+\e[D'"
-	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
+
+    makefile.close
   end
 end
+
+system ("make -s -C " + tmpdir + " default")
+FileUtils.rm_rf(tmpdir)
+puts "[rm-rf] " + tmpdir
+
