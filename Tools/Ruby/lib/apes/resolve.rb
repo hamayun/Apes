@@ -75,23 +75,27 @@ def component_resolve_r(component, components_list, deps)
   #
   # Check the managed methods
   #
-
-  component.managed_methods.each do |m|
-    found = false
-
-    components_list.each do |c|
-      match = c.provided_methods.find { |i| i == m }
-
-      if match != nil then
-        found = true
-        if deps.find { |i| i == c } == nil then m_deps << c end
-      end
-    end
-
-    if not found then
-      abort component.name + ": no dependence found for the managed method " + m.name
-    end
-  end
+  # This may not be required since the managed component
+  # need to be injected before this step, and not automatically
+  # resolved.
+  #
+  #
+  # component.managed_methods.each do |m|
+  #   found = false
+  #
+  #   deps.each do |c|
+  #     match = c.provided_methods.find { |i| i == m }
+  #
+  #     if match != nil then
+  #       found = true
+  #       if deps.find { |i| i == c } == nil then m_deps << c end
+  #     end
+  #   end
+  #
+  #   if not found then
+  #     abort component.name + ": no dependence found for the managed method " + m.name
+  #   end
+  # end
  
   #
   # Inject the required components
@@ -188,7 +192,7 @@ def component_resolve(component, components_list, deps)
       match = resolved_dependencies.find { |d| d.id == r }
       if match == nil then
         puts "Unmatched restriction " + r.to_s + " for component " + d.id.to_s
-        abort
+        abort "The component either doesn't exist or need to be injected."
       end
     end
   end

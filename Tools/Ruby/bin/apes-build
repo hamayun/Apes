@@ -54,14 +54,23 @@ puts "[mktmpdir] " + tmpdir
 
 makefile = File.open(tmpdir + "/Makefile", "w+")
 makefile.puts "SUBDIRS = "
+makefile.puts "OBJECTS = "
 
 dependencies.each do |d|
-  if not d.wrapper then makefile.puts "SUBDIRS += " + d.id.name end
+  if not d.wrapper then
+    makefile.puts "SUBDIRS += " + d.id.name
+    makefile.puts "OBJECTS += " + d.id.name + "/*.o"
+    makefile.puts
+  end
 end
 makefile.puts
 
 makefile.puts "default:"
 makefile.puts "\tfor i in $(SUBDIRS); do echo '[' $$i '\\c'; make -C $$i default || exit $?; done;"
+
+makefile.print "\t$(TARGET_LD) $(TARGET_LDFLAGS) "
+makefile.print "-o $(PWD)/" + components[0].id.short_name + ".x "
+makefile.puts "$(OBJECTS) $(LDFLAGS)"
 
 makefile.close
 
@@ -74,7 +83,10 @@ dependencies.each do |d|
     Dir.mkdir(tmpdir + "/" + d.id.name)
     makefile = File.open(tmpdir + "/" + d.id.name + "/Makefile", "w+")
 
-    makefile.puts "CFLAGS = $(TARGET_CFLAGS) -I" + d.path + "/headers"
+    makefile.puts "CFLAGS = $(TARGET_CFLAGS)"
+    makefile.puts "CFLAGS += -I" + d.path + "/headers"
+    makefile.puts "CFLAGS += -I" + d.path + "/headers/public"
+
     local_deps = component_depend(d, dependencies)
     local_deps.each do |l|
       if not l.wrapper then
@@ -91,6 +103,7 @@ dependencies.each do |d|
 
     makefile.puts
     makefile.puts "default: $(OBJS) suffix"
+    makefile.puts "\ttouch dummy.o"
 
     makefile.puts
     makefile.puts "suffix:"
@@ -99,13 +112,13 @@ dependencies.each do |d|
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.c"
     makefile.puts "\techo -n '+\e[D'"
-	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.S"
     makefile.puts "\techo -n '+\e[D'"
-	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
     makefile.close

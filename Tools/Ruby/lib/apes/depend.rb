@@ -62,19 +62,12 @@ def component_depend(component, components_list)
   #
 
   component.managed_methods.each do |m|
-    found = false
-
     components_list.each do |c|
       match = c.provided_methods.find { |i| i == m }
 
       if match != nil then
-        found = true
         m_deps << c
       end
-    end
-
-    if not found then
-      abort component.name + ": no dependence found for the managed method " + m.name
     end
   end
 
