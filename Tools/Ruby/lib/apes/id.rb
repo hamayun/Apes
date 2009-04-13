@@ -12,7 +12,7 @@ class APEId
   end
 
   def to_s
-    "{#{@name}, v#{@version}}"
+    "#{@name}-v#{@version}"
   end
 
   def == (id)
