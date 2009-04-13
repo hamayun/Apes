@@ -5,17 +5,33 @@ require 'apes/depend'
 require 'tmpdir'
 require 'open4'
 
+#
+# Define program usage
+#
+
 def program_usage
   puts "Usage: apes-build {--keep,--here,--verbose} <name>"
 end
+
+#
+# Check if the APES_ROOT variable exists
+#
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
   abort "The APES_ROOT variable is not defined."
 end
 
+#
+# Reset global configurations
+#
+
 keep_objets = false
 verbose_build = false
 build_here = false
+
+#
+# Parse the arguments
+#
 
 ARGV.uniq!
 arguments = ARGV.clone
@@ -44,6 +60,10 @@ if arguments.count != 1 then
   abort
 end
 
+#
+# Parse the library
+#
+
 components = []
 dependencies = []
 components_list = []
@@ -55,17 +75,18 @@ components = components_list.find_all do |e|
   e.id.name == arguments[0]
 end
 
-if components == nil || components.empty? then
+if components == nil or components.empty? then
   abort arguments[0] + ": no match found."
+end
 
-elsif components.length != 1 then
+if components.length != 1 then
   abort name + ": multiple matches found."
-else
-  dependencies = component_resolve(components[0], components_list, [])
+end
 
-  if dependencies.empty? then
-    abort "No dependencies for: " + arguments[0]
-  end
+dependencies = component_resolve(components[0], components_list, [])
+
+if dependencies.empty? then
+  abort "No dependencies for: " + arguments[0]
 end
 
 #
@@ -116,7 +137,7 @@ makefile.puts "\t\tdone;"
 makefile.puts
 
 makefile.puts "link:"
-makefile.puts "\techo -n '[LD] " + components[0].id.short_name + ".x'"
+makefile.puts "\techo -n '[LD] " + components[0].id.short_name + ".x [o]\e[2D'"
 makefile.print "\t$(TARGET_LD) $(TARGET_LDFLAGS) "
 makefile.print "-o $(PWD)/" + components[0].id.short_name + ".x "
 makefile.puts "$(OBJECTS) $(LDFLAGS)"
@@ -202,12 +223,17 @@ IO.copy_stream(stdout, $stdout)
 ignored, status = Process::waitpid2 pid
 
 if status != 0 then
-  puts "ERROR]\e[K\n"
+  puts "ERROR]\e[K"
+  puts
   puts "<Compiler report:>"
   stderr.lines.each do |line|
     if line[0..3] != "make" then
       index = line.index(/[^\/]*.[c,h]:/)
-      puts line[index..-1]
+      if index == nil then
+        puts "(" + line.chop + ")"
+      else
+        puts line[index..-1]
+      end
     end
   end
 end
