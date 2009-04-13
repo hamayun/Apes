@@ -112,13 +112,13 @@ dependencies.each do |d|
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.c"
     makefile.puts "\techo -n '+\e[D'"
-	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.S"
     makefile.puts "\techo -n '+\e[D'"
-	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
+	  #makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
     makefile.close
