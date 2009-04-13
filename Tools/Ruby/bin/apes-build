@@ -203,7 +203,7 @@ ignored, status = Process::waitpid2 pid
 
 if status != 0 then
   puts "ERROR]\e[K\n"
-  puts "Compiler output:"
+  puts "<Compiler report:>"
   stderr.lines.each do |line|
     if line[0..3] != "make" then
       index = line.index(/[^\/]*.[c,h]:/)
