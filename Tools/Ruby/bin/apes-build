@@ -3,6 +3,7 @@
 require 'apes/resolve'
 require 'apes/depend'
 require 'tmpdir'
+require 'open4'
 
 def program_usage
   puts "Usage: apes-build {--keep,--here,--verbose} <name>"
@@ -107,14 +108,19 @@ makefile.puts "default: build link"
 makefile.puts
 
 makefile.puts "build:"
-makefile.puts "\tfor i in $(SUBDIRS); do echo '[CC] '$$i' \\c'; make -C $$i default || exit $?; done;"
+makefile.puts "\tfor i in $(SUBDIRS); \\"
+makefile.puts "\t\tdo echo '[CC] '$$i' \\c'; \\"
+makefile.puts "\t\tmake -C $$i default || exit $?; \\"
+makefile.puts "\t\techo '\r[OK] '$$i; \\"
+makefile.puts "\t\tdone;"
 makefile.puts
 
 makefile.puts "link:"
-makefile.puts "\techo '[LD] " + components[0].id.short_name + ".x'"
+makefile.puts "\techo -n '[LD] " + components[0].id.short_name + ".x'"
 makefile.print "\t$(TARGET_LD) $(TARGET_LDFLAGS) "
 makefile.print "-o $(PWD)/" + components[0].id.short_name + ".x "
 makefile.puts "$(OBJECTS) $(LDFLAGS)"
+makefile.puts "\techo '\r[OK] " + components[0].id.short_name + ".x'"
 
 makefile.close
 
@@ -169,7 +175,6 @@ dependencies.each do |d|
     makefile.puts "ifneq (\"$(NOBJS)\",\"0\")"
     makefile.puts "\techo -n '\e[$(NOBJSP)D\e[K'"
     makefile.puts "endif"
-    makefile.puts "\techo '[OK]'"
 
     makefile.puts "%.o : $(SRCDIR)/%.c"
     makefile.puts "\techo -n '>\e[D'"
@@ -186,11 +191,30 @@ dependencies.each do |d|
   end
 end
 
-if verbose_build then
-  system ("make -C " + tmpdir + " default")
-else
-  system ("make -s -C " + tmpdir + " default")
+#
+# Launch the make process
+#
+
+cmd = "make" + (verbose_build ? "" : " -s") + " -C " + tmpdir + " default";
+pid, stdin, stdout, stderr = Open4::popen4(cmd);
+
+IO.copy_stream(stdout, $stdout)
+ignored, status = Process::waitpid2 pid
+
+if status != 0 then
+  puts "ERROR]\e[K\n"
+  puts "Compiler output:"
+  stderr.lines.each do |line|
+    if line[0..3] != "make" then
+      index = line.index(/[^\/]*.[c,h]:/)
+      puts line[index..-1]
+    end
+  end
 end
+
+#
+# Clean everything up
+#
 
 if keep_objets then
   if verbose_build then puts "[rm-rf] bypassed" end
