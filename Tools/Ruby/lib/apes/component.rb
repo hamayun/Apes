@@ -166,17 +166,17 @@ class APEComponent
     if component != self  then
       @provided_types.each do |t|
         item = component.provided_types.find { |f| t == f }
-        overlap = (item != nil)
+        overlap = (overlap or (item != nil))
       end
 
       @provided_definitions.each do |d|
         item = component.provided_definitions.find { |f| d == f }
-        overlap = (item != nil)
+        overlap = (overlap or (item != nil))
       end
 
       @provided_methods.each do |m|
         item = component.provided_methods.find { |f| m == f }
-        overlap = (item != nil)
+        overlap = (overlap or (item != nil))
       end
     end
   

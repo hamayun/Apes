@@ -47,7 +47,7 @@ def component_resolve_r(component, components_list, deps)
     end
 
     if not found then
-      abort component.name + ": no dependence found for the definition " + d.name
+      abort component.id.name + ": no dependence found for the definition " + d.name
     end
   end
 
@@ -72,31 +72,6 @@ def component_resolve_r(component, components_list, deps)
     end
   end
 
-  #
-  # Check the managed methods
-  #
-  # This may not be required since the managed component
-  # need to be injected before this step, and not automatically
-  # resolved.
-  #
-  #
-  # component.managed_methods.each do |m|
-  #   found = false
-  #
-  #   deps.each do |c|
-  #     match = c.provided_methods.find { |i| i == m }
-  #
-  #     if match != nil then
-  #       found = true
-  #       if deps.find { |i| i == c } == nil then m_deps << c end
-  #     end
-  #   end
-  #
-  #   if not found then
-  #     abort component.name + ": no dependence found for the managed method " + m.name
-  #   end
-  # end
- 
   #
   # Inject the required components
   #
@@ -168,8 +143,8 @@ def component_resolve(component, components_list, deps)
       resolved_overlap.each { |o| overlap.delete(o) }
 
       if overlap.empty? then
-        print "Conflict found for " + d.id.to_s + ": "
-        overlap.each { |o| print o.id.to_s + " " }
+        puts "Conflict found for " + d.id.to_s + ":"
+        resolved_overlap.each { |k| print k.id.to_s + " " }
         abort "\nAt least one of the components is tagged unique."
       end
 

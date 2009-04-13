@@ -5,14 +5,40 @@ require 'apes/depend'
 require 'tmpdir'
 
 def program_usage
-  puts "Usage: apes-build <name>"
+  puts "Usage: apes-build {--keep,--here,--verbose} <name>"
 end
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
   abort "The APES_ROOT variable is not defined."
 end
 
-if ARGV.count != 1 then
+keep_objets = false
+verbose_build = false
+build_here = false
+
+ARGV.uniq!
+arguments = ARGV.clone
+
+ARGV.each do |arg|
+  if arg.include?("--") then
+    case arg
+    when "--keep"
+      keep_objets = true
+      arguments.delete("--keep")
+    when "--here"
+      build_here = true
+      arguments.delete("--here")
+    when "--verbose"
+      verbose_build = true
+      arguments.delete("--vebose")
+    else
+      program_usage
+      abort
+    end
+  end
+end
+
+if arguments.count != 1 then
   program_usage
   abort
 end
@@ -25,11 +51,11 @@ APEParseLibrary(Dir.pwd, components_list)
 APEParseLibrary(ENV["APES_ROOT"], components_list)
 
 components = components_list.find_all do |e|
-  e.id.name == ARGV[0]
+  e.id.name == arguments[0]
 end
 
 if components == nil || components.empty? then
-  abort ARGV[0] + ": no match found."
+  abort arguments[0] + ": no match found."
 
 elsif components.length != 1 then
   abort name + ": multiple matches found."
@@ -37,7 +63,7 @@ else
   dependencies = component_resolve(components[0], components_list, [])
 
   if dependencies.empty? then
-    abort "No dependencies for: " + ARGV[0]
+    abort "No dependencies for: " + arguments[0]
   end
 end
 
@@ -45,16 +71,28 @@ end
 # Make a temporary directory
 #
 
-tmpdir = Dir.mktmpdir("apes-")
-puts "[mktmpdir] " + tmpdir
+if build_here then
+  if FileTest.exist?("build") then
+    abort "[mktmpdir] --here set, and build/ exists."
+  else
+    Dir.mkdir("build")
+    tmpdir = Dir.pwd + "/build"
+    if verbose_build then puts "[mktmpdir] " + tmpdir end
+  end
+else
+  tmpdir = Dir.mktmpdir("apes-")
+  if verbose_build then puts "[mktmpdir] " + tmpdir end
+end
 
 #
 # Create the main makefile
 #
 
 makefile = File.open(tmpdir + "/Makefile", "w+")
+
 makefile.puts "SUBDIRS = "
 makefile.puts "OBJECTS = "
+makefile.puts
 
 dependencies.each do |d|
   if not d.wrapper then
@@ -84,11 +122,13 @@ dependencies.each do |d|
     makefile = File.open(tmpdir + "/" + d.id.name + "/Makefile", "w+")
 
     makefile.puts "CFLAGS = $(TARGET_CFLAGS)"
-    makefile.puts "CFLAGS += -I" + d.path + "/headers"
-    makefile.puts "CFLAGS += -I" + d.path + "/headers/public"
 
-    local_deps = component_depend(d, dependencies)
+    local_deps = component_resolve(d, dependencies, [])
     local_deps.each do |l|
+      if l == d then
+        makefile.puts "CFLAGS += -I" + d.path + "/headers"
+      end
+
       if not l.wrapper then
         makefile.puts "CFLAGS += -I" + l.path + "/headers/public"
       end
@@ -111,7 +151,7 @@ dependencies.each do |d|
 
     makefile.puts
     makefile.puts "%.o : $(SRCDIR)/%.c"
-    makefile.puts "\techo -n '+\e[D'"
+    makefile.puts "\techo -n '>\e[D'"
 	  makefile.puts "\t$(TARGET_CC) -c -o $@ $(CFLAGS) $<"
     makefile.puts "\techo -n '-'"
 
@@ -125,7 +165,15 @@ dependencies.each do |d|
   end
 end
 
-system ("make -s -C " + tmpdir + " default")
-FileUtils.rm_rf(tmpdir)
-puts "[rm-rf] " + tmpdir
+if verbose_build then
+  system ("make -C " + tmpdir + " default")
+else
+  system ("make -s -C " + tmpdir + " default")
+end
 
+if keep_objets then
+  if verbose_build then puts "[rm-rf] bypassed" end
+else
+  if verbose_build then puts "[rm-rf] " + tmpdir end
+  FileUtils.rm_rf(tmpdir)
+end
