@@ -63,6 +63,14 @@ def generate_sandbox(component, list, local)
   makefile.puts "$(OBJECTS) $(LDFLAGS)"
   makefile.puts "\techo '\e[2D\e[K\r[OK] " + component.id.short_name + ".x'"
 
+  makefile.puts "clean:"
+  makefile.puts "\tfor i in $(SUBDIRS); \\"
+  makefile.puts "\t\tdo echo '[CLEAN] '$$i; \\"
+  makefile.puts "\t\trm -f $$i/*.o ; \\"
+  makefile.puts "\t\trm -f $(PWD)/" + component.id.short_name + ".x; \\"
+  makefile.puts "\t\tdone;"
+  makefile.puts
+ 
   makefile.close
 
   #
