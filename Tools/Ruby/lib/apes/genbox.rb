@@ -87,16 +87,16 @@ def generate_sandbox(component, list, local)
       local_deps = component_resolve(d, dependencies, [])
       local_deps.each do |l|
         if l == d then
-          makefile.puts "CFLAGS += -I" + d.path + "/headers"
+          makefile.puts "CFLAGS += -I" + d.path + "/Headers"
         end
 
         if not l.wrapper then
-          makefile.puts "CFLAGS += -I" + l.path + "/headers/public"
+          makefile.puts "CFLAGS += -I" + l.path + "/Headers/Public"
         end
       end
       makefile.puts
 
-      makefile.puts "SRCDIR = " + d.path + "/sources"
+      makefile.puts "SRCDIR = " + d.path + "/Sources"
       makefile.puts "CSRCS = $(wildcard $(SRCDIR)/*.c)" 
       makefile.puts "ASRCS = $(wildcard $(SRCDIR)/*.S)" 
       makefile.puts "OBJS = $(CSRCS:$(SRCDIR)/%.c=%.o)" 
