@@ -6,7 +6,7 @@ require 'apes/method'
 
 class APEComponent
   attr_reader :unique, :id, :wrapper, :injected_ids, :restricted_ids
-  attr_reader :path, :provided_types, :required_types
+  attr_reader :author, :path, :provided_types, :required_types
   attr_reader :provided_definitions, :required_definitions
   attr_reader :managed_methods, :provided_methods, :required_methods
 

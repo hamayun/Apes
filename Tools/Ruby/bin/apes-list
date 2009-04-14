@@ -3,11 +3,11 @@
 require 'apes/parse'
 
 def program_usage
-  puts "Usage: apes-components [list] [info,resolve <name>]"
+  puts "Usage: apes-list <name>"
 end
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "The APES_ROOT variable is not defined."
+  abort "[list] The APES_ROOT variable is not defined."
 end
 
 if ARGV.count != 0 then

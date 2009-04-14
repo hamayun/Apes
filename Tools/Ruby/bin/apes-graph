@@ -12,7 +12,7 @@ end
 #
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "The APES_ROOT variable is not defined."
+  abort "[graph] The APES_ROOT variable is not defined."
 end
 
 #
@@ -40,11 +40,11 @@ components = components_list.find_all do |e|
 end
 
 if components == nil or components.empty? then
-  abort ARGV[0] + ": no match found."
+  abort "[graph] " + ARGV[0] + ": no match found."
 end
 
 if components.length != 1 then
-  abort name + ": multiple matches found."
+  abort "[graph] " + name + ": multiple matches found."
 end
 
 #
@@ -54,12 +54,12 @@ end
 dependencies = component_resolve(components[0], components_list, [])
 
 if dependencies.empty? then
-  puts "No dependencies for: " + ARGV[0]
+  puts "[graph] No dependencies for: " + ARGV[0]
 else
   resolved = []
   next_deps = []
 
-  puts "digraph " + components[0].id.name.downcase + " {"
+  puts "digraph " + components[0].id.name + " {"
 
   dependencies.each do |d|
     if resolved.find { |r| r == d } == nil then
