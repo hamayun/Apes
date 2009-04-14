@@ -141,7 +141,7 @@ makefile.puts "\techo -n '[LD] " + components[0].id.short_name + ".x [o]\e[2D'"
 makefile.print "\t$(TARGET_LD) $(TARGET_LDFLAGS) "
 makefile.print "-o $(PWD)/" + components[0].id.short_name + ".x "
 makefile.puts "$(OBJECTS) $(LDFLAGS)"
-makefile.puts "\techo '\r[OK] " + components[0].id.short_name + ".x'"
+makefile.puts "\techo '\e[2D\e[K\r[OK] " + components[0].id.short_name + ".x'"
 
 makefile.close
 
