@@ -14,11 +14,11 @@ def generate_sandbox(component, list, local)
   #
 
   if local then
-    if FileTest.exist?("sandbox") then
-      abort "[genbox] --here set, and the \"sandbox\" directory exists."
+    if FileTest.exist?("Sandbox") then
+      abort "[genbox] --here set, and the \"Sandbox\" directory exists."
     else
-      Dir.mkdir("sandbox")
-      tmpdir = Dir.pwd + "/sandbox"
+      Dir.mkdir("Sandbox")
+      tmpdir = Dir.pwd + "/Sandbox"
       puts "[genbox] " + tmpdir
     end
   else
