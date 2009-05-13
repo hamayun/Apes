@@ -39,7 +39,7 @@ def generate_sandbox(component, list, local)
   dependencies.each do |d|
     if not d.wrapper then
       makefile.puts "SUBDIRS += " + d.id.name
-      makefile.puts "OBJECTS += " + d.id.name + "/*.o"
+      makefile.puts "OBJECTS += $(wildcard " + d.id.name + "/*.o)"
       makefile.puts
     end
   end
@@ -109,7 +109,6 @@ def generate_sandbox(component, list, local)
       makefile.puts "ifneq (\"$(NOBJS)\", \"0\")"
       makefile.puts "\techo -n '\e['$(NOBJS)'D\e[K'"
       makefile.puts "endif"
-      makefile.puts "\ttouch dummy.o"
       makefile.puts
 
       makefile.puts "prefix:"

@@ -3,8 +3,13 @@ require 'rexml/document'
 class APEType
   attr_reader :name
 
-  def initialize(root)
-    @name = root.attributes["name"]
+  def initialize(name)
+    @name = name
+  end
+
+  def APEType.createFromXML (root)
+    name = root.attributes["name"]
+    APEType.new(name)
   end
 
   def to_s

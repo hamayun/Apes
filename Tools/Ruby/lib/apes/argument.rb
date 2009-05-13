@@ -3,10 +3,18 @@ require 'rexml/document'
 class APEArgument
   attr_reader :name, :type, :direction
 
-  def initialize(root)
-    @name = root.attributes["name"]
-    @type = root.attributes["type"]
-    @direction = root.attributes["direction"]
+  def initialize(name, type, direction)
+    @name = name
+    @type = type
+    @direction = direction
+  end
+
+  def APEArgument.createFromXML (root)
+    name = root.attributes["name"]
+    type = root.attributes["type"]
+    direction = root.attributes["direction"]
+
+    APEArgument.new(name, type, direction)
   end
 
   def to_s

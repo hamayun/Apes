@@ -1,9 +1,10 @@
 #!/usr/local/bin/ruby
 
+require 'apes/id'
 require 'apes/parse'
 
 def program_usage
-  puts "Usage: apes-list <name>"
+  puts "Usage: apes-list"
 end
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then

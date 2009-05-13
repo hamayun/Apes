@@ -1,19 +1,34 @@
 #!/usr/local/bin/ruby
 
+require 'apes/id'
 require 'apes/resolve'
 
 def program_usage
-  puts "Usage: apes-resolve <name>"
+  puts "Usage: apes-resolve <name> <id>"
 end
 
 if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
   abort "[resolve] The APES_ROOT variable is not defined."
 end
 
-if ARGV.count != 1 then
+#
+# Check the arguments
+#
+
+if ARGV.count != 2 then
   program_usage
   abort
 end
+
+#
+# Create an ID for the component
+#
+
+id = APEId.new(ARGV[0], nil, ARGV[1])
+
+#
+# Search the component
+#
 
 components = []
 dependencies = []
@@ -22,24 +37,21 @@ components_list = []
 APEParseLibrary(Dir.pwd, components_list)
 APEParseLibrary(ENV["APES_ROOT"], components_list)
 
-components = components_list.find_all do |e|
-  e.id.name == ARGV[0]
-end
+components = components_list.find_all { |e| e.id == id }
 
 if components == nil || components.empty? then
   abort "[resolve] " + ARGV[0] + ": no match found."
-
 elsif components.length != 1 then
   abort "[resolve] " + name + ": multiple matches found."
-else
-  dependencies = component_resolve(components[0], components_list, [])
+end
 
-  if dependencies.empty? then
-    puts "[resolve] No dependencies for: " + ARGV[0]
-  else
-    dependencies.each do |d|
-      puts d.id.to_s
-    end
+dependencies = component_resolve(components[0], components_list, [])
+
+if dependencies.empty? then
+  puts "[resolve] No dependencies for: " + ARGV[0]
+else
+  dependencies.each do |d|
+    puts d.id.to_s
   end
 end
 

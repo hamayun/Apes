@@ -10,7 +10,13 @@ class APEComponent
   attr_reader :provided_definitions, :required_definitions
   attr_reader :managed_methods, :provided_methods, :required_methods
 
-  def initialize(file_path)
+  def initialize(file_path, id, author, unique, wrapper)
+    @path = file_path
+    @id = id
+    @author = author
+    @unique = unique
+    @wrapper = wrapper
+
     @injected_ids = []
     @restricted_ids = []
 
@@ -24,8 +30,10 @@ class APEComponent
     @provided_methods = []
     @required_methods = []
 
-    @path = file_path
+  end
 
+  def APEComponent.createFromXMLFileAtPath(file_path)
+    
     #
     # Get the data
     #
@@ -33,28 +41,37 @@ class APEComponent
     xml_data = File.new(file_path + "/component.xml")
     file = REXML::Document.new(xml_data)
     root = file.root
-    @author = root.attributes["author"]
-    @unique = root.attributes["unique"] == "true"
-    @wrapper = root.attributes["wrapper"] == "true"
-
+    author = root.attributes["author"]
+    unique = root.attributes["unique"] == "true"
+    wrapper = root.attributes["wrapper"] == "true"
+  
     #
     # Get the component's ID
     #
-
+    
+    ids = []
     root.elements.each("id") do |i|
-      @id = APEId.new(i)
+      ids << APEId.createFromXML(i)
     end
+
+    if ids.length == 0 then
+      abort "[component] no ID found for component at " + file_path
+    elsif ids.length > 1 then
+      abort "[component] too many IDs found for component at " + file_path
+    end
+
+    component = APEComponent.new(file_path, ids[0], author, unique, wrapper)
 
     #
     # Get the injected IDs
     #
 
     root.elements.each("inject/id") do |i|
-      id = APEId.new(i)
-      if @injected_ids.find { |i| i == id } == nil then
-        @injected_ids << id
+      id = APEId.createFromXML(i)
+      if component.injected_ids.find { |i| i == id } == nil then
+        component.injected_ids << id
       else
-        abort "Duplicate injected id " + id.to_s + " in component at path " + @path
+        abort "Duplicate injected id " + id.to_s + " in component at " + @path
       end
     end
 
@@ -63,9 +80,9 @@ class APEComponent
     #
 
     root.elements.each("restrict/id") do |i|
-      id = APEId.new(i)
-      if @restricted_ids.find { |i| i == id } == nil then
-        @restricted_ids << id
+      id = APEId.createFromXML(i)
+      if component.restricted_ids.find { |i| i == id } == nil then
+        component.restricted_ids << id
       else
         puts "Component at path:"
         puts "\t" + @path
@@ -78,9 +95,9 @@ class APEComponent
     #
 
     root.elements.each("manage/method") do |m|
-      item = APEMethod.new(m)
-      if @managed_methods.find { |i| i == item } == nil then
-        @managed_methods << item
+      item = APEMethod.createFromXML(m)
+      if component.managed_methods.find { |i| i == item } == nil then
+        component.managed_methods << item
       else
         puts id.to_s
         abort "Duplicate managed method:" + item.name
@@ -93,9 +110,9 @@ class APEComponent
 
     root.elements.each("provide") do |p|
       p.elements.each("type") do |t|
-        item = APEType.new(t)
-        if @provided_types.find { |i| i == item } == nil then
-          @provided_types << item
+        item = APEType.createFromXML(t)
+        if component.provided_types.find { |i| i == item } == nil then
+          component.provided_types << item
         else
           puts item.to_s
           abort "Duplicate provided type" + item.name
@@ -103,9 +120,9 @@ class APEComponent
       end
 
       p.elements.each("definition") do |d|
-        item = APEDefinition.new(d)
-        if @provided_definitions.find { |i| i == item } == nil then
-          @provided_definitions << item
+        item = APEDefinition.createFromXML(d)
+        if component.provided_definitions.find { |i| i == item } == nil then
+          component.provided_definitions << item
         else
           puts item.to_s
           abort "Duplicate provided definition" + item.name
@@ -113,9 +130,9 @@ class APEComponent
       end
 
       p.elements.each("method") do |m|
-        item = APEMethod.new(m)
-        if @provided_methods.find { |i| i == item } == nil then
-          @provided_methods << item
+        item = APEMethod.createFromXML(m)
+        if component.provided_methods.find { |i| i == item } == nil then
+          component.provided_methods << item
         else
           puts item.to_s
           abort "Duplicate provided method" + item.name
@@ -129,9 +146,9 @@ class APEComponent
 
     root.elements.each("require") do |p|
       p.elements.each("type") do |t|
-        item = APEType.new(t)
-        if @required_types.find { |i| i == item } == nil then
-          @required_types << item
+        item = APEType.createFromXML(t)
+        if component.required_types.find { |i| i == item } == nil then
+          component.required_types << item
         else
           puts item.to_s
           abort "Duplicate required type" + item.name
@@ -139,9 +156,9 @@ class APEComponent
       end
 
       p.elements.each("definition") do |d|
-        item = APEDefinition.new(d)
-        if @required_definitions.find { |i| i == item } == nil then
-          @required_definitions << item
+        item = APEDefinition.createFromXML(d)
+        if component.required_definitions.find { |i| i == item } == nil then
+          component.required_definitions << item
         else
           puts item.to_s
           abort "Duplicate required definition" + item.name
@@ -149,15 +166,17 @@ class APEComponent
       end
 
       p.elements.each("method") do |m|
-        item = APEMethod.new(m)
-        if @required_methods.find { |i| i == item } == nil then
-          @required_methods << item
+        item = APEMethod.createFromXML(m)
+        if component.required_methods.find { |i| i == item } == nil then
+          component.required_methods << item
         else
           puts item.to_s
           abort "Duplicate required method" + item.name
         end
       end
     end
+
+    component
   end
 
   def overlap?(component)

@@ -8,7 +8,7 @@ def APEParseLibrary(path, components_list)
   if directory.entries.find { |e| e == "component.xml" } != nil then
 
     # Create a component object from the path
-    cmp = APEComponent.new(path)
+    cmp = APEComponent.createFromXMLFileAtPath(path)
 
     if components_list.entries.find { |e| e.id == cmp.id } == nil
       components_list << cmp

@@ -4,14 +4,22 @@ require 'apes/argument'
 class APEMethod
   attr_reader :name, :arguments, :return_type
 
-  def initialize(root)
+  def initialize(name, return_type)
     @arguments = []
-    @name = root.attributes["name"]
-    @return_type = root.attributes["return_type"]
+    @name = name
+    @return_type = return_type
+  end
 
+  def APEMethod.createFromXML (root)
+    name = root.attributes["name"]
+    return_type = root.attributes["return_type"]
+
+    method = APEMethod.new(name, return_type)
     root.elements.each("argument") do |e|
-      @arguments << APEArgument.new(e)
+      method.arguments << APEArgument.createFromXML(e)
     end
+    
+    method
   end
 
   def to_s
