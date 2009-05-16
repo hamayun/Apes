@@ -23,5 +23,17 @@ class APEType
       @name == type.name
     end
   end
+
+  def equ? (type)
+    if type == nil then
+      false
+    else
+      @name == type.name
+    end
+  end
+
+  def hash
+    @name.hash
+  end
 end
 

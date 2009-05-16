@@ -1,5 +1,4 @@
 require 'apes/parse'
-require 'pp'
 
 def component_resolve_r(component, components_list, deps)
   local_deps = []
@@ -107,8 +106,10 @@ def component_resolve_r(component, components_list, deps)
 end
 
 def component_resolve(component, components_list, deps)
-  dependencies = component_resolve_r(component, components_list, deps)
+  dependencies = []
   dependencies << component
+
+  dependencies = component_resolve_r(component, components_list, deps)
   dependencies.uniq!
 
   #
@@ -116,6 +117,8 @@ def component_resolve(component, components_list, deps)
   #
 
   restrict = []
+  restrict << component.id
+
   dependencies.each { |d| restrict += d.restricted_ids }
   restrict.uniq!
 
@@ -154,7 +157,10 @@ def component_resolve(component, components_list, deps)
         abort "\n"
       end
 
-      resolved_overlap.each { |k| resolved_dependencies.delete(k) }
+      resolved_overlap.each do |k|
+        k.restricted_ids.each { |i| restrict.delete(i) }
+        resolved_dependencies.delete(k)
+      end
     end
   end
 

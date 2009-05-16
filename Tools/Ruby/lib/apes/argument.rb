@@ -29,5 +29,18 @@ class APEArgument
        and (@direction == argument.direction))
     end
   end
+
+  def equ? (argument)
+    if argument == nil then
+      false
+    else
+      ((@name == argument.name) and (@type == argument.type) \
+       and (@direction == argument.direction))
+    end
+  end
+
+  def hash
+    [@name, @type, @direction].hash
+  end
 end
 

@@ -85,6 +85,7 @@ def generate_sandbox(component, list, local)
       makefile.puts "CFLAGS = $(TARGET_CFLAGS)"
 
       local_deps = component_resolve(d, dependencies, [])
+
       local_deps.each do |l|
         if l == d then
           makefile.puts "CFLAGS += -I" + d.path + "/Headers"

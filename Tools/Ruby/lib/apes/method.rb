@@ -44,5 +44,15 @@ class APEMethod
     else (@name == method.name) and (@arguments == method.arguments)
     end
   end
+
+  def equ? (method)
+    if method == nil then false
+    else (@name == method.name) and (@arguments == method.arguments)
+    end
+  end
+
+  def hash
+    [@name, @argument].hash
+  end
 end
 

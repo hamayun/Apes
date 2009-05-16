@@ -46,7 +46,7 @@ ARGV.each do |arg|
   end
 end
 
-if arguments.count != 1 then
+if arguments.count != 2 then
   program_usage
   abort
 end

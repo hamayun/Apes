@@ -201,5 +201,13 @@ class APEComponent
   
     overlap
   end
+
+  def equ?(component)
+    @id == component.id
+  end
+
+  def hash
+    @id.hash
+  end
 end
 

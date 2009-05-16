@@ -23,5 +23,17 @@ class APEDefinition
       @name == definition.name
     end
   end
+
+  def equ? (definition)
+    if definition == nil then
+      false
+    else
+      @name == definition.name
+    end
+  end
+
+  def hash
+    @name.hash
+  end
 end
 

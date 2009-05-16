@@ -30,5 +30,17 @@ class APEId
       @name == id.name and @version == id.version
     end
   end
+
+  def eql? (id)
+    if id == nil then
+      false
+    else
+      @name == id.name and @version == id.version
+    end
+  end
+
+  def hash
+    [@name, @version].hash
+  end
 end
 
