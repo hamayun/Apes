@@ -106,6 +106,21 @@ def component_resolve_r(component, components_list, deps)
 end
 
 def component_resolve(component, components_list, deps)
+
+  #
+  # Filter components in the component_list conflicting with the
+  # main component if it is tagged unique
+  # 
+
+  if component.unique then
+    filtered_components = components_list.find_all { |f| f.overlap?(component) }
+    filtered_components.each { |f| components_list.delete(f) }
+  end
+
+  #
+  # Compute the dependencies
+  #
+
   dependencies = []
   dependencies << component
 
