@@ -29,7 +29,6 @@ class APEComponent
     @managed_methods = []
     @provided_methods = []
     @required_methods = []
-
   end
 
   def APEComponent.createFromXMLFileAtPath(file_path)
