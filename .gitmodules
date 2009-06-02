@@ -1,0 +1,9 @@
+[submodule "Documentation"]
+	path = Documentation
+	url = git@github.com:apes/documentation.git
+[submodule "Tools"]
+	path = Tools
+	url = git@github.com:apes/tools.git
+[submodule "Components"]
+	path = Components
+	url = git@github.com:apes/components.git
