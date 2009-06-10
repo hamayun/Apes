@@ -124,7 +124,7 @@ def component_resolve(component, components_list, deps)
   dependencies = []
   dependencies << component
 
-  dependencies = component_resolve_r(component, components_list, deps)
+  dependencies += component_resolve_r(component, components_list, deps)
   dependencies.uniq!
 
   #
