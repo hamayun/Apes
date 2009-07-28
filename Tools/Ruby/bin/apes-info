@@ -74,7 +74,7 @@ end
 puts
 
 if not (component.required_methods.empty? and component.required_definitions.empty? \
-        and required_types.empty?) then
+        and component.required_types.empty?) then
   puts "[Requires:]"
 
   component.required_types.each do |t|
