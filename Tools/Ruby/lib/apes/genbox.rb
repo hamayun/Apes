@@ -32,9 +32,7 @@ def generate_sandbox(component, list, local)
 
   makefile = File.open(tmpdir + "/Makefile", "w+")
 
-  makefile.puts "#!/bin/bash"
-  makefile.puts
-
+  makefile.puts "SHELL=/bin/bash"
   makefile.puts "SUBDIRS = "
   makefile.puts "OBJECTS = "
   makefile.puts
@@ -53,7 +51,7 @@ def generate_sandbox(component, list, local)
 
   makefile.puts "build:"
   makefile.puts "\tfor i in $(SUBDIRS); \\"
-  makefile.puts "\t\tdo echo '[CC] '$$i' \\c'; \\"
+  makefile.puts "\t\tdo echo -n '[CC] '$$i' '; \\"
   makefile.puts "\t\tmake -C $$i default || exit $?; \\"
   makefile.puts "\t\techo '\r[OK] '$$i; \\"
   makefile.puts "\t\tdone;"
@@ -85,9 +83,7 @@ def generate_sandbox(component, list, local)
       Dir.mkdir(tmpdir + "/" + d.id.name)
       makefile = File.open(tmpdir + "/" + d.id.name + "/Makefile", "w+")
 
-      makefile.puts "#!/bin/bash"
-      makefile.puts
-
+      makefile.puts "SHELL=/bin/bash"
       makefile.puts "CFLAGS = $(TARGET_CFLAGS)"
 
       local_deps = component_resolve(d, dependencies, [])
