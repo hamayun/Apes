@@ -32,6 +32,9 @@ def generate_sandbox(component, list, local)
 
   makefile = File.open(tmpdir + "/Makefile", "w+")
 
+  makefile.puts "#!/bin/bash"
+  makefile.puts
+
   makefile.puts "SUBDIRS = "
   makefile.puts "OBJECTS = "
   makefile.puts
@@ -82,6 +85,9 @@ def generate_sandbox(component, list, local)
       Dir.mkdir(tmpdir + "/" + d.id.name)
       makefile = File.open(tmpdir + "/" + d.id.name + "/Makefile", "w+")
 
+      makefile.puts "#!/bin/bash"
+      makefile.puts
+
       makefile.puts "CFLAGS = $(TARGET_CFLAGS)"
 
       local_deps = component_resolve(d, dependencies, [])
@@ -108,14 +114,14 @@ def generate_sandbox(component, list, local)
 
       makefile.puts "default: prefix $(OBJS) suffix"
       makefile.puts "ifneq (\"$(NOBJS)\", \"0\")"
-      makefile.puts "\techo -n '\e['$(NOBJS)'D\e[K'"
+      makefile.puts "\techo -n '\e[$(NOBJS)D\e[K'"
       makefile.puts "endif"
       makefile.puts
 
       makefile.puts "prefix:"
       makefile.puts "ifneq (\"$(NOBJS)\",\"0\")"
       makefile.puts "\techo -n '['"
-      makefile.puts "\tfor i in {1..$(NOBJS)} ; do echo '-\\c'; done"
+      makefile.puts "\tfor i in `seq 1 $(NOBJS)` ; do echo -n '-'; done"
       makefile.puts "\techo -n ']\e[$(NOBJSP)D'"
       makefile.puts "endif"
       makefile.puts
