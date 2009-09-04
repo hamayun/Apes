@@ -193,6 +193,18 @@ def component_resolve(component, components_list, deps)
     end
   end
 
+  #
+  # Retry the resolution in order to make sure
+  # that we have the right component set
+  #
+
+  component_resolve_r(component, resolved_dependencies, deps)
+
+  #
+  # If the previous operation did not abort,
+  # then we have the right set :)
+  #
+
   resolved_dependencies
 end
 

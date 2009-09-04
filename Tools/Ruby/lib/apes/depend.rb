@@ -53,7 +53,7 @@ def component_depend(component, components_list)
     end
 
     if not found then
-      abort component.name + ": no dependence found for the method " + m.name
+      abort component.id.name + ": no dependence found for the method " + m.name
     end
   end
 
