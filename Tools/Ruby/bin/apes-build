@@ -10,7 +10,7 @@ require 'open4'
 #
 
 def program_usage
-  puts "Usage: apes-build {--keep,--here,--verbose} <name> <version>"
+  puts "Usage: apes-build {--keep,--here,--verbose} {<name> <version>}"
 end
 
 #
@@ -55,34 +55,56 @@ ARGV.each do |arg|
   end
 end
 
-if arguments.count != 2 then
-  program_usage
-  abort
-end
-
 #
-# Create an ID for the component to build
-#
-
-id = APEId.new(arguments[0], nil, arguments[1])
-
-#
-# Parse the library
+# Find the component to build
 #
 
 components = []
 components_list = []
 
-APEParseLibrary(Dir.pwd, components_list)
-APEParseLibrary(ENV["APES_ROOT"], components_list)
+case arguments.count
+when 0 
 
-components = components_list.find_all { |e| e.id == id }
+  component = APEComponent.createFromXMLFileAtPath(Dir.pwd)
+
+  #
+  # Parse the library
+  #
+
+  if component == nil then
+    abort "[build] No component in this directory."
+  end
+
+  APEParseLibrary(Dir.pwd, components_list)
+  APEParseLibrary(ENV["APES_ROOT"], components_list)
+
+  components = components_list.find_all { |e| e.id == component.id }
+
+when 2
+
+  id = APEId.new(arguments[0], nil, arguments[1])
+
+  #
+  # Parse the library
+  #
+
+  APEParseLibrary(Dir.pwd, components_list)
+  APEParseLibrary(ENV["APES_ROOT"], components_list)
+
+  components = components_list.find_all { |e| e.id == id }
+
+else
+  program_usage
+  abort
+end
 
 if components == nil or components.empty? then
   abort "[build] " + id.to_s + ": no match found."
 elsif components.length != 1 then
   abort "[build] " + id.to_s + ": multiple matches found."
 end
+
+puts "[build] Building component " + components[0].id.to_s + "."
 
 #
 # Generate the sandbox
