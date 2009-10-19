@@ -9,19 +9,22 @@ def program_usage
 end
 
 #
-# Check the APES_ROOT variable
-#
-
-if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "[graph] The APES_ROOT variable is not defined."
-end
-
-#
 # Check the CLI arguments
 #
 
 if ARGV.count != 2 then
   program_usage
+  abort
+end
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[graph] Variable APES_COMPONENT_PATH not defined.'
   abort
 end
 
@@ -35,14 +38,7 @@ id = APEId.new(ARGV[0], nil, ARGV[1])
 # Look for the component in the library
 #
 
-components = []
-dependencies = []
-components_list = []
-
-APEParseLibrary(Dir.pwd, components_list)
-APEParseLibrary(ENV["APES_ROOT"], components_list)
-
-components = components_list.find_all { |e| e.id == id }
+components = component_list.find_all { |e| e.id == id }
 
 if components == nil or components.empty? then
   abort "[graph] " + ARGV[0] + ": no match found."
@@ -54,7 +50,7 @@ end
 # Compute the graph
 #
 
-dependencies = component_resolve(components[0], components_list, [])
+dependencies = component_resolve components[0], component_list, []
 
 if dependencies.empty? then
   puts "[graph] No dependencies for: " + ARGV[0]
@@ -66,7 +62,7 @@ else
 
   dependencies.each do |d|
     if resolved.find { |r| r == d } == nil then
-      next_deps = component_depend(d, dependencies)
+      next_deps = component_depend d, dependencies 
       puts "\t" + d.id.short_name + " [fontsize=16,style=filled];"
       next_deps.each do |n|
         puts "\t" + d.id.short_name + " -> " + n.id.short_name + ";"

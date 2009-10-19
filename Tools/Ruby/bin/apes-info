@@ -7,16 +7,23 @@ def program_usage
   puts "Usage: apes-info <name> <version>"
 end
 
-if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "[info] The APES_ROOT variable is not defined."
-end
-
 #
 # Test the arguments
 #
 
 if ARGV.count != 2 then
   program_usage
+  abort
+end
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[graph] Variable APES_COMPONENT_PATH not defined.'
   abort
 end
 
@@ -30,12 +37,7 @@ id = APEId.new(ARGV[0], nil, ARGV[1])
 # Retrieve the component
 #
 
-components = []
-
-APEParseLibrary(Dir.pwd, components)
-APEParseLibrary(ENV["APES_ROOT"], components)
-
-match_list = components.find_all { |e| e.id == id }
+match_list = component_list.find_all { |e| e.id == id }
 
 if match_list.empty? then
   abort "[info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
@@ -47,14 +49,16 @@ component = match_list[0]
 
 puts "[" + component.id.name + ", " + component.id.version + "]"
 puts "author = " + component.author
-puts "wrapper = " + component.wrapper.to_s + ", unique = " + component.unique.to_s
+print "wrapper = " + component.wrapper.to_s
+puts ", unique = " + component.unique.to_s
 puts
 
 puts "[Path:] "
 puts component.path
 puts
 
-if not (component.provided_methods.empty? and component.provided_definitions.empty? \
+if not (component.provided_methods.empty? \
+        and component.provided_definitions.empty? \
         and provided_types.empty?) then
   puts "[Provides]"
 
@@ -73,7 +77,8 @@ end
 
 puts
 
-if not (component.required_methods.empty? and component.required_definitions.empty? \
+if not (component.required_methods.empty? \
+        and component.required_definitions.empty? \
         and component.required_types.empty?) then
   puts "[Requires:]"
 

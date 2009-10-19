@@ -14,14 +14,6 @@ def program_usage
 end
 
 #
-# Check if the APES_ROOT variable exists
-#
-
-if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "[build] The APES_ROOT variable is not defined."
-end
-
-#
 # Reset global configurations
 #
 
@@ -56,42 +48,37 @@ ARGV.each do |arg|
 end
 
 #
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[build] Variable APES_COMPONENT_PATH not defined.'
+  abort
+end
+
+#
 # Find the component to build
 #
 
 components = []
-components_list = []
 
 case arguments.count
 when 0 
 
-  component = APEComponent.createFromXMLFileAtPath(Dir.pwd)
-
-  #
-  # Parse the library
-  #
+  component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
     abort "[build] No component in this directory."
   end
 
-  APEParseLibrary(Dir.pwd, components_list)
-  APEParseLibrary(ENV["APES_ROOT"], components_list)
-
-  components = components_list.find_all { |e| e.id == component.id }
+  components = component_list.find_all { |e| e.id == component.id }
 
 when 2
 
   id = APEId.new(arguments[0], nil, arguments[1])
-
-  #
-  # Parse the library
-  #
-
-  APEParseLibrary(Dir.pwd, components_list)
-  APEParseLibrary(ENV["APES_ROOT"], components_list)
-
-  components = components_list.find_all { |e| e.id == id }
+  components = component_list.find_all { |e| e.id == id }
 
 else
   program_usage
@@ -110,7 +97,7 @@ puts "[build] Building component " + components[0].id.to_s + "."
 # Generate the sandbox
 #
 
-tmpdir = generate_sandbox(components[0], components_list, build_here)
+tmpdir = generate_sandbox components[0], component_list, build_here 
 
 #
 # Launch the make process

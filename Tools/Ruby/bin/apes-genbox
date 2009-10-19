@@ -14,14 +14,6 @@ def program_usage
 end
 
 #
-# Check if the APES_ROOT variable exists
-#
-
-if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "[genbox] The APES_ROOT variable is not defined."
-end
-
-#
 # Reset global configurations
 #
 
@@ -53,22 +45,23 @@ if arguments.count != 2 then
 end
 
 #
-# Create an ID for the component
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[genbox] Variable APES_COMPONENT_PATH not defined.'
+  abort
+end
+
+#
+# Find the requested component
 #
 
 id = APEId.new(arguments[0], nil, arguments[1])
 
-#
-# Parse the library
-#
-
-components = []
-components_list = []
-
-APEParseLibrary(Dir.pwd, components_list)
-APEParseLibrary(ENV["APES_ROOT"], components_list)
-
-components = components_list.find_all { |e| e.id == id }
+components = component_list.find_all { |e| e.id == id }
 
 if components == nil or components.empty? then
   abort "[genbox] " + arguments[0] + ": no match found."
@@ -80,5 +73,5 @@ end
 # Generate the sandbox
 #
 
-generate_sandbox(components[0], components_list, build_here)
+generate_sandbox components[0], component_list, build_here 
 

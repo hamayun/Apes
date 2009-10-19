@@ -7,16 +7,23 @@ def program_usage
   puts "Usage: apes-resolve <name> <id>"
 end
 
-if ENV["APES_ROOT"] == nil or ENV["APES_ROOT"].empty? then
-  abort "[resolve] The APES_ROOT variable is not defined."
-end
-
 #
 # Check the arguments
 #
 
 if ARGV.count != 2 then
   program_usage
+  abort
+end
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[graph] Variable APES_COMPONENT_PATH not defined.'
   abort
 end
 
@@ -30,14 +37,7 @@ id = APEId.new(ARGV[0], nil, ARGV[1])
 # Search the component
 #
 
-components = []
-dependencies = []
-components_list = []
-
-APEParseLibrary(Dir.pwd, components_list)
-APEParseLibrary(ENV["APES_ROOT"], components_list)
-
-components = components_list.find_all { |e| e.id == id }
+components = component_list.find_all { |e| e.id == id }
 
 if components == nil || components.empty? then
   abort "[resolve] " + ARGV[0] + ": no match found."
@@ -45,7 +45,7 @@ elsif components.length != 1 then
   abort "[resolve] " + name + ": multiple matches found."
 end
 
-dependencies = component_resolve(components[0], components_list, [])
+dependencies = component_resolve components[0], component_list, []
 
 if dependencies.empty? then
   puts "[resolve] No dependencies for: " + ARGV[0]
