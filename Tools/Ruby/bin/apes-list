@@ -14,6 +14,9 @@ else
     APELibraryParser.getComponentList.each { |e| puts e.id.to_s }
   rescue RuntimeError
     puts '[list] Variable APES_COMPONENT_PATH not defined.'
+  rescue Errno::ENOENT => detail
+    print '[list] error in APES_COMPONENT_PATH: '
+    puts detail.message
   end
 end
 

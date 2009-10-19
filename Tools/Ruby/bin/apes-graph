@@ -26,6 +26,10 @@ begin
 rescue RuntimeError
   puts '[graph] Variable APES_COMPONENT_PATH not defined.'
   abort
+rescue Errno::ENOENT => detail
+  print '[graph] error in APES_COMPONENT_PATH: '
+  puts detail.message
+  abort
 end
 
 #
