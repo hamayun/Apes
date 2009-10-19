@@ -38,7 +38,7 @@ class APEMethod
       args = args + e.to_s + ", "
     end
     string += @name.bold + " " + args.chop.chop 
-    if not @return_type.empty? then string += " return " + @return_type end
+    if not @return_type.empty? then string += " - " + "return ".red + @return_type.blue end
     string
   end
 
