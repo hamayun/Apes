@@ -4,6 +4,8 @@ require 'apes/id'
 require 'apes/parse'
 require 'term/ansicolor'
 
+include Term::ANSIColor
+
 def program_usage
   puts 'Usage: apes-list'
 end
@@ -18,9 +20,9 @@ else
     end
 
     component_list.each do |c|
-      print c.id.name.green
+      print c.id.name.blue
       (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
-      puts '[' + c.id.version + ']'
+      puts ('[' + c.id.version + ']').green
     end
   rescue RuntimeError
     puts '[list] Variable APES_COMPONENT_PATH not defined.'
