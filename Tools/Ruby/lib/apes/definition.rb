@@ -1,4 +1,7 @@
 require 'rexml/document'
+require 'term/ansicolor'
+
+include Term::ANSIColor
 
 class APEDefinition
   attr_reader :name
@@ -13,7 +16,7 @@ class APEDefinition
   end
 
   def to_s
-    "definition #{@name}"
+    "definition".red + ' ' + @name.bold
   end
 
   def == (definition)

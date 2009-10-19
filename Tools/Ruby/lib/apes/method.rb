@@ -1,5 +1,8 @@
 require 'rexml/document'
 require 'apes/argument'
+require 'term/ansicolor'
+
+include Term::ANSIColor
 
 class APEMethod
   attr_reader :name, :arguments, :return_type
@@ -26,15 +29,15 @@ class APEMethod
     args = ""
 
     if @return_type.empty? then
-      string = "procedure "
+      string = "procedure ".red
     else
-      string = "function "
+      string = "function ".red
     end
 
     @arguments.each do |e|
       args = args + e.to_s + ", "
     end
-    string += @name + " (" + args.chop.chop + ")"
+    string += @name.bold + " " + args.chop.chop 
     if not @return_type.empty? then string += " return " + @return_type end
     string
   end

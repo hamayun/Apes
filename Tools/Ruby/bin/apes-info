@@ -2,6 +2,9 @@
 
 require 'apes/id'
 require 'apes/parse'
+require 'term/ansicolor'
+
+include Term::ANSIColor
 
 def program_usage
   puts "Usage: apes-info <name> <version>"
@@ -51,20 +54,20 @@ end
 
 component = match_list[0]
 
-puts "[" + component.id.name + ", " + component.id.version + "]"
-puts "author = " + component.author
-print "wrapper = " + component.wrapper.to_s
-puts ", unique = " + component.unique.to_s
+puts ("[" + component.id.name + ", " + component.id.version + "]").green.bold
+puts "author = ".blue + component.author
+print "wrapper = ".blue + component.wrapper.to_s
+puts ", unique = ".blue + component.unique.to_s
 puts
 
-puts "[Path:] "
+puts "[Path:]".green.bold
 puts component.path
 puts
 
 if not (component.provided_methods.empty? \
         and component.provided_definitions.empty? \
         and provided_types.empty?) then
-  puts "[Provides]"
+  puts "[Provides]".green.bold
 
   component.provided_types.each do |t|
     puts t.to_s
@@ -84,7 +87,7 @@ puts
 if not (component.required_methods.empty? \
         and component.required_definitions.empty? \
         and component.required_types.empty?) then
-  puts "[Requires:]"
+  puts "[Requires:]".green.bold
 
   component.required_types.each do |t|
     puts t.to_s

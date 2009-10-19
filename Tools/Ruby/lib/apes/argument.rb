@@ -1,4 +1,7 @@
 require 'rexml/document'
+require 'term/ansicolor'
+
+include Term::ANSIColor
 
 class APEArgument
   attr_reader :name, :type, :direction
@@ -18,7 +21,7 @@ class APEArgument
   end
 
   def to_s
-    "#{@name}: #{@direction} #{@type}"
+    @name.underscore + ': ' + @direction.red + ' ' + @type.blue
   end
 
   def == (argument)
