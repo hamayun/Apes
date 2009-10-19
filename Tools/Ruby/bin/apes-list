@@ -2,6 +2,7 @@
 
 require 'apes/id'
 require 'apes/parse'
+require 'term/ansicolor'
 
 def program_usage
   puts 'Usage: apes-list'
@@ -11,7 +12,16 @@ if ARGV.count != 0 then
   program_usage
 else
   begin
-    APELibraryParser.getComponentList.each { |e| puts e.id.to_s }
+    component_list = APELibraryParser.getComponentList
+    longer_id = component_list.max do |a,b|
+      a.id.name.length <=> b.id.name.length
+    end
+
+    component_list.each do |c|
+      print c.id.name.green
+      (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
+      puts '[' + c.id.version + ']'
+    end
   rescue RuntimeError
     puts '[list] Variable APES_COMPONENT_PATH not defined.'
   rescue Errno::ENOENT => detail
