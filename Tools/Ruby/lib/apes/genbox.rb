@@ -105,7 +105,7 @@ def generate_sandbox(component, list, local)
       makefile.puts "OBJS = $(CSRCS:$(SRCDIR)/%.c=%.o)" 
       makefile.puts "OBJS += $(ASRCS:$(SRCDIR)/%.S=%.o)" 
       makefile.puts "NOBJS = $(shell echo $(OBJS) | wc -w | tr -d ' ')" 
-      makefile.puts "NOBJSP = $(shell dc -e '$(NOBJS) 1 + p')" 
+      makefile.puts "NOBJSP = $(shell expr $(NOBJS) + 1)" 
       makefile.puts
 
       makefile.puts "default: prefix $(OBJS) suffix"
