@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby1.9
+
+require 'apes/id'
+require 'apes/genrake'
+require 'rubygems'
+require 'open4'
+
+#
+# Define program usage
+#
+
+def program_usage
+  puts "Usage: apes-genrake <name> <version>"
+end
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[genrake] Variable APES_COMPONENT_PATH not defined.'
+  abort
+rescue Errno::ENOENT => detail
+  print '[genrake] error in APES_COMPONENT_PATH: '
+  puts detail.message
+  abort
+end
+
+#
+# Find the requested component
+#
+
+id = APEId.new(ARGV[0], nil, ARGV[1])
+
+components = component_list.find_all { |e| e.id == id }
+
+if components == nil or components.empty? then
+  abort "[genrake] " + arguments[0] + ": no match found."
+elsif components.length != 1 then
+  abort "[genrake] " + name + ": multiple matches found."
+end
+
+#
+# Generate the Rakefile
+#
+
+generate_rakefile components[0], component_list
+
