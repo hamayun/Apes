@@ -1,7 +1,7 @@
 class APEObjectFile
   attr_reader :source, :update, :name
 
-  def APEObjectFile.createFromObjectFile(name, buildir, source, deps)
+  def APEObjectFile.createFromFile(name, buildir, source, deps)
     update = true
     has_modification = false
     object_path = buildir + '/' + name

@@ -16,10 +16,12 @@ class APELinkUnit
     cc_units.each { |n, cc| objects += cc.objects }
 
     # We try to link the objects
-    cmd = "#{ENV['TARGET_LD']} -o #{name} #{ENV['TARGET_LDFLAGS']} "
-    objects.each { |o| cmd += " #{buildir}/#{o.name}" }
+    cmd = [ENV['TARGET_LD']]
+    cmd << "-o #{name}"
+    cmd << ENV['TARGET_LDFLAGS']
+    objects.each { |o| cmd << "#{buildir}/#{o.name}" }
 
-    pid, stdin, stdout, stderr = Open4::popen4(cmd)
+    pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
     ignored, status = Process::waitpid2 pid 
 
     if status != 0 then

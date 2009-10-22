@@ -37,51 +37,56 @@ class APECompilationUnit
 
     (csrcs + asrcs).each do |file|
       base_name = (@name + ":" + file.split('/').last).ext('o')
-      @objects << APEObjectFile.createFromObjectFile(base_name, buildir, file, deps)
+      @objects << APEObjectFile.createFromFile(base_name, buildir, file, deps)
     end
   end
 
   def build(buildir,mode)
 
-    # We print the prologue
-    print @name.blue
-    (@@longer_name.length - @name.length + 1).times { print ' ' }
-    print '(CC) '.green
+    # Check if it is even necessary to go through the whole process
+    unless @objects.find { |o| o.update } == nil
 
-    # Then the progress bar
-    print '['.bold
-    @objects.each { |object| print object.update ? '-' : '=' }
-    print "]\e[#{@objects.length + 1}D".bold
+      # We print the prologue
+      print @name.blue
+      (@@longer_name.length - @name.length + 1).times { print ' ' }
+      print '(CC) '.green
 
-    # Finally, we compile what needs to be compiled
-    @objects.each do |object|
-      if object.update then
-        print ">\e[D"
-        cmd = "#{ENV['TARGET_CC']} -c -o #{buildir}/#{object.name} #{ENV['TARGET_CFLAGS']} "
-        cmd += @dependencies.collect { |d| '-I' + d }.join(' ')
-        cmd += " -I#{@path}/Headers -I#{@path}/Headers/Public"
-        cmd += " #{object.source}"
+      # Then the progress bar
+      print '['.bold
+      @objects.each { |object| print object.update ? '-' : '=' }
+      print "]\e[#{@objects.length + 1}D".bold
 
-        pid, stdin, stdout, stderr = Open4::popen4(cmd)
-        ignored, status = Process::waitpid2 pid 
+      # Finally, we compile what needs to be compiled
+      @objects.each do |object|
+        if object.update then
+          print ">\e[D"
 
-        if status != 0 then
-          print "\r\e[2K#{@name}".blue
-          (@@longer_name.length - @name.length + 1).times { print ' ' }
-          puts "(!!)".red
-          raise CompilationError.new stderr.readlines.join
-        end 
+          cmd = [ENV['TARGET_CC']]
+          cmd << "-c -o #{buildir}/#{object.name}"
+          cmd << ENV['TARGET_CFLAGS']
+          cmd << @dependencies.collect { |d| '-I' + d }.join(' ')
+          cmd << "-I#{@path}/Headers -I#{@path}/Headers/Public"
+          cmd << object.source
 
-        print "=" 
-      else
-        print "\e[C"
+          pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
+          ignored, status = Process::waitpid2 pid 
+
+          if status != 0 then
+            print "\r\e[2K#{@name}".blue
+            (@@longer_name.length - @name.length + 1).times { print ' ' }
+            puts "(!!)".red
+            raise CompilationError.new stderr.readlines.join
+          end 
+
+          print "=" 
+        else
+          print "\e[C"
+        end
       end
-    end
 
-    # And we print the epilogue
-    print "\r\e[2K#{@name}".blue
-    (@@longer_name.length - @name.length + 1).times { print ' ' }
-    puts "(OK)".green
+      # And we print the epilogue
+      print "\r\e[2K"
+    end
   end
 
 end
