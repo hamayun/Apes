@@ -82,7 +82,7 @@ class APECompilationUnit
     print "\r\e[2K#{@name}".blue
     (@@longer_name.length - @name.length + 1).times { print ' ' }
     puts "(OK)".green
-
   end
+
 end
 

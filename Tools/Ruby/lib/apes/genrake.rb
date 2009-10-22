@@ -25,6 +25,7 @@ def generate_rakefile(component, list)
   rakefile.puts
   rakefile.puts "require 'rake/clean'"
   rakefile.puts "require 'apes/cc_unit'"
+  rakefile.puts "require 'apes/ld_unit'"
   rakefile.puts
   rakefile.puts "#"
   rakefile.puts "# Check the environment"
@@ -76,7 +77,7 @@ def generate_rakefile(component, list)
   rakefile.puts "#"
   rakefile.puts
   rakefile.puts "CLEAN.include(BUILD_DIR)"
-  rakefile.puts "CLEAN.include('#{component.id.short_name}.x')"
+  rakefile.puts "CLEAN.include('#{component.id.short_name}')"
   rakefile.puts
   rakefile.puts "#"
   rakefile.puts "# Build the components"
@@ -114,10 +115,19 @@ def generate_rakefile(component, list)
   rakefile.puts "end"
   rakefile.puts
   rakefile.puts "task :link => [:build] do"
-  rakefile.puts "  objects = FileList[BUILD_DIR + '/*.o']"
-  rakefile.puts "  sh \"\#{ENV['TARGET_LD']} -o #{component.id.short_name}.x \#{ENV['TARGET_LDFLAGS']} \#{objects}\""
+  rakefile.puts "  begin"
+  rakefile.puts "    APELinkUnit.link('#{component.id.short_name}',BUILD_DIR,cc_unit)"
+  rakefile.puts "  rescue APELinkUnit::LinkError => e"
+  rakefile.puts "    puts"
+  rakefile.puts "    puts '[Link error]'"
+  rakefile.puts "    puts e.message"
+  rakefile.puts "    exit"
+  rakefile.puts "  rescue => e"
+  rakefile.puts "    puts \"\e[2K\""
+  rakefile.puts "    puts e.backtrace"
+  rakefile.puts "    abort \"Exception: \#{e.message}\""
+  rakefile.puts "  end "
   rakefile.puts "end"
   rakefile.puts
-
 end
 
