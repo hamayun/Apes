@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'rexml/document'
 require 'term/ansicolor'
 

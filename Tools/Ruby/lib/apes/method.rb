@@ -1,5 +1,7 @@
-require 'rexml/document'
 require 'apes/argument'
+
+require 'rubygems'
+require 'rexml/document'
 require 'term/ansicolor'
 
 include Term::ANSIColor

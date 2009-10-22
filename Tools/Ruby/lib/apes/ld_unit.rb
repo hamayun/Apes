@@ -1,6 +1,8 @@
+require 'apes/cc_unit'
+
+require 'rubygems'
 require 'term/ansicolor'
 require 'open4'
-require 'apes/cc_unit'
 
 include Term::ANSIColor
 

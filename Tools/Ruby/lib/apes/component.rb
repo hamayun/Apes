@@ -1,8 +1,10 @@
-require 'rexml/document'
 require 'apes/id'
 require 'apes/type'
 require 'apes/definition'
 require 'apes/method'
+
+require 'rubygems'
+require 'rexml/document'
 
 class APEComponent
   attr_reader :unique, :id, :wrapper, :injected_ids, :restricted_ids

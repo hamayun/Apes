@@ -1,6 +1,8 @@
+require 'apes/object_file'
+
+require 'rubygems'
 require 'term/ansicolor'
 require 'open4'
-require 'apes/object_file'
 
 include Term::ANSIColor
 

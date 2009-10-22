@@ -1,9 +1,7 @@
-#!/usr/bin/env ruby1.9
+#!/usr/bin/env ruby
 
 require 'apes/id'
 require 'apes/genrake'
-require 'rubygems'
-require 'open4'
 
 #
 # Define program usage

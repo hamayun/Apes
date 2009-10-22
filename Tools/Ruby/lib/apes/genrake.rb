@@ -1,5 +1,4 @@
 require 'apes/resolve'
-require 'tmpdir'
 
 def generate_rakefile(component, list)
   dependencies = []
