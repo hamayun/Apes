@@ -60,10 +60,11 @@ def generate_rakefile(component, list)
   rakefile.puts "end"
   rakefile.puts
   rakefile.puts "#"
-  rakefile.puts "# Define the build directory"
+  rakefile.puts "# Define the build parameters"
   rakefile.puts "#"
   rakefile.puts
   rakefile.puts "BUILD_DIR = '#{tmpdir}'"
+  rakefile.puts "BINARY = '#{Dir.pwd}/#{component.id.short_name}'"
   rakefile.puts
 
   #
@@ -89,7 +90,7 @@ def generate_rakefile(component, list)
   rakefile.puts "#"
   rakefile.puts
   rakefile.puts "CLEAN.include(BUILD_DIR)"
-  rakefile.puts "CLEAN.include('#{component.id.short_name}')"
+  rakefile.puts "CLEAN.include(BINARY)"
   rakefile.puts
   rakefile.puts "#"
   rakefile.puts "# Build the components"
@@ -119,25 +120,23 @@ def generate_rakefile(component, list)
   rakefile.puts "      puts e.message"
   rakefile.puts "      exit"
   rakefile.puts "    rescue => e"
-  rakefile.puts "      puts \"\e[2K\""
-  rakefile.puts "      puts e.backtrace"
-  rakefile.puts "      abort \"Exception: \#{e.message}\""
+  rakefile.puts "      puts \"\r\e[2KRuby exception: \#{e.message}\""
+  rakefile.puts "      exit"
   rakefile.puts "    end"
   rakefile.puts "  end"
   rakefile.puts "end"
   rakefile.puts
   rakefile.puts "task :link => [:build] do"
   rakefile.puts "  begin"
-  rakefile.puts "    APELinkUnit.link('#{component.id.short_name}',BUILD_DIR,cc_unit)"
+  rakefile.puts "    APELinkUnit.link(BINARY,BUILD_DIR,cc_unit)"
   rakefile.puts "  rescue APELinkUnit::LinkError => e"
   rakefile.puts "    puts"
   rakefile.puts "    puts '[Link error]'"
   rakefile.puts "    puts e.message"
   rakefile.puts "    exit"
   rakefile.puts "  rescue => e"
-  rakefile.puts "    puts \"\e[2K\""
-  rakefile.puts "    puts e.backtrace"
-  rakefile.puts "    abort \"Exception: \#{e.message}\""
+  rakefile.puts "    puts \"\r\e[2KRuby exception: \#{e.message}\""
+  rakefile.puts "    exit"
   rakefile.puts "  end "
   rakefile.puts "end"
   rakefile.puts
