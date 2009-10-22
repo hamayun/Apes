@@ -10,7 +10,7 @@ require 'open4'
 #
 
 def program_usage
-  puts "Usage: apes-genrake <name> <version>"
+  puts "Usage: apes-genrake {<name> <version>}"
 end
 
 #
@@ -29,17 +29,43 @@ rescue Errno::ENOENT => detail
 end
 
 #
-# Find the requested component
+# Duplicate the arguments
 #
 
-id = APEId.new(ARGV[0], nil, ARGV[1])
+ARGV.uniq!
+arguments = ARGV.clone
 
-components = component_list.find_all { |e| e.id == id }
+#
+# Find the component to build
+#
+
+components = []
+
+case arguments.count
+when 0 
+
+  component = APEComponent.createFromXMLFileAtPath Dir.pwd
+
+  if component == nil then
+    abort "[genrake] No component in this directory."
+  end
+
+  components = component_list.find_all { |e| e.id == component.id }
+
+when 2
+
+  id = APEId.new(arguments[0], nil, arguments[1])
+  components = component_list.find_all { |e| e.id == id }
+
+else
+  program_usage
+  abort
+end
 
 if components == nil or components.empty? then
-  abort "[genrake] " + arguments[0] + ": no match found."
+  abort "[genrake] " + id.to_s + ": no match found."
 elsif components.length != 1 then
-  abort "[genrake] " + name + ": multiple matches found."
+  abort "[genrake] " + id.to_s + ": multiple matches found."
 end
 
 #
