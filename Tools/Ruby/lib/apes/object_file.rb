@@ -12,12 +12,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class APEObjectFile
-  attr_reader :source, :update, :name
+  attr_reader :source, :update, :name, :cmd
 
-  def APEObjectFile.createFromFile(name, buildir, source, deps)
+  def APEObjectFile.create(name, buildir, source, deps)
     update = true
     has_modification = false
     object_path = buildir + '/' + name
+
+    cmd_array = [ENV['TARGET_CC']]
+    cmd_array << "-c -o #{buildir}/#{name}"
+    cmd_array << ENV['TARGET_CFLAGS']
+    cmd_array << deps.collect { |d| '-I' + d }.join(' ')
+    cmd_array << source
 
     if File.exist?(object_path) then 
 
@@ -36,7 +42,7 @@ class APEObjectFile
         deps.each do |dep|
 
           # Check each header file of the dependence
-          updated_files = FileList[dep + '/**/*.h'].select do |f| 
+          updated_files = FileList[dep + '/**/*.h'].find do |f| 
             file = File.new(f)
             dep_time = file.mtime
             file.close
@@ -44,7 +50,7 @@ class APEObjectFile
           end 
 
           # If at least one of them is modified, we recompile
-          if not updated_files.empty? then
+          if updated_files != nil then
             has_modification = true
             break
           end
@@ -54,15 +60,16 @@ class APEObjectFile
       end
     end
 
-    APEObjectFile.new(name,source,update)
+    APEObjectFile.new(name,source,update,cmd_array.join(' '))
   end
 
   private
 
-  def initialize(name, source, update)
+  def initialize(name, source, update, cmd)
     @name = name
     @source = source
     @update = update
+    @cmd = cmd
   end
 end
 

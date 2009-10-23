@@ -24,11 +24,11 @@ class APELinkUnit
   class LinkError < RuntimeError
   end
 
-  def APELinkUnit.link(name,buildir,cc_units)
+  def APELinkUnit.link(name, buildir, cc_units, mode)
 
     # We get the complete object list
     objects = []
-    cc_units.each { |n, cc| objects += cc.objects }
+    cc_units.each { |cc| objects += cc.objects }
 
     # We try to link the objects
     cmd = [ENV['TARGET_LD']]
@@ -36,16 +36,18 @@ class APELinkUnit
     cmd << ENV['TARGET_LDFLAGS']
     objects.each { |o| cmd << "#{buildir}/#{o.name}" }
 
+    puts cmd.join(' ')  unless mode == :normal
+
     pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
     ignored, status = Process::waitpid2 pid 
 
     if status != 0 then
-      puts "=> ".bold + "#{name}".red
+      puts "=> ".bold + "#{name}".red unless mode == :verbose
       raise LinkError.new stderr.readlines.join
     end 
 
     # And we print the epilogue
-    puts "=> ".bold + "#{name}".green
+    puts "=> ".bold + "#{name}".green unless mode == :verbose
   end
 end
 

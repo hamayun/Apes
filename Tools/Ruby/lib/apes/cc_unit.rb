@@ -16,6 +16,7 @@ require 'apes/object_file'
 require 'rubygems'
 require 'term/ansicolor'
 require 'open4'
+require 'rake'
 
 include Term::ANSIColor
 
@@ -40,69 +41,51 @@ class APECompilationUnit
   end
 
   def updateObjectCache(buildir)
-
-    # Compute dependency path
     deps = @dependencies
+    deps << (@path + '/Headers')
     deps << (@path + '/Headers/Public')
-    deps << (@path + '/Headers/Private')
 
-    # Build up the object cache
     csrcs = FileList[@path + '/Sources/*.c']
     asrcs = FileList[@path + '/Sources/*.S']
 
     (csrcs + asrcs).each do |file|
       base_name = (@name + ":" + file.split('/').last).ext('o')
-      @objects << APEObjectFile.createFromFile(base_name, buildir, file, deps)
+      @objects << APEObjectFile.create(base_name, buildir, file, deps)
     end
   end
 
-  def build(buildir,mode)
+  def build(buildir, mode)
 
-    # Check if it is even necessary to go through the whole process
-    unless @objects.find { |o| o.update } == nil
-
-      # We print the prologue
+    unless mode == :verbose
       print @name.blue
       (@@longer_name.length - @name.length + 1).times { print ' ' }
-      print '(CC) '.green
 
-      # Then the progress bar
-      print '['.bold
-      @objects.each { |object| print object.update ? '-' : '=' }
-      print "]\e[#{@objects.length + 1}D".bold
-
-      # Finally, we compile what needs to be compiled
-      @objects.each do |object|
-        if object.update then
-          print ">\e[D"
-
-          cmd = [ENV['TARGET_CC']]
-          cmd << "-c -o #{buildir}/#{object.name}"
-          cmd << ENV['TARGET_CFLAGS']
-          cmd << @dependencies.collect { |d| '-I' + d }.join(' ')
-          cmd << "-I#{@path}/Headers -I#{@path}/Headers/Public"
-          cmd << object.source
-
-          pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
-          ignored, status = Process::waitpid2 pid 
-
-          if status != 0 then
-            print "\r\e[2K#{@name}".blue
-            (@@longer_name.length - @name.length + 1).times { print ' ' }
-            puts "(!!)".red
-            raise CompilationError.new stderr.readlines.join
-          end 
-
-          print "=" 
-        else
-          print "\e[C"
-        end
-      end
-
-      # And we print the epilogue
-      print "\r\e[2K"
+      print '|'.bold
+      @objects.each { |object| print object.update ? ' '.on_cyan : ' '.on_green }
+      print "|\e[#{@objects.length + 1}D".bold
     end
+
+    @objects.each do |o|
+      if o.update then
+
+        puts o.cmd unless mode == :normal
+
+        pid, stdin, stdout, stderr = Open4::popen4(o.cmd)
+        ignored, status = Process::waitpid2 pid 
+
+        unless status == 0
+          print "\r#{@name}".blue
+          (@@longer_name.length - @name.length + 1).times { print ' ' }
+          puts "(!!)".red
+          raise CompilationError.new(stderr.readlines.join) 
+        end
+
+        print (mode == :normal) ? ' '.on_green : stdout.readlines.join
+      else
+        print "\e[C".on_green unless mode == :verbose
+      end
+    end
+
+    print "\r\e[2K" unless mode == :verbose
   end
-
 end
-
