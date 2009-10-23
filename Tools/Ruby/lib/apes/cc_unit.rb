@@ -56,6 +56,16 @@ class APECompilationUnit
 
   def build(buildir, mode)
 
+    # Check if the necessary env variables are present
+    if ENV['TARGET_CC'] == nil
+      raise CompilationError.new "Missing TARGET_CC environment variable."
+    end
+
+    if ENV['TARGET_CFLAGS'] == nil
+      raise CompilationError.new "Missing TARGET_CFLAGS environment variable."
+    end
+
+    # Display the prologue
     unless mode == :verbose
       print @name.blue
       (@@longer_name.length - @name.length + 1).times { print ' ' }
@@ -65,6 +75,7 @@ class APECompilationUnit
       print "|\e[#{@objects.length + 1}D".bold
     end
 
+    # Compile the objects
     @objects.each do |o|
       if o.update then
 
@@ -73,12 +84,7 @@ class APECompilationUnit
         pid, stdin, stdout, stderr = Open4::popen4(o.cmd)
         ignored, status = Process::waitpid2 pid 
 
-        unless status == 0
-          print "\r#{@name}".blue
-          (@@longer_name.length - @name.length + 1).times { print ' ' }
-          puts "(!!)".red
-          raise CompilationError.new(stderr.readlines.join) 
-        end
+        raise CompilationError.new(stderr.readlines.join) unless status == 0
 
         print (mode == :normal) ? ' '.on_green : stdout.readlines.join
       else

@@ -18,12 +18,15 @@ require 'apes/resolve'
 require 'apes/cc_unit'
 require 'apes/ld_unit'
 
+require 'rubygems'
+require 'term/ansicolor'
+
 #
 # Define program usage
 #
 
 def program_usage
-  puts "Usage: apes-compiler {<name> <version>}"
+  puts "Usage: apes-cc {<name> <version>}"
   puts "\t--help    : print this help"
   puts "\t--verbose : display the full compilation commands"
 end
@@ -35,10 +38,10 @@ end
 begin
   component_list = APELibraryParser.getComponentList
 rescue RuntimeError
-  puts '[compiler] Variable APES_COMPONENT_PATH not defined.'
+  puts '[cc] Variable APES_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[compiler] error in APES_COMPONENT_PATH: '
+  print '[cc] error in APES_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -81,7 +84,7 @@ when 0
   component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
-    abort "[compiler] No component in this directory."
+    abort "[cc] No component in this directory."
   end
 
   components = component_list.find_all { |e| e.id == component.id }
@@ -97,9 +100,9 @@ else
 end
 
 if components == nil or components.empty? then
-  abort "[compiler] " + id.to_s + ": no match found."
+  abort "[cc] " + id.to_s + ": no match found."
 elsif components.length != 1 then
-  abort "[compiler] " + id.to_s + ": multiple matches found."
+  abort "[cc] " + id.to_s + ": multiple matches found."
 end
 
 #
@@ -110,7 +113,7 @@ component = components.first
 dependencies = component_resolve(component, component_list, [])
 
 if dependencies.empty? then
-  abort "[compiler] No dependencies for: " + component.id.to_s
+  abort "[cc] No dependencies for: " + component.id.to_s
 end
 
 #
@@ -155,18 +158,16 @@ begin
   APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
 
 rescue APECompilationUnit::CompilationError => e
-  puts
-  puts '[Compilation error]'
+  puts "\r\e[2K[Compilation error]".red
   puts e.message
   exit
 rescue APELinkUnit::LinkError => e
-  puts
-  puts '[Link error]'
+  puts "\r\e[2K[Link error]".red
   puts e.message
   exit
 rescue => e
   puts e.backtrace
-  puts "\r\e[2KRuby exception: #{e.message}"
+  puts "\r\e[2KRuby exception: #{e.message}".red
   exit
 end 
 

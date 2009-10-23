@@ -26,6 +26,15 @@ class APELinkUnit
 
   def APELinkUnit.link(name, buildir, cc_units, mode)
 
+    # Check if the necessary env variables are present
+    if ENV['TARGET_LD'] == nil
+      raise CompilationError.new "Missing TARGET_LD environment variable."
+    end
+
+    if ENV['TARGET_LDFLAGS'] == nil
+      raise CompilationError.new "Missing TARGET_LDFLAGS environment variable."
+    end
+
     # We get the complete object list
     objects = []
     cc_units.each { |cc| objects += cc.objects }
@@ -42,12 +51,10 @@ class APELinkUnit
     ignored, status = Process::waitpid2 pid 
 
     if status != 0 then
-      puts "=> ".bold + "#{name}".red unless mode == :verbose
       raise LinkError.new stderr.readlines.join
     end 
 
-    # And we print the epilogue
-    puts "=> ".bold + "#{name}".green unless mode == :verbose
+    print "\r\e[2K"
   end
 end
 
