@@ -28,8 +28,9 @@ class APECompilationUnit
   class CompilationError < RuntimeError
   end
 
-  def initialize(name,path)
+  def initialize(name,version,path)
     @name = name
+    @version = version
     @path = path
     @dependencies = []
     @objects = []
@@ -49,7 +50,7 @@ class APECompilationUnit
     asrcs = FileList[@path + '/Sources/*.S']
 
     (csrcs + asrcs).each do |file|
-      base_name = (@name + ":" + file.split('/').last).ext('o')
+      base_name = (@name + ":" + @version + ":" + file.split('/').last).ext('o')
       @objects << APEObjectFile.create(base_name, buildir, file, deps)
     end
   end
