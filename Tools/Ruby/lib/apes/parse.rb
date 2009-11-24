@@ -39,27 +39,31 @@ class APELibraryParser
   @@ENV_NAME = 'APES_COMPONENT_PATH'
 
   def APELibraryParser.APEParsePath path, components_list
-    directory = Dir.new(path)
+    begin
+      directory = Dir.new(path)
 
-    # First, check if the directory has a component.xml file
+      # First, check if the directory has a component.xml file
 
-    if directory.entries.find { |e| e == "component.xml" } != nil then
+      if directory.entries.find { |e| e == "component.xml" } != nil then
 
-      # Create a component object from the path
-      cmp = APEComponent.createFromXMLFileAtPath path 
+        # Create a component object from the path
+        cmp = APEComponent.createFromXMLFileAtPath path 
 
-      if components_list.entries.find { |e| e.id == cmp.id } == nil
-        components_list << cmp
-      end
-    else
-      directory.entries.each do |e|
-        if e != "." and e != ".." and e[0] != "." then
-          new_path = path + '/' + e
-          if FileTest.directory? new_path  then
-            APELibraryParser.APEParsePath new_path, components_list 
+        if components_list.entries.find { |e| e.id == cmp.id } == nil
+          components_list << cmp
+        end
+      else
+        directory.entries.each do |e|
+          if e != "." and e != ".." and e[0] != "." then
+            new_path = path + '/' + e
+            if FileTest.directory? new_path  then
+              APELibraryParser.APEParsePath new_path, components_list 
+            end
           end
         end
       end
+    rescue Errno::EACCES => e
+      # Do nothing
     end
   end
 end
