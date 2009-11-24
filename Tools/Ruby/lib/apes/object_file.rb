@@ -11,20 +11,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'rubygems'
+require 'digest'
+
 class APEObjectFile
   attr_reader :source, :update, :name, :cmd
 
-  def APEObjectFile.create(name, buildir, source, deps)
+  class ObjectError < RuntimeError
+  end
+
+  def initialize(name, source, update, cmd)
+    @name = name
+    @source = source
+    @update = update
+    @cmd = cmd
+  end
+
+  def APEObjectFile.createWith(name, buildir, source, deps)
     update = true
     has_modification = false
-    object_path = buildir + '/' + name
+ 
+    if ENV['TARGET_COPTS'] == nil
+      raise ObjectError.new "Missing TARGET_COPTS environment variable."
+    end
 
+    # Compute the object hash
+    sha1 = Digest::SHA1.hexdigest (name + '(' + ENV['TARGET_COPTS'] + ')')
+    sha1 = sha1.ext('o')
+    object_path = buildir + '/' + sha1
+
+    # Build the command array
     cmd_array = [ENV['TARGET_CC']]
-    cmd_array << "-c -o #{buildir}/#{name}"
+    cmd_array << "-c -o #{buildir}/#{sha1}"
     cmd_array << ENV['TARGET_CFLAGS']
+    cmd_array << ENV['TARGET_COPTS']
     cmd_array << deps.collect { |d| '-I' + d }.join(' ')
     cmd_array << source
 
+    # Check if the object has to be rebuild
     if File.exist?(object_path) then 
 
       # Get the Modification Time of the object
@@ -60,17 +84,10 @@ class APEObjectFile
       end
     end
 
-    APEObjectFile.new(name,source,update,cmd_array.join(' '))
+    # Create the object file
+    APEObjectFile.new(sha1,source,update,cmd_array.join(' '))
   end
 
-  private
-
-  def initialize(name, source, update, cmd)
-    @name = name
-    @source = source
-    @update = update
-    @cmd = cmd
-  end
 end
 
 

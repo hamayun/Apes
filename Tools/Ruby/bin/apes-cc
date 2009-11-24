@@ -140,7 +140,7 @@ begin
 
   dependencies.each do |d|
     if not d.wrapper then
-      unit = APECompilationUnit.new(d.id.name, d.id.version, d.path)
+      unit = APECompilationUnit.createWith d.id.name, d.id.version, d.path
       component_resolve(d, dependencies, []).each do |l|
         unit << "#{l.path}/Headers/Public" unless l.wrapper
       end

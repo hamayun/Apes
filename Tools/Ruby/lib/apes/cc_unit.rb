@@ -22,7 +22,6 @@ include Term::ANSIColor
 
 class APECompilationUnit
   @@longer_name = ""
-
   attr_reader :objects
 
   class CompilationError < RuntimeError
@@ -35,6 +34,21 @@ class APECompilationUnit
     @dependencies = []
     @objects = []
     @@longer_name = @name if @name.length >= @@longer_name.length
+  end
+
+  def APECompilationUnit.createWith(name,version,path)
+
+    # Check if the necessary env variables are present
+    if ENV['TARGET_CC'] == nil
+      raise CompilationError.new "Missing TARGET_CC environment variable."
+    end
+
+    if ENV['TARGET_CFLAGS'] == nil
+      raise CompilationError.new "Missing TARGET_CFLAGS environment variable."
+    end
+
+    # If everything is OK, return an instance of the CcUnit
+    APECompilationUnit.new(name, version, path)
   end
 
   def << (dependency)
@@ -50,21 +64,16 @@ class APECompilationUnit
     asrcs = FileList[@path + '/Sources/*.S']
 
     (csrcs + asrcs).each do |file|
-      base_name = (@name + ":" + @version + ":" + file.split('/').last).ext('o')
-      @objects << APEObjectFile.create(base_name, buildir, file, deps)
+      base_name = @name + ':' + @version + ':' + file.split('/').last
+      begin
+        @objects << APEObjectFile.createWith(base_name, buildir, file, deps)
+      rescue APEObjectFile::ObjectError => e
+        raise CompilationError.new e.message
+      end
     end
   end
 
   def build(buildir, mode)
-
-    # Check if the necessary env variables are present
-    if ENV['TARGET_CC'] == nil
-      raise CompilationError.new "Missing TARGET_CC environment variable."
-    end
-
-    if ENV['TARGET_CFLAGS'] == nil
-      raise CompilationError.new "Missing TARGET_CFLAGS environment variable."
-    end
 
     # Display the prologue
     unless mode == :verbose
