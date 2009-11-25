@@ -15,13 +15,14 @@ require 'rubygems'
 require 'digest'
 
 class APEObjectFile
-  attr_reader :source, :update, :name, :cmd
+  attr_reader :source, :update, :name, :sha1, :cmd
 
   class ObjectError < RuntimeError
   end
 
-  def initialize(name, source, update, cmd)
+  def initialize(name, sha1, source, update, cmd)
     @name = name
+    @sha1 = sha1
     @source = source
     @update = update
     @cmd = cmd
@@ -37,12 +38,11 @@ class APEObjectFile
 
     # Compute the object hash
     sha1 = Digest::SHA1.hexdigest (name + '(' + ENV['TARGET_COPTS'] + ')')
-    sha1 = sha1.ext('o')
-    object_path = buildir + '/' + sha1
+    object_path = buildir + '/' + sha1.ext('o')
 
     # Build the command array
     cmd_array = [ENV['TARGET_CC']]
-    cmd_array << "-c -o #{buildir}/#{sha1}"
+    cmd_array << "-c -o #{object_path}"
     cmd_array << ENV['TARGET_CFLAGS']
     cmd_array << ENV['TARGET_COPTS']
     cmd_array << deps.collect { |d| '-I' + d }.join(' ')
@@ -85,7 +85,7 @@ class APEObjectFile
     end
 
     # Create the object file
-    APEObjectFile.new(sha1,source,update,cmd_array.join(' '))
+    APEObjectFile.new(name, sha1, source, update, cmd_array.join(' '))
   end
 
 end

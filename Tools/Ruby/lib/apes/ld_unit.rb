@@ -43,7 +43,7 @@ class APELinkUnit
     cmd = [ENV['TARGET_LD']]
     cmd << "-o #{name}"
     cmd << ENV['TARGET_LDFLAGS']
-    objects.each { |o| cmd << "#{buildir}/#{o.name}" }
+    objects.each { |o| cmd << "#{buildir}/#{o.sha1.ext('o')}" }
 
     puts cmd.join(' ')  unless mode == :normal
 

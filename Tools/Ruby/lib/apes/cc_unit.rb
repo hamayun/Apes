@@ -37,7 +37,6 @@ class APECompilationUnit
   end
 
   def APECompilationUnit.createWith(name,version,path)
-
     # Check if the necessary env variables are present
     if ENV['TARGET_CC'] == nil
       raise CompilationError.new "Missing TARGET_CC environment variable."
@@ -103,5 +102,20 @@ class APECompilationUnit
     end
 
     print "\r\e[2K" unless mode == :verbose
+  end
+
+  def clean(buildir, mode)
+    @objects.each do |o|
+      object_path = buildir + '/' + o.sha1.ext('o')
+
+      begin
+        File.delete object_path
+        name = o.name.green
+      rescue Errno::ENOENT 
+        name = o.name.red
+      end
+
+      puts ["deleted".blue, name, '=>', object_path].join(' ') if mode == :verbose
+    end
   end
 end

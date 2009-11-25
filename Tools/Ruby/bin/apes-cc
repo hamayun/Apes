@@ -20,6 +20,7 @@ require 'apes/ld_unit'
 
 require 'rubygems'
 require 'term/ansicolor'
+require 'tmpdir'
 
 #
 # Define program usage
@@ -27,6 +28,7 @@ require 'term/ansicolor'
 
 def program_usage
   puts "Usage: apes-cc {<name> <version>}"
+  puts "\t--clean   : clean the component graph instead of building it"
   puts "\t--help    : print this help"
   puts "\t--verbose : display the full compilation commands"
 end
@@ -51,6 +53,7 @@ end
 #
 
 verbose_mode = :normal
+cc_action = :compile
 
 ARGV.uniq!
 arguments = ARGV.clone
@@ -58,6 +61,9 @@ arguments = ARGV.clone
 ARGV.each do |arg|
   if arg.include?("--") then
     case arg
+    when "--clean"
+      cc_action = :clean
+      arguments.delete("--clean")
     when "--help"
       program_usage
       arguments.delete("--help")
@@ -120,7 +126,7 @@ end
 # Define the build parameters
 #
 
-BUILD_DIR = "/tmp/apes-#{ENV['USER']}-objects"
+BUILD_DIR = Dir.tmpdir + "/apes-#{ENV['USER']}-objects"
 BINARY = "#{Dir.pwd}/#{component.id.short_name}"
 
 #
@@ -151,11 +157,14 @@ begin
   # Update units object caches
   cc_units.each { |cc| cc.updateObjectCache(BUILD_DIR) }
 
-  # Build units
-  cc_units.each { |cc| cc.build(BUILD_DIR, verbose_mode) }
-
-  # We link the objects
-  APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
+  # Depending on the execution mode, build or clean the object cache
+  case cc_action
+  when :compile
+    cc_units.each { |cc| cc.build(BUILD_DIR, verbose_mode) }
+    APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
+  when :clean
+    cc_units.each { |cc| cc.clean(BUILD_DIR, verbose_mode) }
+  end
 
 rescue APECompilationUnit::CompilationError => e
   puts "\r\e[2K[Compilation error]".red
