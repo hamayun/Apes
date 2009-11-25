@@ -29,9 +29,16 @@ require 'tmpdir'
 def program_usage
   puts "Usage: apes-cc {<name> <version>}"
   puts "\t--clean   : clean the component graph instead of building it"
+  puts "\t--purge   : purge the object cache"
   puts "\t--help    : print this help"
   puts "\t--verbose : display the full compilation commands"
 end
+
+#
+# Define the build directory
+#
+
+BUILD_DIR = Dir.tmpdir + "/apes-#{ENV['USER']}-objects"
 
 #
 # Get the component list
@@ -40,10 +47,10 @@ end
 begin
   component_list = APELibraryParser.getComponentList
 rescue RuntimeError
-  puts '[cc] Variable APES_COMPONENT_PATH not defined.'
+  puts '[apes-cc] variable APES_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[cc] error in APES_COMPONENT_PATH: '
+  print '[apes-cc] error in APES_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -58,9 +65,26 @@ cc_action = :compile
 ARGV.uniq!
 arguments = ARGV.clone
 
+#
+# Parse the arguments
+#
+
 ARGV.each do |arg|
   if arg.include?("--") then
     case arg
+    when "--purge"
+      Dir.glob(BUILD_DIR + "/*").each do |file|
+        begin
+          File.delete file
+        rescue Errno::EACCES
+          print "cannot purge".blue + ' ' + file.split('/').last
+          abort " => Permission denied".red
+        rescue Errno::ENOENT
+          print "cannot purge".blue + ' ' + file.split('/').last
+          abort " => File not found".red
+        end
+      end
+      exit
     when "--clean"
       cc_action = :clean
       arguments.delete("--clean")
@@ -90,7 +114,7 @@ when 0
   component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
-    abort "[cc] No component in this directory."
+    abort '[apes-cc] no component in this directory.'
   end
 
   components = component_list.find_all { |e| e.id == component.id }
@@ -106,9 +130,9 @@ else
 end
 
 if components == nil or components.empty? then
-  abort "[cc] " + id.to_s + ": no match found."
+  abort "[apes-cc] " + id.to_s + ": no match found."
 elsif components.length != 1 then
-  abort "[cc] " + id.to_s + ": multiple matches found."
+  abort "[apes-cc] " + id.to_s + ": multiple matches found."
 end
 
 #
@@ -119,14 +143,13 @@ component = components.first
 dependencies = component_resolve(component, component_list, [])
 
 if dependencies.empty? then
-  abort "[cc] No dependencies for: " + component.id.to_s
+  abort "[apes-cc] no dependencies for: " + component.id.to_s
 end
 
 #
-# Define the build parameters
+# Define the binary name
 #
 
-BUILD_DIR = Dir.tmpdir + "/apes-#{ENV['USER']}-objects"
 BINARY = "#{Dir.pwd}/#{component.id.short_name}"
 
 #
