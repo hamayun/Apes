@@ -36,10 +36,10 @@ end
 begin
   component_list = APELibraryParser.getComponentList
 rescue RuntimeError
-  puts '[resolve] Variable APES_COMPONENT_PATH not defined.'
+  puts '[apes-resolve] Variable APES_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[resolve] error in APES_COMPONENT_PATH: '
+  print '[apes-resolve] error in APES_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -57,15 +57,15 @@ id = APEId.new(ARGV[0], nil, ARGV[1])
 components = component_list.find_all { |e| e.id == id }
 
 if components == nil || components.empty? then
-  abort "[resolve] " + ARGV[0] + ": no match found."
+  abort "[apes-resolve] " + ARGV[0] + ": no match found."
 elsif components.length != 1 then
-  abort "[resolve] " + name + ": multiple matches found."
+  abort "[apes-resolve] " + name + ": multiple matches found."
 end
 
 dependencies = component_resolve components[0], component_list, []
 
 if dependencies.empty? then
-  puts "[resolve] No dependencies for: " + ARGV[0]
+  puts "[apes-resolve] No dependencies for: " + ARGV[0]
 else
   dependencies.each do |d|
     puts d.id.to_s
