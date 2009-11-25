@@ -38,7 +38,7 @@ class APEObjectFile
 
     # Compute the object hash
     sha1 = Digest::SHA1.hexdigest (name + '(' + ENV['TARGET_COPTS'] + ')')
-    object_path = buildir + '/' + sha1.ext('o')
+    object_path = buildir + '/' + sha1
 
     # Build the command array
     cmd_array = [ENV['TARGET_CC']]

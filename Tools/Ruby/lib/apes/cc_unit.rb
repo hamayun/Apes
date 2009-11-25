@@ -106,16 +106,16 @@ class APECompilationUnit
 
   def clean(buildir, mode)
     @objects.each do |o|
-      object_path = buildir + '/' + o.sha1.ext('o')
+      object_path = buildir + '/' + o.sha1
 
       begin
         File.delete object_path
-        name = o.name.green
+        sha1 = o.sha1.green
       rescue Errno::ENOENT 
-        name = o.name.red
+        sha1 = o.sha1.red
       end
 
-      puts ["deleted".blue, name, '=>', object_path].join(' ') if mode == :verbose
+      puts ["deleted".blue, sha1, '=>', o.name].join(' ') if mode == :verbose
     end
   end
 end
