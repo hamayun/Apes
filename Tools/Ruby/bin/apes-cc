@@ -28,17 +28,18 @@ require 'tmpdir'
 
 def program_usage
   puts "Usage: apes-cc {<name> <version>}"
-  puts "\t--clean   : clean the component graph instead of building it"
-  puts "\t--purge   : purge the object cache"
-  puts "\t--help    : print this help"
-  puts "\t--verbose : display the full compilation commands"
+  puts "\t--clean                 : clean the component graph instead of building it"
+  puts "\t--purge                 : purge the object cache"
+  puts "\t--show-cache-directory  : show the object cache directory"
+  puts "\t--help                  : print this help"
+  puts "\t--verbose               : display the full compilation commands"
 end
 
 #
 # Define the build directory
 #
 
-BUILD_DIR = Dir.tmpdir + "/apes-#{ENV['USER']}-objects"
+BUILD_DIR = ENV['HOME'] + "/.apes"
 
 #
 # Get the component list
@@ -72,6 +73,9 @@ arguments = ARGV.clone
 ARGV.each do |arg|
   if arg.include?("--") then
     case arg
+    when "--show-cache-directory"
+      puts BUILD_DIR
+      exit
     when "--purge"
       Dir.glob(BUILD_DIR + "/*").each do |file|
         begin
