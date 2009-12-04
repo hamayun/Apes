@@ -90,8 +90,14 @@ class APECompilationUnit
 
         puts o.cmd unless mode == :normal
 
-        pid, stdin, stdout, stderr = Open4::popen4(o.cmd)
-        ignored, status = Process::waitpid2 pid 
+        begin
+          pid, stdin, stdout, stderr = Open4::popen4(o.cmd)
+          ignored, status = Process::waitpid2 pid 
+        rescue Errno::ENOENT => e
+          message = "Cannot execute " + ENV['TARGET_CC']
+          message += ", no such file or directory"
+          raise CompilationError.new message
+        end
 
         raise CompilationError.new(stderr.readlines.join) unless status == 0
 

@@ -47,14 +47,20 @@ class APELinkUnit
 
     puts cmd.join(' ')  unless mode == :normal
 
-    pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
-    ignored, status = Process::waitpid2 pid 
+    begin
+      pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
+      ignored, status = Process::waitpid2 pid 
+    rescue Errno::ENOENT => e
+      message = "Cannot execute " + ENV['TARGET_LD']
+      message += ", no such file or directory"
+      raise LinkError.new message
+    end
 
     if status != 0 then
       raise LinkError.new stderr.readlines.join
     end 
 
-    print "\r\e[2K"
+    print "\r\e[2K" if mode == :normal
   end
 end
 
