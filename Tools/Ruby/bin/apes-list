@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby1.9
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require 'apes/id'
+require 'apes/parse'
+
+require 'rubygems'
+require 'term/ansicolor'
+
+include Term::ANSIColor
+
+def program_usage
+  puts 'Usage: apes-list'
+end
+
+if ARGV.count != 0 then
+  program_usage
+else
+  begin
+    component_list = APELibraryParser.getComponentList
+    longer_id = component_list.max do |a,b|
+      a.id.name.length <=> b.id.name.length
+    end
+
+    component_list.each do |c|
+      print c.id.name.blue
+      (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
+      puts ('[' + c.id.version + ']').green
+    end
+  rescue RuntimeError
+    puts '[apes-list] Variable APES_COMPONENT_PATH not defined.'
+  rescue Errno::ENOENT => detail
+    print '[apes-list] error in APES_COMPONENT_PATH: '
+    puts detail.message
+  end
+end
+

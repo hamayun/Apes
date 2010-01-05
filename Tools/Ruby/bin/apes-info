@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby1.9
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require 'apes/id'
+require 'apes/parse'
+
+require 'rubygems'
+require 'term/ansicolor'
+
+include Term::ANSIColor
+
+def program_usage
+  puts "Usage: apes-info <name> <version>"
+end
+
+#
+# Test the arguments
+#
+
+if ARGV.count != 2 then
+  program_usage
+  abort
+end
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[apes-info] Variable APES_COMPONENT_PATH not defined.'
+  abort
+rescue Errno::ENOENT => detail
+  print '[apes-info] error in APES_COMPONENT_PATH: '
+  puts detail.message
+  abort
+end
+
+#
+# Create an ID for the component
+#
+
+id = APEId.new(ARGV[0], nil, ARGV[1])
+
+#
+# Retrieve the component
+#
+
+match_list = component_list.find_all { |e| e.id == id }
+
+if match_list.empty? then
+  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
+elsif match_list.length > 1 then
+  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
+end
+
+component = match_list[0]
+
+puts ("[" + component.id.name + ", " + component.id.version + "]").green.bold
+puts "author = ".blue + component.author
+print "wrapper = ".blue + component.wrapper.to_s
+puts ", unique = ".blue + component.unique.to_s
+puts
+
+puts "[Path:]".green.bold
+puts component.path
+puts
+
+if not (component.provided_methods.empty? \
+        and component.provided_definitions.empty? \
+        and provided_types.empty?) then
+  puts "[Provides]".green.bold
+
+  component.provided_types.each do |t|
+    puts t.to_s
+  end
+
+  component.provided_definitions.each do |d|
+    puts d.to_s
+  end
+
+  component.provided_methods.each do |m|
+    puts m.to_s
+  end
+end
+
+puts
+
+if not (component.required_methods.empty? \
+        and component.required_definitions.empty? \
+        and component.required_types.empty?) then
+  puts "[Requires:]".green.bold
+
+  component.required_types.each do |t|
+    puts t.to_s
+  end
+
+  component.required_definitions.each do |d|
+    puts d.to_s
+  end
+
+  component.required_methods.each do |m|
+    puts m.to_s
+  end
+end

@@ -1,0 +1,209 @@
+#!/usr/bin/env ruby1.9
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require 'apes/id'
+require 'apes/resolve'
+require 'apes/cc_unit'
+require 'apes/ld_unit'
+
+require 'rubygems'
+require 'term/ansicolor'
+require 'tmpdir'
+
+#
+# Define program usage
+#
+
+def program_usage
+  puts "Usage: apes-cc {<name> <version>}"
+  puts "\t--clean                 : clean the component graph instead of building it"
+  puts "\t--purge                 : purge the object cache"
+  puts "\t--show-cache-directory  : show the object cache directory"
+  puts "\t--help                  : print this help"
+  puts "\t--verbose               : display the full compilation commands"
+end
+
+#
+# Define the build directory
+#
+
+BUILD_DIR = ENV['HOME'] + "/.apes"
+
+#
+# Get the component list
+#
+
+begin
+  component_list = APELibraryParser.getComponentList
+rescue RuntimeError
+  puts '[apes-cc] variable APES_COMPONENT_PATH not defined.'
+  abort
+rescue Errno::ENOENT => detail
+  print '[apes-cc] error in APES_COMPONENT_PATH: '
+  puts detail.message
+  abort
+end
+
+#
+# Duplicate the arguments
+#
+
+verbose_mode = :normal
+cc_action = :compile
+
+ARGV.uniq!
+arguments = ARGV.clone
+
+#
+# Parse the arguments
+#
+
+ARGV.each do |arg|
+  if arg.include?("--") then
+    case arg
+    when "--show-cache-directory"
+      puts BUILD_DIR
+      exit
+    when "--purge"
+      Dir.glob(BUILD_DIR + "/*").each do |file|
+        begin
+          File.delete file
+        rescue Errno::EACCES
+          print "cannot purge".blue + ' ' + file.split('/').last
+          abort " => Permission denied".red
+        rescue Errno::ENOENT
+          print "cannot purge".blue + ' ' + file.split('/').last
+          abort " => File not found".red
+        end
+      end
+      exit
+    when "--clean"
+      cc_action = :clean
+      arguments.delete("--clean")
+    when "--help"
+      program_usage
+      arguments.delete("--help")
+      exit
+    when "--verbose"
+      verbose_mode = :verbose
+      arguments.delete("--verbose")
+    else
+      program_usage
+      abort
+    end
+  end
+end
+
+#
+# Find the component to build
+#
+
+components = []
+
+case arguments.count
+when 0 
+
+  component = APEComponent.createFromXMLFileAtPath Dir.pwd
+
+  if component == nil then
+    abort '[apes-cc] no component in this directory.'
+  end
+
+  components = component_list.find_all { |e| e.id == component.id }
+
+when 2
+
+  id = APEId.new(arguments[0], nil, arguments[1])
+  components = component_list.find_all { |e| e.id == id }
+
+else
+  program_usage
+  abort
+end
+
+if components == nil or components.empty? then
+  abort "[apes-cc] " + id.to_s + ": no match found."
+elsif components.length != 1 then
+  abort "[apes-cc] " + id.to_s + ": multiple matches found."
+end
+
+#
+# Check the component dependencies
+#
+
+component = components.first
+dependencies = component_resolve(component, component_list, [])
+
+if dependencies.empty? then
+  abort "[apes-cc] no dependencies for: " + component.id.to_s
+end
+
+#
+# Define the binary name
+#
+
+BINARY = "#{Dir.pwd}/#{component.id.short_name}"
+
+#
+# Create the objects directory
+#
+
+if not File.exist?(BUILD_DIR) then
+  Dir.mkdir(BUILD_DIR)
+end
+
+#
+# Build the component
+#
+
+begin
+  cc_units = []
+
+  dependencies.each do |d|
+    if not d.wrapper then
+      unit = APECompilationUnit.createWith d.id.name, d.id.version, d.path
+      component_resolve(d, dependencies, []).each do |l|
+        unit << "#{l.path}/Headers/Public" unless l.wrapper
+      end
+      cc_units << unit
+    end
+  end
+
+  # Update units object caches
+  cc_units.each { |cc| cc.updateObjectCache(BUILD_DIR) }
+
+  # Depending on the execution mode, build or clean the object cache
+  case cc_action
+  when :compile
+    cc_units.each { |cc| cc.build(BUILD_DIR, verbose_mode) }
+    APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
+  when :clean
+    cc_units.each { |cc| cc.clean(BUILD_DIR, verbose_mode) }
+  end
+
+rescue APECompilationUnit::CompilationError => e
+  puts "\r\e[2K[Compilation error]".red
+  puts e.message
+  exit
+rescue APELinkUnit::LinkError => e
+  puts "\r\e[2K[Link error]".red
+  puts e.message
+  exit
+rescue => e
+  puts e.backtrace
+  puts "\r\e[2KRuby exception: #{e.message}".red
+  exit
+end 
+
