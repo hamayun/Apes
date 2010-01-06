@@ -151,6 +151,19 @@ def component_resolve(component, components_list, deps)
   restrict.uniq!
 
   #
+  # Check if the restricted ids match existing components
+  #
+  
+  restrict.each do |r|
+    match = components_list.find_all { |m| m.id == r }
+
+    if match.empty? then
+      puts "Error with restriction: " + r.to_s 
+      abort "Cannot find a matching component."
+    end
+  end
+
+  #
   # Try to resolve the restriction
   #
 
