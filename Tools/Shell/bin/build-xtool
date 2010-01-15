@@ -174,7 +174,6 @@ get_sources()
 
   cd ${DLS_DIR}
   print_substep "binutils"
-  rm -fr ${BINUTILS_ARCHIVE}
   wget -Nq ${BINUTILS_REPOSITORY}/${BINUTILS_ARCHIVE}
   tar jxf ${BINUTILS_ARCHIVE}
 
@@ -192,7 +191,6 @@ get_sources()
 
   cd ${DLS_DIR}
   print_substep "GCC"
-  rm -fr ${GCC_ARCHIVE}
   wget -Nq ${GCC_REPOSITORY}/${GCC_ARCHIVE}
   tar jxf ${GCC_ARCHIVE}
 
@@ -210,7 +208,6 @@ get_sources()
 
   cd ${DLS_DIR}
   print_substep "NewlibC"
-  rm -fr ${NEWLIB_ARCHIVE}
   wget -Nq ${NEWLIB_REPOSITORY}/${NEWLIB_ARCHIVE}
   tar zxf ${NEWLIB_ARCHIVE}
 
@@ -228,7 +225,6 @@ get_sources()
 
   cd ${DLS_DIR}
   print_substep "GDB"
-  rm -fr ${GDB_ARCHIVE}
   wget -Nq ${GDB_REPOSITORY}/${GDB_ARCHIVE}
   tar jxf ${GDB_ARCHIVE}
 
