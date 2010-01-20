@@ -38,7 +38,9 @@ def component_resolve_r(component, components_list, deps)
     end
 
     if not found then
-      abort component.id.name + ": no dependence found for the type " + t.name
+      puts component.id.name + ": unresolved type " + t.name
+      deps.delete component
+      return []
     end
   end
 
@@ -59,7 +61,9 @@ def component_resolve_r(component, components_list, deps)
     end
 
     if not found then
-      abort component.id.name + ": no dependence found for the definition " + d.name
+      puts component.id.name + ": unresolved definition " + d.name
+      deps.delete component
+      return []
     end
   end
 
@@ -80,7 +84,9 @@ def component_resolve_r(component, components_list, deps)
     end
 
     if not found then
-      abort component.id.name + ": no dependence found for the method " + m.name
+      puts component.id.name + ": unresolved method " + m.name
+      deps.delete component
+      return []
     end
   end
 
@@ -224,13 +230,14 @@ def component_resolve(component, components_list, deps)
   # that we have the right component set
   #
 
-  component_resolve_r(component, resolved_dependencies, deps)
+  final_set = []
+  final_set = component_resolve_r(component, resolved_dependencies, deps)
 
   #
   # If the previous operation did not abort,
   # then we have the right set :)
   #
 
-  resolved_dependencies
+  return final_set
 end
 
