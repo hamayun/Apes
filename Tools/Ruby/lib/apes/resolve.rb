@@ -12,7 +12,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'apes/parse'
-require 'pp'
 
 def component_resolve_r(component, restrictions, components_list, deps)
   local_deps = []
@@ -134,7 +133,7 @@ def component_resolve_r(component, restrictions, components_list, deps)
   #
   # Check if their is no conflict in the local dependencies
   #
-
+  
   local_deps.each do |d|
     overlap = []
     overlap = local_deps.find_all { |f| f.overlap?(d) }
@@ -162,11 +161,13 @@ def component_resolve_r(component, restrictions, components_list, deps)
   if not local_deps.empty? then
     final_deps = (local_deps + deps).uniq
     local_deps.each do |f|
-      final_deps += component_resolve_r(f, restrictions, components_list, final_deps)
+      d, r = component_resolve_r(f, restrictions, components_list, final_deps)
+      final_deps += d
+      restrictions += r
     end
   end
 
-  final_deps.uniq
+  return final_deps.uniq, restrictions.uniq
 end
 
 def component_resolve(component, components_list, deps)
@@ -195,8 +196,11 @@ def component_resolve(component, components_list, deps)
   dependencies = []
   dependencies << component
 
-  dependencies += component_resolve_r(component, restrict, components_list, deps)
+  d, r = component_resolve_r(component, restrict, components_list, deps)
+  dependencies += d
+  restrict += r
   dependencies.uniq!
+  restrict.uniq!
 
   #
   # Try to resolve the restriction
@@ -255,7 +259,7 @@ def component_resolve(component, components_list, deps)
   #
 
   final_set = []
-  final_set = component_resolve_r(component, restrict, dependencies, deps)
+  final_set, r = component_resolve_r(component, restrict, dependencies, deps)
 
   #
   # If the previous operation did not abort,
