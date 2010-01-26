@@ -13,7 +13,7 @@
 
 require 'apes/parse'
 
-def component_resolve_r(component, restrictions, components_list, deps)
+def component_resolve_r(component, restrictions, clist, deps)
   local_deps = []
   final_deps = []
   t_deps = []
@@ -28,19 +28,28 @@ def component_resolve_r(component, restrictions, components_list, deps)
   component.required_types.each do |t|
     found = false
 
-    components_list.each do |c|
+    deps.each do |c|
       match = c.provided_types.find { |i| i == t }
 
       if match != nil then
         found = true
-        if deps.find { |i| i == c } == nil then t_deps << c end
+        t_deps << c
       end
     end
+
+    clist.each do |c|
+      match = c.provided_types.find { |i| i == t }
+
+      if match != nil then
+        found = true
+        t_deps << c
+      end
+    end unless found
 
     if not found then
       puts component.id.name + ": unresolved type " + t.name
       deps.delete component
-      return []
+      return [], [], []
     end
   end
 
@@ -51,19 +60,28 @@ def component_resolve_r(component, restrictions, components_list, deps)
   component.required_definitions.each do |d|
     found = false
 
-    components_list.each do |c|
+    deps.each do |c|
       match = c.provided_definitions.find { |i| i == d }
 
       if match != nil then
         found = true
-        if deps.find { |i| i == c } == nil then d_deps << c end
+        d_deps << c
       end
     end
+
+    clist.each do |c|
+      match = c.provided_definitions.find { |i| i == d }
+
+      if match != nil then
+        found = true
+        d_deps << c
+      end
+    end unless found
 
     if not found then
       puts component.id.name + ": unresolved definition " + d.name
       deps.delete component
-      return []
+      return [], [], []
     end
   end
 
@@ -74,19 +92,28 @@ def component_resolve_r(component, restrictions, components_list, deps)
   component.required_methods.each do |m|
     found = false
 
-    components_list.each do |c|
+    deps.each do |c|
       match = c.provided_methods.find { |i| i == m }
 
       if match != nil then
         found = true
-        if deps.find { |i| i == c } == nil then m_deps << c end
+        m_deps << c
       end
     end
+
+    clist.each do |c|
+      match = c.provided_methods.find { |i| i == m }
+
+      if match != nil then
+        found = true
+        m_deps << c
+      end
+    end unless found
 
     if not found then
       puts component.id.name + ": unresolved method " + m.name
       deps.delete component
-      return []
+      return [], [], []
     end
   end
 
@@ -95,7 +122,7 @@ def component_resolve_r(component, restrictions, components_list, deps)
   #
 
   component.injected_ids.each do |i|
-    inject = components_list.find { |f| f.id == i }
+    inject = clist.find { |f| f.id == i }
     if inject == nil then
       print component.id.to_s + ": "
       abort "cannot inject " + i.to_s + ", it does not exist."
@@ -115,7 +142,7 @@ def component_resolve_r(component, restrictions, components_list, deps)
   #
   
   component.restricted_ids.each do |r|
-    match = components_list.find_all { |m| m.id == r }
+    match = clist.find_all { |m| m.id == r }
 
     if match.empty? then
       puts "Error with restriction: " + r.to_s 
@@ -133,35 +160,55 @@ def component_resolve_r(component, restrictions, components_list, deps)
   #
   # Check if their is no conflict in the local dependencies
   #
-  
+
+  resolved_deps = local_deps.clone
+ 
   local_deps.each do |d|
     overlap = []
     overlap = local_deps.find_all { |f| f.overlap?(d) }
 
     if not overlap.empty? and overlap.find { |o| o.unique } != nil then
       overlap << d
+      filtered_overlap = overlap.clone
 
       restrictions.each do |r|
         match = overlap.find { |o| r == o.id }
         if match != nil then
-          overlap.delete(match)
+          filtered_overlap.delete(match)
         end
       end
 
-      overlap.each do |k|
-        local_deps.delete(k)
+      if filtered_overlap == overlap then
+        puts "Conflict found:"
+        filtered_overlap.each { |o| print o.id.to_s + ' ' }
+        abort "\nAt least one of the components is tagged unique."
+      else
+        filtered_overlap.each do |k|
+          resolved_deps.delete(k)
+        end
       end
     end
+  end
+
+  #
+  # Check of the local deps are already present in the global deps
+  #
+
+  filtered_deps = resolved_deps.clone
+
+  resolved_deps.each do |l|
+    match = deps.find { |d| d == l }
+    if match != nil then filtered_deps.delete (match) end
   end
 
   #
   # Parse through the dependencies, if necessary
   #
 
-  if not local_deps.empty? then
-    final_deps = (local_deps + deps).uniq
-    local_deps.each do |f|
-      d, r = component_resolve_r(f, restrictions, components_list, final_deps)
+  if not filtered_deps.empty? then
+    final_deps = (filtered_deps + deps).uniq
+    filtered_deps.each do |f|
+      d, r = component_resolve_r(f, restrictions, clist, final_deps)
       final_deps += d
       restrictions += r
     end
@@ -170,7 +217,7 @@ def component_resolve_r(component, restrictions, components_list, deps)
   return final_deps.uniq, restrictions.uniq
 end
 
-def component_resolve(component, components_list, deps)
+def component_resolve(component, clist, deps)
 
   #
   # Filter components in the component_list conflicting with the
@@ -178,8 +225,8 @@ def component_resolve(component, components_list, deps)
   # 
 
   if component.unique then
-    filtered_components = components_list.find_all { |f| f.overlap?(component) }
-    filtered_components.each { |f| components_list.delete(f) }
+    filtered_components = clist.find_all { |f| f.overlap?(component) }
+    filtered_components.each { |f| clist.delete(f) }
   end
 
   #
@@ -196,7 +243,7 @@ def component_resolve(component, components_list, deps)
   dependencies = []
   dependencies << component
 
-  d, r = component_resolve_r(component, restrict, components_list, deps)
+  d, r = component_resolve_r(component, restrict, clist, dependencies)
   dependencies += d
   restrict += r
   dependencies.uniq!
