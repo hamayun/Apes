@@ -144,7 +144,7 @@ end
 #
 
 component = components.first
-dependencies = component_resolve(component, component_list, [])
+dependencies = component_resolve(component, component_list)
 
 if dependencies.empty? then
   abort "[apes-cc] no dependencies for: " + component.id.to_s
@@ -174,7 +174,7 @@ begin
   dependencies.each do |d|
     if not d.wrapper then
       unit = APECompilationUnit.createWith d.id.name, d.id.version, d.path
-      component_resolve(d, dependencies, []).each do |l|
+      component_resolve(d, dependencies).each do |l|
         unit << "#{l.path}/Headers/Public" unless l.wrapper
       end
       cc_units << unit

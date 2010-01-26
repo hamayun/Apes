@@ -62,7 +62,7 @@ elsif components.length != 1 then
   abort "[apes-resolve] " + name + ": multiple matches found."
 end
 
-dependencies = component_resolve components[0], component_list, []
+dependencies = component_resolve components[0], component_list
 
 if dependencies.empty? then
   puts "[apes-resolve] No dependencies for: " + ARGV[0]

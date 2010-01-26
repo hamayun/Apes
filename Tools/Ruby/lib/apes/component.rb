@@ -200,7 +200,7 @@ class APEComponent
   def overlap?(component)
     overlap = false
 
-    if component != self  then
+    if component != nil and component != self  then
       @provided_types.each do |t|
         item = component.provided_types.find { |f| t == f }
         overlap = (overlap or (item != nil))
@@ -215,6 +215,8 @@ class APEComponent
         item = component.provided_methods.find { |f| m == f }
         overlap = (overlap or (item != nil))
       end
+    else
+      overlap = true
     end
   
     overlap
