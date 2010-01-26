@@ -216,8 +216,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   return final_deps.uniq, rlist.uniq, xlist.uniq
 end
 
-def component_resolve(component, component_list)
-  clist = component_list.clone
+def component_resolve(component, clist)
 
   #
   # Filter components in the component_list conflicting with the
@@ -225,9 +224,10 @@ def component_resolve(component, component_list)
   # 
 
   if component.unique then
-    filtered_components = clist.find_all { |f| f.overlap?(component) }
+    filtered_components = clist.find_all do |f|
+      f != component && f.overlap?(component)
+    end
     filtered_components.each { |f| clist.delete(f) }
-    clist << component
   end
 
   #
@@ -237,7 +237,7 @@ def component_resolve(component, component_list)
   dlist, rlist, xlist = component_resolve_r(component, [], clist, [], [])
 
   #
-  # Try to resolve the conflicts
+  # Try to resolve the conflicts, if any.
   #
   
   rlist.each do |r|
@@ -256,66 +256,6 @@ def component_resolve(component, component_list)
     xlist.each { |x| print x.id.to_s + ' ' }
     abort "Try to restrict the graph to one of them."
   end
-
-  # dependencies.each do |d|
-  #   overlap = []
-  #   overlap = dependencies.find_all { |f| f.overlap?(d) }
-
-  #   if not overlap.empty? and overlap.find { |o| o.unique } != nil then
-  #     overlap << d
-
-  #     restrict.each do |r|
-  #       match = overlap.find { |o| r == o.id }
-  #       if match != nil then
-  #         overlap.delete(match)
-  #       end
-  #     end
-
-  #     if overlap.empty? then
-  #       puts "Conflict found for " + d.id.to_s + ":"
-  #       overlap.each { |k| print k.id.to_s + " " }
-  #       abort "\nAt least one of the components is tagged unique."
-  #     end
-
-  #     if overlap.length >= 2 then
-  #       print "Conflicting restrictions: "
-  #       overlap.each { |k| print k.id.to_s + " " }
-  #       abort "\n"
-  #     end
-
-  #     overlap.each do |k|
-  #       k.restricted_ids.each { |i| restrict.delete(i) }
-  #       dependencies.delete(k)
-  #     end
-  #   end
-  # end
-
-  #
-  # Check if all the restrictions are met
-  #
-
-  # dependencies.each do |d|
-  #   d.restricted_ids.each do |r|
-  #     match = dependencies.find { |d| d.id == r }
-  #     if match == nil then
-  #       puts "Unmatched restriction " + r.to_s + " for component " + d.id.to_s
-  #       abort "The component either doesn't exist or need to be injected."
-  #     end
-  #   end
-  # end
-
-  #
-  # Retry the resolution in order to make sure
-  # that we have the right component set
-  #
-
-  # final_set = []
-  # final_set, r = component_resolve_r(component, restrict, dependencies, dlist)
-
-  #
-  # If the previous operation did not abort,
-  # then we have the right set :)
-  #
 
   return dlist
 end
