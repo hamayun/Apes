@@ -318,15 +318,18 @@ newlib_install()
   mkdir -p logs
 
   print_substep "configuring ..."
-  CFLAGS=${NEWLIB_CFLAGS}                \
-  ${DLS_DIR}/${NEWLIB_DIR}/configure     \
-  --prefix=${INSTALL_DIR}                \
-  --target=${TARGET}                     \
-  --disable-nls                          \
-  --enable-multilib                      \
-  --enable-interwork                     \
-  --disable-newlib-may-supply-syscalls   \
-  --enable-newlib-multithread            \
+  CFLAGS=${NEWLIB_CFLAGS}                 \
+  ${DLS_DIR}/${NEWLIB_DIR}/configure      \
+  --prefix=${INSTALL_DIR}                 \
+  --target=${TARGET}                      \
+  --disable-nls                           \
+  --enable-multilib                       \
+  --enable-interwork                      \
+  --enable-newlib-io-long-long            \
+  --enable-newlib-io-long-double          \
+  --enable-newlib-io-c99-formats          \
+  --disable-newlib-may-supply-syscalls    \
+  --enable-newlib-multithread             \
   --disable-newlib-supplied-syscalls      &> logs/configure.log || return
 
   print_substep "compiling ..." 
