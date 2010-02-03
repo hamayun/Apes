@@ -396,7 +396,7 @@ gdb_install()
 
 print_usage()
 {
-  echo "Usage : build-xtool {ARM, MIPS} INSTALL_DIR"
+  echo "Usage : build-xtool {arm, mips} INSTALL_DIR"
   exit
 }
 
