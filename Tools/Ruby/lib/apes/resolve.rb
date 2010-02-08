@@ -55,7 +55,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
       end
     end unless found
 
-    abort puts component.id.name + ": unresolved type " + t.name unless found
+    abort component.id.name + ": unresolved type " + t.name unless found
   end
 
   #
