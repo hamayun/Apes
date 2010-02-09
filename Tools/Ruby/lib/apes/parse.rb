@@ -24,7 +24,6 @@ class APELibraryParser
     end
 
     component_path = ENV[@@ENV_NAME].split ':'
-    component_path << Dir.pwd
     component_path.uniq!
 
     component_path.each do |path|
