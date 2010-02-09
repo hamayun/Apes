@@ -121,29 +121,32 @@ when 0
     abort '[apes-cc] no component in this directory.'
   end
 
-  components = component_list.find_all { |e| e.id == component.id }
+  if component_list.find { |e| e.id == component.id } == nil then
+    component_list << component
+  end
 
 when 2
 
   id = APEId.new(arguments[0], nil, arguments[1])
   components = component_list.find_all { |e| e.id == id }
 
+  if components == nil or components.empty? then
+    abort "[apes-cc] " + id.to_s + ": no match found."
+  elsif components.length != 1 then
+    abort "[apes-cc] " + id.to_s + ": multiple matches found."
+  end
+
+  component = components.first
+
 else
   program_usage
   abort
-end
-
-if components == nil or components.empty? then
-  abort "[apes-cc] " + id.to_s + ": no match found."
-elsif components.length != 1 then
-  abort "[apes-cc] " + id.to_s + ": multiple matches found."
 end
 
 #
 # Check the component dependencies
 #
 
-component = components.first
 dependencies = component_resolve(component, component_list)
 
 if dependencies.empty? then
