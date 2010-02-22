@@ -117,7 +117,6 @@ print_step()
     echo "==================================="
 }
 
-
 print_substep()
 {
     echo "* "$1
@@ -152,8 +151,8 @@ get_sources()
 
   print_substep "Downloading GNU patches"
 
-  if [ ! -e ${TMP_DIR}/${PATCH_REPOSITORY} ] ; then
-    git clone ${PATCH_URL}/${PATCH_REPOSITORY}.git ${TMP_DIR}/${PATCH_REPOSITORY} &> ${TMP_DIR}/git_clone.log || exit -1 ;
+  if [ ! -e ${DLS_DIR}/${PATCH_REPOSITORY} ] ; then
+    git clone ${PATCH_URL}/${PATCH_REPOSITORY}.git ${DLS_DIR}/${PATCH_REPOSITORY} &> ${TMP_DIR}/git_clone.log || exit -1 ;
   fi ;
 
   #
@@ -176,7 +175,7 @@ get_sources()
   cd ${BINUTILS_DIR}
   print_substep "Patching binutils"
   mkdir -p logs
-  patch -p1 < ${TMP_DIR}/${PATCH_REPOSITORY}/binutils &> logs/binutils-patch.log
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/binutils &> logs/binutils-patch.log
 
   #
   # Getting GCC
@@ -198,7 +197,7 @@ get_sources()
   cd ${GCC_DIR}
   print_substep "Patching GCC"
   mkdir -p logs
-  patch -p1 < ${TMP_DIR}/${PATCH_REPOSITORY}/gcc  &> logs/gcc-patch.log
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/gcc  &> logs/gcc-patch.log
 
   #
   # Getting Newlib
@@ -220,7 +219,7 @@ get_sources()
   cd ${NEWLIB_DIR}
   print_substep "Patching NewlibC"
   mkdir -p logs
-  patch -p1 < ${TMP_DIR}/${PATCH_REPOSITORY}/newlib &> logs/newlib-patch.log
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/newlib &> logs/newlib-patch.log
 
   #
   # Getting Gdb
@@ -242,7 +241,7 @@ get_sources()
   cd ${GDB_DIR}
   print_substep "Patching GDB"
   mkdir -p logs
-  patch -p1 < ${TMP_DIR}/${PATCH_REPOSITORY}/gdb  &> logs/newlib-patch.log
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/gdb  &> logs/newlib-patch.log
 
   #
   # Done ...
