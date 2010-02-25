@@ -63,7 +63,7 @@ STAMPS_DIR=${TMP_DIR}/stamps
 # Sources definitions
 #
 
-PATCH_URL=http://tima-sls.imag.fr./git
+PATCH_URL=git://tima-sls.imag.fr
 PATCH_REPOSITORY=GnuPatches
 
 # binutils stuffs
