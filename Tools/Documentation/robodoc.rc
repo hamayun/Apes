@@ -27,10 +27,12 @@ options:
 	--tabsize 4
 	--sections
 	--cmode
+  --syntaxcolors
 	--nogeneratedwith
-	--documenttitle "DNA Operating System Documentation"
 	--source_line_numbers
 	--nopre
+  --masterindex "Index Page,index"
+  --sourceindex "Source files,sources"
 
 ignore files:
 	README
