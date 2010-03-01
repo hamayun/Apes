@@ -83,8 +83,10 @@ p.item_name
 
 #navigation
 {
-    background-color: rgb(98,84,55);
-    color:            rgb(230,221,202);
+    /* background-color: rgb(98,84,55); */
+    background-color: rgb(64,64,64);
+    /* color:            rgb(230,221,202); */
+    color:            rgb(255,255,255);
     font-family:      Arial, serif;
     font-style:       normal;
     font-size:        100%;
@@ -94,8 +96,9 @@ p.item_name
 a.menuitem
 {
     font-size: 80%;
-    background-color: rgb(98,84,55);
-    color:               rgb(220,220,220);
+    /* background-color: rgb(98,84,55);*/
+    background-color: rgb(64,64,64);
+    color:               rgb(255,255,255);
     font-variant:        normal;
     text-transform:      none;
     font-weight:         normal;
@@ -105,16 +108,19 @@ a.menuitem
 		margin-top:          1px; 
 /* 
     margin-bottom:       1px;
-*/
     border-color:        rgb(159,126,57);
+*/
+    border-color:        rgb(64,64,64);
     text-align:          right;
 }
 
 #logo, #logo a
 {
     font-size: 120%;
-    background-color:   rgb(198,178,135);
-    color:              rgb(98,84,55);
+    /* background-color:   rgb(198,178,135); */
+    background-color:   rgb(192,192,192);
+    /* color:              rgb(98,84,55); */
+    color:              rgb(0,0,0);
     font-family:        Arial, serif;
     font-style:         normal;
     font-variant:       normal;
@@ -122,7 +128,7 @@ a.menuitem
     font-weight:        bold;
     padding:            20px 18px 20px 18px;
     border-color:       rgb(255,255,255);
-    text-align:         right;
+    text-align:         center;
 }
 
 #extra, #extra a
@@ -142,7 +148,8 @@ a.menuitem
     border-right-style:  none; 
     border-top-style:    none; 
     border-bottom-style: none;
-    padding: 12px 12px 12px 12px;
+    /* padding: 12px 12px 12px 12px; */
+    padding: 0;
     border-color:        rgb(195,165,100);
     text-align:          center;
 }
@@ -251,8 +258,10 @@ h6
 
 div#footer
 {
-    background-color: rgb(198,178,135);
-    color:      rgb(98,84,55);
+    /* background-color: rgb(198,178,135);*/
+    background-color: rgb(64,64,64);
+    /* color:      rgb(98,84,55); */
+    color:      rgb(255,255,255);
     clear:      left;
     width:      100%;
     font-size:   71%;
@@ -260,8 +269,8 @@ div#footer
 
 div#footer a
 {
-    background-color: rgb(198,178,135);
-    color:            rgb(98,84,55);
+    background-color: rgb(64,64,64);
+    color:      rgb(255,255,255);
 }
 
 div#footer p

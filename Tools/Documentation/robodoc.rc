@@ -46,3 +46,48 @@ ignore files:
 accept files:
 	*.c
 	*.h
+
+keywords:
+  watch
+  rescue
+  check
+  ensure
+  panic
+  leave
+  return
+  if
+  else
+  while
+  for
+  goto
+  switch
+  case
+  break
+  continue
+  ?
+  :
+  asm
+  __asm__
+  typedef
+  struct
+  union
+  int8_t
+  int16_t
+  int32_t
+  uint8_t
+  uint16_t
+  uint32_t
+  float
+  double
+  int
+  char
+  long
+  short
+  unsigned
+  extern
+  inline
+  auto
+  volatile
+  __attribute__
+
+
