@@ -121,7 +121,7 @@ when 0
     abort '[apes-cc] no component in this directory.'
   end
 
-  if component_list.find { |e| e.id == component.id } == nil then
+  if component_list.find { |e| e.equ?(component) } == nil then
     component_list << component
   end
 

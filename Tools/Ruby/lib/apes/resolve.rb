@@ -37,15 +37,6 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   component.required_types.each do |t|
     found = false
 
-    dlist.each do |c|
-      match = c.provided_types.find { |i| i == t }
-
-      if match != nil then
-        found = true
-        t_deps << c
-      end
-    end
-
     clist.each do |c|
       match = c.provided_types.find { |i| i == t }
 
@@ -53,7 +44,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
         found = true
         t_deps << c
       end
-    end unless found
+    end
 
     abort component.id.name + ": unresolved type " + t.name unless found
   end
@@ -65,15 +56,6 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   component.required_definitions.each do |d|
     found = false
 
-    dlist.each do |c|
-      match = c.provided_definitions.find { |i| i == d }
-
-      if match != nil then
-        found = true
-        d_deps << c
-      end
-    end
-
     clist.each do |c|
       match = c.provided_definitions.find { |i| i == d }
 
@@ -81,7 +63,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
         found = true
         d_deps << c
       end
-    end unless found
+    end
 
     abort component.id.name + ": unresolved definition " + d.name unless found
   end
@@ -93,15 +75,6 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   component.required_methods.each do |m|
     found = false
 
-    dlist.each do |c|
-      match = c.provided_methods.find { |i| i == m }
-
-      if match != nil then
-        found = true
-        m_deps << c
-      end
-    end
-
     clist.each do |c|
       match = c.provided_methods.find { |i| i == m }
 
@@ -109,7 +82,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
         found = true
         m_deps << c
       end
-    end unless found
+    end
 
     abort component.id.name + ": unresolved method " + m.name unless found
   end
@@ -225,7 +198,7 @@ def component_resolve(component, clist)
 
   if component.unique then
     filtered_components = clist.find_all do |f|
-      f != component && f.overlap?(component)
+      (not f.equ?(component)) && f.overlap?(component)
     end
     filtered_components.each { |f| clist.delete(f) }
   end
@@ -254,7 +227,7 @@ def component_resolve(component, clist)
   if not xlist.empty? then
     puts "Conflict found:"
     xlist.each { |x| print x.id.to_s + ' ' }
-    abort "Try to restrict the graph to one of them."
+    abort "\nTry to restrict the graph to one of them."
   end
 
   return dlist
