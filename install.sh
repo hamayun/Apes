@@ -10,4 +10,12 @@ else
   export GEM_PATH=$GEM_PATH:$APES_ROOT/Tools/Ruby/Gems
   export PATH=$PATH:$APES_ROOT/Tools/Ruby/bin
   export PATH=$PATH:$APES_ROOT/Tools/Shell/bin
+
+  if [ -e $APES_ROOT/Toolchains ] ; then
+    for i in $(ls $APES_ROOT/Toolchains) ; do
+      export PATH=$TOOLCHAINS/$i/bin:$PATH
+      export MANPATH=$TOOLCHAINS/$i/man:$MANPATH
+      export INFOPATH=$TOOLCHAINS/$i/info:$INFOPATH
+    done ;
+  fi
 fi 
