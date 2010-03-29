@@ -13,9 +13,9 @@ else
 
   if [ -e $APES_ROOT/Toolchains ] ; then
     for i in $(ls $APES_ROOT/Toolchains) ; do
-      export PATH=$TOOLCHAINS/$i/bin:$PATH
-      export MANPATH=$TOOLCHAINS/$i/man:$MANPATH
-      export INFOPATH=$TOOLCHAINS/$i/info:$INFOPATH
+      export PATH=$APES_ROOT/Toolchains/$i/bin:$PATH
+      export MANPATH=$APES_ROOT/Toolchains/$i/man:$MANPATH
+      export INFOPATH=$APES_ROOT/Toolchains/$i/info:$INFOPATH
     done ;
   fi
 fi 
