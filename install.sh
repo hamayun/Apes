@@ -4,6 +4,8 @@ if [ "x$APES_ROOT" = "x" ] ; then
   echo "The \$APES_ROOT environment variable is not defined."
 elif [ ! -d $APES_ROOT ] ; then
   echo "\$APES_ROOT invalid."
+elif [ "x$APES_RUBY" = "x" ] ; then
+  echo "The \$APES_RUBY environment variable is not defined."
 else
   export APES_COMPONENT_PATH=$APES_ROOT/Components
   export RUBYLIB=$RUBYLIB:$APES_ROOT/Tools/Ruby/lib
