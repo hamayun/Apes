@@ -153,6 +153,10 @@ get_sources()
 
   if [ ! -e ${DLS_DIR}/${PATCH_REPOSITORY} ] ; then
     git clone ${PATCH_URL}/${PATCH_REPOSITORY}.git ${DLS_DIR}/${PATCH_REPOSITORY} &> ${TMP_DIR}/git_clone.log || exit -1 ;
+  else
+    pushd ${DLS_DIR}/${PATCH_REPOSITORY}
+    git pull
+    popd
   fi ;
 
   #
