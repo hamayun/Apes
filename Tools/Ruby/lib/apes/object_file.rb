@@ -15,58 +15,116 @@ require 'rubygems'
 require 'digest'
 
 class APEObjectFile
-  attr_reader :source, :update, :name, :sha1, :cmd
+  attr_reader :update, :object
 
   class ObjectError < RuntimeError
   end
 
-  def initialize(name, sha1, source, update, cmd)
-    @name = name
-    @sha1 = sha1
+  def initialize(source, component, version, sandbox, includes)
     @source = source
-    @update = update
-    @cmd = cmd
+    @component = component
+    @version = version
+    @includes = includes
+    @sandbox = sandbox
+    @object = sandbox + '/object'
+    @description = sandbox + '/description'
   end
 
-  def APEObjectFile.createWith(name, buildir, source, deps)
-    update = true
-    has_modification = false
- 
-    if ENV['TARGET_COPTS'] == nil
-      raise ObjectError.new "Missing TARGET_COPTS environment variable."
+  def APEObjectFile.createWith(source, component, version, cache, includes)
+    component_var = component.upcase + '_CC_FLAGS'
+
+    if ENV['APES_CC_FLAGS'] == nil
+      raise ObjectError.new "Undefined APES_FLAGS variable."
+    end
+
+    if ENV['APES_CC_OPTIMIZATIONS'] == nil
+      raise ObjectError.new "Undefined APES_OPTIMIZATIONS variable."
     end
 
     # Compute the object hash
-    sha1 = Digest::SHA1.hexdigest (name + '(' + ENV['TARGET_COPTS'] + ')')
-    object_path = buildir + '/' + sha1
+    signature = source + ':' + version + ':'
+    signature += ENV['APES_CC_FLAGS'] + ':'
+    signature += ENV['APES_CC_OPTIMIZATIONS'] + ':'
 
-    # Build the command array
-    cmd_array = [ENV['TARGET_CC']]
-    cmd_array << "-c -o #{object_path}"
-    cmd_array << ENV['TARGET_CFLAGS']
-    cmd_array << ENV['TARGET_COPTS']
-    cmd_array << deps.collect { |d| '-I' + d }.join(' ')
-    cmd_array << source
+    unless ENV[component_var] == nil
+      signature += ENV[component_var]
+    end
 
-    # Check if the object has to be rebuild
-    if File.exist?(object_path) then 
+    sha1 = Digest::SHA1.hexdigest signature
+    sandbox = cache + '/' + sha1
 
+    # Check if the object directory exists
+    if not File.exist?(sandbox) then 
+      Dir.mkdir(sandbox)
+      description = File.new(sandbox + '/description', 'w+')
+      description.puts('File: ' + source)
+      description.puts('Component: ' + component)
+      description.puts('Version: ' + version)
+      description.puts('Includes: ' + includes.join(' '))
+      description.puts('Optimizations: ' + ENV['APES_CC_OPTIMIZATIONS'])
+
+      unless ENV[component_var] == nil
+        description.puts('Locals: ' + ENV[component_var])
+      end
+    end
+
+    # Create the object file
+    APEObjectFile.new(source, component, version, sandbox, includes)
+  end
+
+  def APEObjectFile.createFrom(sandbox)
+    unless File.exist?(sandbox)
+      raise ObjectError.new "Invalid sandbox path."
+    end
+
+    # Load the information
+    description = File.new(sandbox + '/description')
+    source = description.readline.chomp.split(' ')
+    source.delete('File:')
+    source = source.join(' ')
+    puts source
+
+    component = description.readline.chomp.split(' ')
+    component.delete('Component:')
+    component = component.join(' ')
+    puts component
+
+    version = description.readline.chomp.split(' ')
+    version.delete('Version:')
+    version = version.join(' ')
+    puts version
+
+    includes = description.readline.chomp.split(' ')
+    includes.delete('Includes:')
+    puts includes
+    description.close
+
+    # Create the object file
+    APEObjectFile.new(source, component, version, sandbox, includes)
+  end
+
+  def update
+    update = true
+    has_modification = false
+
+    # Check if the object has to be built
+    if File.exist?(@object) then 
       # Get the Modification Time of the object
-      file = File.new(object_path)
+      file = File.new(@object)
       object_time = file.mtime
       file.close
 
       # Get the Modification Time of the source file
-      file = File.new(source)
+      file = File.new(@source)
       source_time = file.mtime
       file.close
 
       # Check if an update is needed
       if object_time > source_time then
-        deps.each do |dep|
+        @includes.each do |inc|
 
           # Check each header file of the dependence
-          updated_files = FileList[dep + '/**/*.h'].find do |f| 
+          updated_files = FileList[inc + '/**/*.h'].find do |f| 
             file = File.new(f)
             dep_time = file.mtime
             file.close
@@ -84,10 +142,42 @@ class APEObjectFile
       end
     end
 
-    # Create the object file
-    APEObjectFile.new(name, sha1, source, update, cmd_array.join(' '))
+    return update
   end
 
+  def command
+    component_var = @component.upcase + '_CC_FLAGS'
+
+    # Build the command array
+    cmd_array = [ENV['APES_COMPILER']]
+    cmd_array << "-c -o #{@object}"
+    cmd_array << ENV['APES_CC_FLAGS']
+    cmd_array << ENV['APES_CC_OPTIMIZATIONS']
+
+    unless ENV[component_var] == nil
+      cmd_array << ENV[component_var]
+    end
+
+    cmd_array << @includes.collect { |d| '-I' + d }.join(' ')
+    cmd_array << @source
+
+    # Return the command value
+    return cmd_array.join (' ')
+  end
+
+  def delete
+    if File.exist? @object then
+      File.delete @object
+    end
+
+    if File.exist? @description then
+      File.delete @description
+    end
+
+    Dir.delete @sandbox
+  end
+
+  def identifier
+    return @component + '(' + @version + '):' + @source.split('/').last
+  end
 end
-
-

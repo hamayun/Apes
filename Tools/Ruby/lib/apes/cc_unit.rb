@@ -22,7 +22,7 @@ include Term::ANSIColor
 
 class APECompilationUnit
   @@longer_name = ""
-  attr_reader :objects
+  attr_reader :objects, :update
 
   class CompilationError < RuntimeError
   end
@@ -33,6 +33,7 @@ class APECompilationUnit
     @path = path
     @dependencies = []
     @objects = []
+    @update = false
     @@longer_name = @name if @name.length >= @@longer_name.length
   end
 
@@ -63,9 +64,10 @@ class APECompilationUnit
     asrcs = FileList[@path + '/Sources/*.S']
 
     (csrcs + asrcs).each do |file|
-      base_name = @name + ':' + @version + ':' + file.split('/').last
       begin
-        @objects << APEObjectFile.createWith(base_name, buildir, file, deps)
+        object = APEObjectFile.createWith(file, @name, @version, buildir, deps)
+        @update = @update || object.update
+        @objects << object
       rescue APEObjectFile::ObjectError => e
         raise CompilationError.new e.message
       end
@@ -73,7 +75,6 @@ class APECompilationUnit
   end
 
   def build(buildir, mode)
-
     # Display the prologue
     unless mode == :verbose
       print @name.blue
@@ -91,7 +92,7 @@ class APECompilationUnit
         puts o.cmd unless mode == :normal
 
         begin
-          pid, stdin, stdout, stderr = Open4::popen4(o.cmd)
+          pid, stdin, stdout, stderr = Open4::popen4(o.command)
           ignored, status = Process::waitpid2 pid 
         rescue Errno::ENOENT => e
           message = "Cannot execute " + ENV['TARGET_CC']
@@ -112,16 +113,14 @@ class APECompilationUnit
 
   def clean(buildir, mode)
     @objects.each do |o|
-      object_path = buildir + '/' + o.sha1
-
       begin
-        File.delete object_path
-        sha1 = o.sha1.green
+        o.delete
+        name = o.identifier.green
       rescue Errno::ENOENT 
-        sha1 = o.sha1.red
+        name = o.identifier.red
       end
 
-      puts ["deleted".blue, sha1, '=>', o.name].join(' ') if mode == :verbose
+      puts ["deleted".blue, name].join(' ') if mode == :verbose
     end
   end
 end

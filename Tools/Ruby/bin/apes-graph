@@ -22,15 +22,6 @@ def program_usage
 end
 
 #
-# Check the CLI arguments
-#
-
-if ARGV.count != 2 then
-  program_usage
-  abort
-end
-
-#
 # Get the component list
 #
 
@@ -46,16 +37,49 @@ rescue Errno::ENOENT => detail
 end
 
 #
-# Create an ID for the component
+# Check the CLI arguments
 #
 
-id = APEId.new(ARGV[0], nil, ARGV[1])
+ARGV.uniq!
+arguments = ARGV.clone
+components = []
+
+case arguments.count
+when 0 
+
+  component = APEComponent.createFromXMLFileAtPath Dir.pwd
+
+  if component == nil then
+    abort '[apes-cc] no component in this directory.'
+  end
+
+  if component_list.find { |e| e.equ?(component) } == nil then
+    component_list << component
+  end
+
+when 2
+
+  id = APEId.new(arguments[0], nil, arguments[1])
+  components = component_list.find_all { |e| e.id == id }
+
+  if components == nil or components.empty? then
+    abort "[apes-cc] " + id.to_s + ": no match found."
+  elsif components.length != 1 then
+    abort "[apes-cc] " + id.to_s + ": multiple matches found."
+  end
+
+  component = components.first
+
+else
+  program_usage
+  abort
+end
 
 #
 # Look for the component in the library
 #
 
-components = component_list.find_all { |e| e.id == id }
+components = component_list.find_all { |e| e.id == component.id }
 
 if components == nil or components.empty? then
   abort "[apes-graph] " + ARGV[0] + ": no match found."
@@ -67,7 +91,7 @@ end
 # Compute the graph
 #
 
-dependencies = component_resolve components[0], component_list, []
+dependencies = component_resolve(components[0], component_list)
 
 if dependencies.empty? then
   puts "[apes-graph] No dependencies for: " + ARGV[0]

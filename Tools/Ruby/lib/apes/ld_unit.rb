@@ -27,12 +27,12 @@ class APELinkUnit
   def APELinkUnit.link(name, buildir, cc_units, mode)
 
     # Check if the necessary env variables are present
-    if ENV['TARGET_LD'] == nil
-      raise CompilationError.new "Missing TARGET_LD environment variable."
+    if ENV['APES_LINKER'] == nil
+      raise LinkError.new "Undefined APES_LINKER variable."
     end
 
-    if ENV['TARGET_LDFLAGS'] == nil
-      raise CompilationError.new "Missing TARGET_LDFLAGS environment variable."
+    if ENV['APES_LINKER_FLAGS'] == nil
+      raise LinkError.new "Undefined APES_LINKER_FLAGS variable."
     end
 
     # We get the complete object list
@@ -40,10 +40,10 @@ class APELinkUnit
     cc_units.each { |cc| objects += cc.objects }
 
     # We try to link the objects
-    cmd = [ENV['TARGET_LD']]
+    cmd = [ENV['APES_LINKER']]
     cmd << "-o #{name}"
-    cmd << ENV['TARGET_LDFLAGS']
-    objects.each { |o| cmd << "#{buildir}/#{o.sha1}" }
+    cmd << ENV['APES_LINKER_FLAGS']
+    objects.each { |o| cmd << "#{o.object}" }
 
     puts cmd.join(' ')  unless mode == :normal
 

@@ -15,6 +15,7 @@
 
 require 'apes/id'
 require 'apes/resolve'
+require 'apes/object_file'
 require 'apes/cc_unit'
 require 'apes/ld_unit'
 
@@ -78,15 +79,8 @@ ARGV.each do |arg|
       exit
     when "--purge"
       Dir.glob(BUILD_DIR + "/*").each do |file|
-        begin
-          File.delete file
-        rescue Errno::EACCES
-          print "cannot purge".blue + ' ' + file.split('/').last
-          abort " => Permission denied".red
-        rescue Errno::ENOENT
-          print "cannot purge".blue + ' ' + file.split('/').last
-          abort " => File not found".red
-        end
+        object = APEObjectFile.createFrom(file)
+        object.delete
       end
       exit
     when "--clean"
@@ -190,7 +184,9 @@ begin
   # Depending on the execution mode, build or clean the object cache
   case cc_action
   when :compile
-    cc_units.each { |cc| cc.build(BUILD_DIR, verbose_mode) }
+    cc_units.each do |cc|
+      cc.build(BUILD_DIR, verbose_mode) unless not cc.update
+    end
     APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
   when :clean
     cc_units.each { |cc| cc.clean(BUILD_DIR, verbose_mode) }
