@@ -50,6 +50,8 @@ class APEObjectFile
       description.puts('File: ' + source)
       description.puts('Includes: ' + includes.join(' '))
       description.puts('Flags: ' + flags)
+    elsif not File.directory?(sandbox)
+      raise ObjectError.new "Invalid cache object. Please purge your cache."
     end
 
     # Create the object file
@@ -57,8 +59,10 @@ class APEObjectFile
   end
 
   def APEObjectFile.createFrom(sandbox)
-    unless File.exist?(sandbox)
+    if not File.exist?(sandbox)
       raise ObjectError.new "Invalid sandbox path."
+    elsif not File.directory?(sandbox)
+      raise ObjectError.new "Invalid cache object. Please purge your cache."
     end
 
     # Load the information

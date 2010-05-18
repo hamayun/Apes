@@ -41,25 +41,18 @@ end
 # Define the build directory
 #
 
-BUILD_DIR = ENV['HOME'] + "/.apes"
+CACHE_DIRECTORY = ENV['HOME'] + "/.apes"
 
 #
-# Get the component list
+# Create the objects directory
 #
 
-begin
-  component_list = APELibraryParser.getComponentList
-rescue RuntimeError
-  puts '[apes-cc] variable APES_COMPONENT_PATH not defined.'
-  abort
-rescue Errno::ENOENT => detail
-  print '[apes-cc] error in APES_COMPONENT_PATH: '
-  puts detail.message
-  abort
+if not File.exist?(CACHE_DIRECTORY) then
+  Dir.mkdir(CACHE_DIRECTORY)
 end
 
 #
-# Duplicate the arguments
+# Duplicate the argument list
 #
 
 verbose_mode = :normal
@@ -68,111 +61,99 @@ cc_action = :compile
 ARGV.uniq!
 arguments = ARGV.clone
 
-#
-# Parse the arguments
-#
-
-ARGV.each do |arg|
-  if arg.include?("--") then
-    case arg
-    when "--show-cache-directory"
-      puts BUILD_DIR
-      exit
-    when "--show-cache"
-      Dir.glob(BUILD_DIR + "/*").each do |file|
-        object = APEObjectFile.createFrom(file)
-        puts object.to_s
+begin
+  ARGV.each do |arg|
+    if arg.include?("--") then
+      case arg
+      when "--show-cache-directory"
+        puts CACHE_DIRECTORY
+        exit
+      when "--show-cache"
+        Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
+          object = APEObjectFile.createFrom(file)
+          puts object.to_s
+        end
+        exit
+      when "--purge-cache"
+        Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
+          object = APEObjectFile.createFrom(file)
+          object.delete
+        end
+        exit
+      when "--clean"
+        cc_action = :clean
+        arguments.delete("--clean")
+      when "--help"
+        program_usage
+        arguments.delete("--help")
+        exit
+      when "--verbose"
+        verbose_mode = :verbose
+        arguments.delete("--verbose")
+      else
+        program_usage
+        abort
       end
-      exit
-    when "--purge-cache"
-      Dir.glob(BUILD_DIR + "/*").each do |file|
-        object = APEObjectFile.createFrom(file)
-        object.delete
-      end
-      exit
-    when "--clean"
-      cc_action = :clean
-      arguments.delete("--clean")
-    when "--help"
-      program_usage
-      arguments.delete("--help")
-      exit
-    when "--verbose"
-      verbose_mode = :verbose
-      arguments.delete("--verbose")
-    else
-      program_usage
-      abort
     end
   end
-end
 
-#
-# Find the component to build
-#
+  #
+  # Find the component to build
+  #
 
-components = []
+  components = []
+  component_list = APELibraryParser.getComponentList
 
-case arguments.count
-when 0 
+  case arguments.count
+  when 0 
+    component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
-  component = APEComponent.createFromXMLFileAtPath Dir.pwd
+    if component == nil then
+      abort '[apes-cc] no component in this directory.'
+    end
 
-  if component == nil then
-    abort '[apes-cc] no component in this directory.'
+    if component_list.find { |e| e.equ?(component) } == nil then
+      component_list << component
+    end
+
+  when 2
+    id = APEId.new(arguments[0], nil, arguments[1])
+    components = component_list.find_all { |e| e.id == id }
+
+    if components == nil or components.empty? then
+      abort "[apes-cc] " + id.to_s + ": no match found."
+    elsif components.length != 1 then
+      abort "[apes-cc] " + id.to_s + ": multiple matches found."
+    end
+
+    component = components.first
+
+  else
+    program_usage
+    abort
   end
 
-  if component_list.find { |e| e.equ?(component) } == nil then
-    component_list << component
+  #
+  # Define the binary name
+  #
+
+  BINARY = "#{Dir.pwd}/#{component.id.short_name}"
+
+
+  #
+  # Check the component dependencies
+  #
+
+  dependencies = component_resolve(component, component_list)
+
+  if dependencies.empty? then
+    abort "[apes-cc] no dependencies for: " + component.id.to_s
   end
 
-when 2
+  #
+  # Build the component
+  #
 
-  id = APEId.new(arguments[0], nil, arguments[1])
-  components = component_list.find_all { |e| e.id == id }
-
-  if components == nil or components.empty? then
-    abort "[apes-cc] " + id.to_s + ": no match found."
-  elsif components.length != 1 then
-    abort "[apes-cc] " + id.to_s + ": multiple matches found."
-  end
-
-  component = components.first
-
-else
-  program_usage
-  abort
-end
-
-#
-# Check the component dependencies
-#
-
-dependencies = component_resolve(component, component_list)
-
-if dependencies.empty? then
-  abort "[apes-cc] no dependencies for: " + component.id.to_s
-end
-
-#
-# Define the binary name
-#
-
-BINARY = "#{Dir.pwd}/#{component.id.short_name}"
-
-#
-# Create the objects directory
-#
-
-if not File.exist?(BUILD_DIR) then
-  Dir.mkdir(BUILD_DIR)
-end
-
-#
-# Build the component
-#
-
-begin
   cc_units = []
 
   dependencies.each do |d|
@@ -186,7 +167,7 @@ begin
   end
 
   # Update units object caches
-  cc_units.each { |cc| cc.updateObjectCache(BUILD_DIR) }
+  cc_units.each { |cc| cc.updateObjectCache(CACHE_DIRECTORY) }
 
   # Depending on the execution mode, build or clean the object cache
   case cc_action
@@ -194,7 +175,7 @@ begin
     cc_units.each do |cc|
       cc.build(verbose_mode) unless not cc.update
     end
-    APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
+    APELinkUnit.link(BINARY,CACHE_DIRECTORY,cc_units,verbose_mode)
   when :clean
     cc_units.each { |cc| cc.clean(verbose_mode) }
   end
@@ -207,9 +188,19 @@ rescue APELinkUnit::LinkError => e
   puts "\r\e[2K[Link error]".red
   puts e.message
   exit
+rescue APEObjectFile::ObjectError => e
+  puts "\r\e[2K[Object error]".red
+  puts e.message
+  exit
+rescue RuntimeError
+  puts '[apes-cc] variable APES_COMPONENT_PATH not defined.'
+  exit
+rescue Errno::ENOENT => e
+  print '[apes-cc] error in APES_COMPONENT_PATH: '
+  puts e.message
+  exit
 rescue => e
   puts e.backtrace
   puts "\r\e[2KRuby exception: #{e.message}".red
   exit
 end 
-

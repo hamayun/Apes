@@ -65,13 +65,9 @@ class APECompilationUnit
     asrcs = FileList[@component.path + '/Sources/*.S']
 
     (csrcs + asrcs).each do |file|
-      begin
-        object = APEObjectFile.createWith(file, @component, cache, deps)
-        @update = @update || object.update
-        @objects << object
-      rescue APEObjectFile::ObjectError => e
-        raise CompilationError.new e.message
-      end
+      object = APEObjectFile.createWith(file, @component, cache, deps)
+      @update = @update || object.update
+      @objects << object
     end
   end
 
@@ -88,9 +84,7 @@ class APECompilationUnit
     # Compile the objects
     begin
       @objects.each { |o| o.build(mode) if o.update }
-    rescue APEObjectFile::ObjectError => e
-      raise CompilationError.new e.message
-    rescue Exception => e
+    rescue => e
       print "\r\e[2K" unless mode == :verbose
       raise e
     end
