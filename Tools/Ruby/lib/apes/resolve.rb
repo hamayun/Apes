@@ -169,7 +169,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
 
   resolved_deps.each do |l|
     match = dlist.find { |d| d == l }
-    if match != nil then filtered_deps.delete (match) end
+    if match != nil then filtered_deps.delete(match) end
   end
 
   #
@@ -219,7 +219,7 @@ def component_resolve(component, clist)
     overlap = xlist.find_all { |x| x.overlap?(r_component) }
 
     if not overlap.empty? then
-      overlap.each { |o| xlist.delete (o) }
+      overlap.each { |o| xlist.delete(o) }
       # dlist << r_component
     end
   end

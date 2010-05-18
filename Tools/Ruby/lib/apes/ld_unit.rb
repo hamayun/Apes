@@ -15,7 +15,7 @@ require 'apes/cc_unit'
 
 require 'rubygems'
 require 'term/ansicolor'
-require 'open4'
+require 'popen4'
 
 include Term::ANSIColor
 
@@ -44,23 +44,27 @@ class APELinkUnit
     cmd << "-o #{name}"
     cmd << ENV['APES_LINKER_FLAGS']
     objects.each { |o| cmd << "#{o.object}" }
+    command = cmd.join(' ')
 
-    puts cmd.join(' ')  unless mode == :normal
+    # Deal with calling the linker
+    puts command unless mode == :normal
 
-    begin
-      pid, stdin, stdout, stderr = Open4::popen4(cmd.join(' '))
-      ignored, status = Process::waitpid2 pid 
-    rescue Errno::ENOENT => e
-      message = "Cannot execute " + ENV['TARGET_LD']
-      message += ", no such file or directory"
-      raise LinkError.new message
+    status = POpen4::popen4(command) do |out,err|
+      stdout = out.readlines
+      stderr = err.readlines
     end
 
-    if status != 0 then
-      raise LinkError.new stderr.readlines.join
-    end 
-
+    # Deal with the errors
     print "\r\e[2K" if mode == :normal
+
+    if status == nil
+      message = "Cannot execute " + ENV['APES_LINKER']
+      message += ", no such file or directory"
+      raise LinkError.new message
+    elsif status != 0
+      raise LinkError.new(stderr.join)
+    end
+
   end
 end
 

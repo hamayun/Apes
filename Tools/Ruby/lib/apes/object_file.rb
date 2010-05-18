@@ -13,6 +13,7 @@
 
 require 'rubygems'
 require 'digest'
+require 'popen4'
 
 class APEObjectFile
   attr_reader :update, :object
@@ -20,29 +21,21 @@ class APEObjectFile
   class ObjectError < RuntimeError
   end
 
-  def initialize(source, component, version, sandbox, includes)
+  def initialize(source, component, sandbox, includes)
     @source = source
     @component = component
-    @version = version
     @includes = includes
     @sandbox = sandbox
     @object = sandbox + '/object'
     @description = sandbox + '/description'
   end
 
-  def APEObjectFile.createWith(source, component, version, cache, includes)
-    component_var = component.upcase + '_CC_FLAGS'
-
-    if ENV['APES_CC_FLAGS'] == nil
-      raise ObjectError.new "Undefined APES_FLAGS variable."
-    end
-
-    if ENV['APES_CC_OPTIMIZATIONS'] == nil
-      raise ObjectError.new "Undefined APES_OPTIMIZATIONS variable."
-    end
+  def APEObjectFile.createWith(source, component, cache, includes)
+    component_var = component.id.short_name.upcase + '_CC_FLAGS'
 
     # Compute the object hash
-    signature = source + ':' + version + ':'
+    signature = component.id.name + ':' + source + ':'
+    signature += component.id.version + ':'
     signature += ENV['APES_CC_FLAGS'] + ':'
     signature += ENV['APES_CC_OPTIMIZATIONS'] + ':'
 
@@ -57,9 +50,8 @@ class APEObjectFile
     if not File.exist?(sandbox) then 
       Dir.mkdir(sandbox)
       description = File.new(sandbox + '/description', 'w+')
+      description.puts('Component: ' + component.path)
       description.puts('File: ' + source)
-      description.puts('Component: ' + component)
-      description.puts('Version: ' + version)
       description.puts('Includes: ' + includes.join(' '))
       description.puts('Optimizations: ' + ENV['APES_CC_OPTIMIZATIONS'])
 
@@ -69,7 +61,7 @@ class APEObjectFile
     end
 
     # Create the object file
-    APEObjectFile.new(source, component, version, sandbox, includes)
+    APEObjectFile.new(source, component, sandbox, includes)
   end
 
   def APEObjectFile.createFrom(sandbox)
@@ -79,28 +71,21 @@ class APEObjectFile
 
     # Load the information
     description = File.new(sandbox + '/description')
+
+    path = description.readline.chomp.split(' ')
+    path.delete('Component:')
+    path = path.join(' ')
+
     source = description.readline.chomp.split(' ')
     source.delete('File:')
     source = source.join(' ')
-    puts source
-
-    component = description.readline.chomp.split(' ')
-    component.delete('Component:')
-    component = component.join(' ')
-    puts component
-
-    version = description.readline.chomp.split(' ')
-    version.delete('Version:')
-    version = version.join(' ')
-    puts version
 
     includes = description.readline.chomp.split(' ')
     includes.delete('Includes:')
-    puts includes
-    description.close
 
     # Create the object file
-    APEObjectFile.new(source, component, version, sandbox, includes)
+    component = APEComponent.createFromXMLFileAtPath(path)
+    APEObjectFile.new(source, component, sandbox, includes)
   end
 
   def update
@@ -145,8 +130,11 @@ class APEObjectFile
     return update
   end
 
-  def command
-    component_var = @component.upcase + '_CC_FLAGS'
+  def build(mode)
+    status = 0
+    stdout = []
+    stderr = []
+    component_var = @component.id.short_name.upcase + '_CC_FLAGS'
 
     # Build the command array
     cmd_array = [ENV['APES_COMPILER']]
@@ -160,9 +148,30 @@ class APEObjectFile
 
     cmd_array << @includes.collect { |d| '-I' + d }.join(' ')
     cmd_array << @source
+    command = cmd_array.join(' ')
 
-    # Return the command value
-    return cmd_array.join (' ')
+    # Display the command
+    puts command unless mode == :normal
+
+    if update then
+      status = POpen4::popen4(command) do |out,err|
+        stdout = out.readlines
+        stderr = err.readlines
+      end
+
+      if status == nil
+        message = "Cannot execute " + ENV['APES_COMPILER']
+        message += ", no such file or directory"
+        raise ObjectError.new message
+      elsif status != 0
+        raise ObjectError.new(stderr.join)
+      end
+
+      print (mode == :normal) ? ' '.on_green : stdout.join
+    else
+      print "\e[C".on_green unless mode == :verbose
+    end
+
   end
 
   def delete
@@ -178,6 +187,8 @@ class APEObjectFile
   end
 
   def identifier
-    return @component + '(' + @version + '):' + @source.split('/').last
+    id = @component.id.name + '(' + @component.id.version + ')'
+    id += ':' + @source.split('/').last
+    return id
   end
 end

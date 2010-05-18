@@ -170,7 +170,7 @@ begin
 
   dependencies.each do |d|
     if not d.wrapper then
-      unit = APECompilationUnit.createWith d.id.name, d.id.version, d.path
+      unit = APECompilationUnit.createWith(d)
       component_resolve(d, dependencies).each do |l|
         unit << "#{l.path}/Headers/Public" unless l.wrapper
       end
@@ -185,11 +185,11 @@ begin
   case cc_action
   when :compile
     cc_units.each do |cc|
-      cc.build(BUILD_DIR, verbose_mode) unless not cc.update
+      cc.build(verbose_mode) unless not cc.update
     end
     APELinkUnit.link(BINARY,BUILD_DIR,cc_units,verbose_mode)
   when :clean
-    cc_units.each { |cc| cc.clean(BUILD_DIR, verbose_mode) }
+    cc_units.each { |cc| cc.clean(verbose_mode) }
   end
 
 rescue APECompilationUnit::CompilationError => e
