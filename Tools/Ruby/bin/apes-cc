@@ -30,8 +30,9 @@ require 'tmpdir'
 def program_usage
   puts "Usage: apes-cc {<name> <version>}"
   puts "\t--clean                 : clean the component graph instead of building it"
-  puts "\t--purge                 : purge the object cache"
+  puts "\t--show-cache            : show the object cache"
   puts "\t--show-cache-directory  : show the object cache directory"
+  puts "\t--purge-cache           : purge the object cache"
   puts "\t--help                  : print this help"
   puts "\t--verbose               : display the full compilation commands"
 end
@@ -77,7 +78,13 @@ ARGV.each do |arg|
     when "--show-cache-directory"
       puts BUILD_DIR
       exit
-    when "--purge"
+    when "--show-cache"
+      Dir.glob(BUILD_DIR + "/*").each do |file|
+        object = APEObjectFile.createFrom(file)
+        puts object.to_s
+      end
+      exit
+    when "--purge-cache"
       Dir.glob(BUILD_DIR + "/*").each do |file|
         object = APEObjectFile.createFrom(file)
         object.delete

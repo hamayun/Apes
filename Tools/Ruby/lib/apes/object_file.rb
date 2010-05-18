@@ -21,28 +21,24 @@ class APEObjectFile
   class ObjectError < RuntimeError
   end
 
-  def initialize(source, component, sandbox, includes)
+  def initialize(source, component, sandbox, includes, flags)
     @source = source
     @component = component
     @includes = includes
     @sandbox = sandbox
     @object = sandbox + '/object'
     @description = sandbox + '/description'
+    @flags = flags
   end
 
   def APEObjectFile.createWith(source, component, cache, includes)
     component_var = component.id.short_name.upcase + '_CC_FLAGS'
+    flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
+      (ENV[component_var] != nil ? ENV[component_var] : "");
 
     # Compute the object hash
     signature = component.id.name + ':' + source + ':'
-    signature += component.id.version + ':'
-    signature += ENV['APES_CC_FLAGS'] + ':'
-    signature += ENV['APES_CC_OPTIMIZATIONS'] + ':'
-
-    unless ENV[component_var] == nil
-      signature += ENV[component_var]
-    end
-
+    signature += component.id.version + ':' + flags
     sha1 = Digest::SHA1.hexdigest signature
     sandbox = cache + '/' + sha1
 
@@ -53,15 +49,11 @@ class APEObjectFile
       description.puts('Component: ' + component.path)
       description.puts('File: ' + source)
       description.puts('Includes: ' + includes.join(' '))
-      description.puts('Optimizations: ' + ENV['APES_CC_OPTIMIZATIONS'])
-
-      unless ENV[component_var] == nil
-        description.puts('Locals: ' + ENV[component_var])
-      end
+      description.puts('Flags: ' + flags)
     end
 
     # Create the object file
-    APEObjectFile.new(source, component, sandbox, includes)
+    APEObjectFile.new(source, component, sandbox, includes, flags)
   end
 
   def APEObjectFile.createFrom(sandbox)
@@ -82,10 +74,17 @@ class APEObjectFile
 
     includes = description.readline.chomp.split(' ')
     includes.delete('Includes:')
+   
+    flags = description.readline.chomp.split(' ')
+    flags.delete('Flags:')
+    flags = flags.join(' ')
+
+    # Close the description file
+    description.close
 
     # Create the object file
     component = APEComponent.createFromXMLFileAtPath(path)
-    APEObjectFile.new(source, component, sandbox, includes)
+    APEObjectFile.new(source, component, sandbox, includes, flags)
   end
 
   def update
@@ -134,25 +133,20 @@ class APEObjectFile
     status = 0
     stdout = []
     stderr = []
-    component_var = @component.id.short_name.upcase + '_CC_FLAGS'
 
     # Build the command array
     cmd_array = [ENV['APES_COMPILER']]
     cmd_array << "-c -o #{@object}"
     cmd_array << ENV['APES_CC_FLAGS']
-    cmd_array << ENV['APES_CC_OPTIMIZATIONS']
-
-    unless ENV[component_var] == nil
-      cmd_array << ENV[component_var]
-    end
+    cmd_array << @flags
 
     cmd_array << @includes.collect { |d| '-I' + d }.join(' ')
     cmd_array << @source
     command = cmd_array.join(' ')
 
-    # Display the command
     puts command unless mode == :normal
 
+    # Execute the command
     if update then
       status = POpen4::popen4(command) do |out,err|
         stdout = out.readlines
@@ -186,9 +180,10 @@ class APEObjectFile
     Dir.delete @sandbox
   end
 
-  def identifier
-    id = @component.id.name + '(' + @component.id.version + ')'
-    id += ':' + @source.split('/').last
+  def to_s
+    id = @component.id.name + '(' + @component.id.version + '):'
+    id += @source.split('/').last + ' '
+    id += '[' + @flags + ']'
     return id
   end
 end

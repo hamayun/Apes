@@ -100,14 +100,8 @@ class APECompilationUnit
 
   def clean(mode)
     @objects.each do |o|
-      begin
-        o.delete
-        name = o.identifier.green
-      rescue Errno::ENOENT 
-        name = o.identifier.red
-      end
-
-      puts ["deleted".blue, name].join(' ') if mode == :verbose
+      puts o.to_s unless mode == :normal
+      o.delete
     end
   end
 end
