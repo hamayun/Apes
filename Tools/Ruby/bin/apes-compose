@@ -28,11 +28,8 @@ require 'tmpdir'
 #
 
 def program_usage
-  puts "Usage: apes-cc {<name> <version>}"
+  puts "Usage: apes-compose {<name> <version>}"
   puts "\t--clean                 : clean the component graph instead of building it"
-  puts "\t--show-cache            : show the object cache"
-  puts "\t--show-cache-directory  : show the object cache directory"
-  puts "\t--purge-cache           : purge the object cache"
   puts "\t--help                  : print this help"
   puts "\t--verbose               : display the full compilation commands"
 end
@@ -65,21 +62,6 @@ begin
   ARGV.each do |arg|
     if arg.include?("--") then
       case arg
-      when "--show-cache-directory"
-        puts CACHE_DIRECTORY
-        exit
-      when "--show-cache"
-        Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
-          object = APEObjectFile.createFrom(file)
-          puts object.to_s
-        end
-        exit
-      when "--purge-cache"
-        Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
-          object = APEObjectFile.createFrom(file)
-          object.delete
-        end
-        exit
       when "--clean"
         cc_action = :clean
         arguments.delete("--clean")
@@ -109,7 +91,7 @@ begin
     component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
     if component == nil then
-      abort '[apes-cc] no component in this directory.'
+      abort '[apes-compose] no component in this directory.'
     end
 
     if component_list.find { |e| e.equ?(component) } == nil then
@@ -121,9 +103,9 @@ begin
     components = component_list.find_all { |e| e.id == id }
 
     if components == nil or components.empty? then
-      abort "[apes-cc] " + id.to_s + ": no match found."
+      abort "[apes-compose] " + id.to_s + ": no match found."
     elsif components.length != 1 then
-      abort "[apes-cc] " + id.to_s + ": multiple matches found."
+      abort "[apes-compose] " + id.to_s + ": multiple matches found."
     end
 
     component = components.first
@@ -147,7 +129,7 @@ begin
   dependencies = component_resolve(component, component_list)
 
   if dependencies.empty? then
-    abort "[apes-cc] no dependencies for: " + component.id.to_s
+    abort "[apes-compose] no dependencies for: " + component.id.to_s
   end
 
   #
@@ -193,10 +175,10 @@ rescue APEObjectFile::ObjectError => e
   puts e.message
   exit
 rescue RuntimeError
-  puts '[apes-cc] variable APES_COMPONENT_PATH not defined.'
+  puts '[apes-compose] variable APES_COMPONENT_PATH not defined.'
   exit
 rescue Errno::ENOENT => e
-  print '[apes-cc] error in APES_COMPONENT_PATH: '
+  print '[apes-compose] error in APES_COMPONENT_PATH: '
   puts e.message
   exit
 rescue => e

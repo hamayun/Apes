@@ -1,0 +1,126 @@
+#!/usr/bin/env ruby
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require 'apes/object_file'
+
+require 'rubygems'
+require 'term/ansicolor'
+
+#
+# Define program usage
+#
+
+def program_usage
+  puts "Usage: apes-cache {show,purge}"
+  puts "\t--help                  : print this help"
+  puts "\t--verbose               : display the full compilation commands"
+end
+
+#
+# Define the build directory
+#
+
+CACHE_DIRECTORY = ENV['HOME'] + "/.apes"
+
+#
+# Create the objects directory
+#
+
+if not File.exist?(CACHE_DIRECTORY) then
+  Dir.mkdir(CACHE_DIRECTORY)
+end
+
+#
+# Duplicate the argument list
+#
+
+verbose_mode = :normal
+cc_action = nil
+
+ARGV.uniq!
+arguments = ARGV.clone
+
+ARGV.each do |arg|
+  case arg
+  when "show"
+    if cc_action == nil then
+      cc_action = :show
+      arguments.delete("show")
+    else
+      program_usage
+      abort
+    end
+  when "purge"
+    if cc_action == nil then
+      cc_action = :purge
+      arguments.delete("purge")
+    else
+      program_usage
+      abort
+    end
+  when "--help"
+    program_usage
+    arguments.delete("--help")
+    exit
+  when "--verbose"
+    verbose_mode = :verbose
+    arguments.delete("--verbose")
+  else
+    program_usage
+    abort
+  end
+end
+
+#
+# Check if the action is valid
+#
+
+if cc_action == nil then
+  program_usage
+  abort
+end
+
+#
+# Deal with the action
+#
+
+begin
+  case cc_action
+  when :purge
+    Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
+      object = APEObjectFile.createFrom(file)
+      object.delete
+    end
+
+  when :show
+    Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
+      object = APEObjectFile.createFrom(file)
+      puts object.to_s
+    end
+
+  else
+    program_usage
+    abort
+  end
+
+rescue APEObjectFile::ObjectError => e
+  puts "\r\e[2K[Object error]".red
+  puts e.message
+  exit
+rescue => e
+  puts e.backtrace
+  puts "\r\e[2KRuby exception: #{e.message}".red
+  exit
+end 
