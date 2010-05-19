@@ -51,15 +51,11 @@ end
 
 #
 # Create an ID for the component
-#
-
-id = APEId.new(ARGV[0], nil, ARGV[1])
-
-#
 # Retrieve the component
 #
 
-match_list = component_list.find_all { |e| e.id == id }
+id = APEId.new(ARGV[0], nil, ARGV[1])
+match_list = APELibraryParser.findComponentWith(id)
 
 if match_list.empty? then
   abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
@@ -67,7 +63,7 @@ elsif match_list.length > 1 then
   abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
 end
 
-component = match_list[0]
+component = match_list.first
 
 puts ("[" + component.id.name + ", " + component.id.version + "]").green.bold
 puts "author = ".blue + component.author

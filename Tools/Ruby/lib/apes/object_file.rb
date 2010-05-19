@@ -12,13 +12,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'apes/component'
+require 'apes/id'
+require 'apes/parse'
 
 require 'rubygems'
+require 'yaml'
 require 'digest'
 require 'popen4'
 
 class APEObjectFile
   attr_reader :update, :object, :flags
+  attr_reader :component, :version, :source
 
   class ObjectError < RuntimeError
   end
@@ -48,14 +52,14 @@ class APEObjectFile
     # Check if the object directory exists
     if not File.exist?(sandbox) then 
       Dir.mkdir(sandbox)
-      description = File.new(sandbox + '/description', 'w+')
-      description.puts('Component: ' + component.id.name)
-      description.puts('Version: ' + component.id.version)
-      description.puts('File: ' + source)
-      description.puts('Includes: ' + includes.join(' '))
-      description.puts('Flags: ' + flags)
+      File.open(sandbox + '/description', 'w+') do |f|
+        configuration = { "component" => component.id.name,
+          "version" => component.id.version, "source" => source,
+          "includes" => includes.join(' '), "flags" => flags }
+        YAML.dump(configuration, f)
+      end
     elsif not File.directory?(sandbox)
-      raise ObjectError.new "Invalid cache object: manually purge your cache."
+      raise ObjectError.new "Invalid cache object: prune invalid objects."
     end
 
     # Create the object file
@@ -67,40 +71,28 @@ class APEObjectFile
     if not File.exist?(sandbox)
       raise ObjectError.new "Invalid sandbox path."
     elsif not File.directory?(sandbox)
-      raise ObjectError.new "Invalid cache object: manually purge your cache."
+      return nil
     end
 
-    File.open(sandbox + '/description', 'r') do |f|
-      name = f.readline.chomp.split(' ')
-      raise ObjectError.new "Bad descriptor." if name.first != "Component:"
-      name.delete('Component:')
-      name = name.join(' ')
-
-      version = f.readline.chomp.split(' ')
-      raise ObjectError.new "Bad descriptor." if version.first != "Version:"
-      version.delete('Version:')
-      version = version.join(' ')
-
-      source = f.readline.chomp.split(' ')
-      raise ObjectError.new "Bad descriptor." if source.first != "File:"
-      source.delete('File:')
-      source = source.join(' ')
-
-      includes = f.readline.chomp.split(' ')
-      raise ObjectError.new "Bad descriptor." if includes.first != "Includes:"
-      includes.delete('Includes:')
-
-      flags = f.readline.chomp.split(' ')
-      raise ObjectError.new "Bad descriptor." if flags.first != "Flags:"
-      flags.delete('Flags:')
-      flags = flags.join(' ')
-
-      #
-      # Create the object file
-      #
-
-      APEObjectFile.new(source, name, version, sandbox, includes, flags)
+    configuration = File.open(sandbox + '/description', 'r') do |f|
+      YAML.load(f)
     end
+
+    APEObjectFile.new(configuration['source'], configuration['component'],
+                      configuration['version'], sandbox,
+                      configuration['includes'], configuration['flags'])
+  end
+
+  def SHA1
+    signature = @component + ':' + @source + ':'
+    signature += @version + ':' + @flags
+    return Digest::SHA1.hexdigest signature
+  end
+
+  def validate
+    id = APEId.new(@component, nil, @version)
+    components = APELibraryParser.findComponentWith(id)
+    return (components != nil and not components.empty?)
   end
 
   def update
@@ -181,7 +173,6 @@ class APEObjectFile
     else
       print "\e[C".on_green unless mode == :verbose
     end
-
   end
 
   def delete
@@ -194,11 +185,5 @@ class APEObjectFile
     end
 
     Dir.delete @sandbox
-  end
-
-  def to_s
-    id = @component + '(' + @version + ')/'
-    id += @source.split('/').last
-    return id
   end
 end

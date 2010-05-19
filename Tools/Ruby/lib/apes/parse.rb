@@ -17,33 +17,35 @@ class APELibraryParser
   
   def APELibraryParser.getComponentList
     component_path = []
-    component_list = []
+    if @@component_list.empty?
 
-    if ENV[@@ENV_NAME] == nil or ENV[@@ENV_NAME].empty? then
-      raise RuntimeError
+      if ENV[@@ENV_NAME] == nil or ENV[@@ENV_NAME].empty? then
+        raise RuntimeError
+      end
+
+      component_path = ENV[@@ENV_NAME].split ':'
+      component_path.uniq!
+
+      component_path.each do |path|
+        APELibraryParser.APEParsePath path
+      end
     end
 
-    component_path = ENV[@@ENV_NAME].split ':'
-    component_path.uniq!
-
-    component_path.each do |path|
-      APELibraryParser.APEParsePath path, component_list
-    end
-
-    component_list
+    return @@component_list
   end
 
   def APELibraryParser.findComponentWith(id)
-    component_list = APELibraryParser.getComponentList
-    components = component_list.find_all { |e| e.id == id }
+    APELibraryParser.getComponentList if @@component_list.empty?
+    components = @@component_list.find_all { |e| e.id == id }
     return components
   end
 
   private
 
+  @@component_list = []
   @@ENV_NAME = 'APES_COMPONENT_PATH'
 
-  def APELibraryParser.APEParsePath path, components_list
+  def APELibraryParser.APEParsePath path
     begin
       directory = Dir.new(path)
 
@@ -54,15 +56,15 @@ class APELibraryParser
         # Create a component object from the path
         cmp = APEComponent.createFromXMLFileAtPath path 
 
-        if components_list.entries.find { |e| e.id == cmp.id } == nil
-          components_list << cmp
+        if @@component_list.entries.find { |e| e.id == cmp.id } == nil
+          @@component_list << cmp
         end
       else
         directory.entries.each do |e|
           if e != "." and e != ".." and e[0] != "." then
             new_path = path + '/' + e
             if FileTest.directory? new_path  then
-              APELibraryParser.APEParsePath new_path, components_list 
+              APELibraryParser.APEParsePath new_path
             end
           end
         end

@@ -29,7 +29,7 @@ require 'tmpdir'
 
 def program_usage
   puts "Usage: apes-compose {<name> <version>}"
-  puts "\t--clean                 : clean the component graph instead of building it"
+  puts "\t--clean                 : clean the component graph"
   puts "\t--help                  : print this help"
   puts "\t--verbose               : display the full compilation commands"
 end
@@ -72,9 +72,6 @@ begin
       when "--verbose"
         verbose_mode = :verbose
         arguments.delete("--verbose")
-      else
-        program_usage
-        abort
       end
     end
   end
@@ -83,7 +80,6 @@ begin
   # Find the component to build
   #
 
-  components = []
   component_list = APELibraryParser.getComponentList
 
   case arguments.count
@@ -94,7 +90,7 @@ begin
       abort '[apes-compose] no component in this directory.'
     end
 
-    if component_list.find { |e| e.equ?(component) } == nil then
+    if APELibraryParser.findComponentWith(component.id).empty? then
       component_list << component
     end
 

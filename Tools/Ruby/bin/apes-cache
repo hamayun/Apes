@@ -24,8 +24,11 @@ require 'term/ansicolor'
 
 def program_usage
   puts "Usage: apes-cache {show,purge}"
+  puts "\tshow                    : show the cache's content"
+  puts "\tpurge                   : purge the cache"
+  puts "\tprune                   : prune invalid cache entries"
   puts "\t--help                  : print this help"
-  puts "\t--verbose               : display the full compilation commands"
+  puts "\t--verbose               : verbose mode"
 end
 
 #
@@ -54,18 +57,10 @@ arguments = ARGV.clone
 
 ARGV.each do |arg|
   case arg
-  when "show"
+  when "show", "purge", "prune"
     if cc_action == nil then
-      cc_action = :show
-      arguments.delete("show")
-    else
-      program_usage
-      abort
-    end
-  when "purge"
-    if cc_action == nil then
-      cc_action = :purge
-      arguments.delete("purge")
+      cc_action = arg.to_sym
+      arguments.delete(arg)
     else
       program_usage
       abort
@@ -77,9 +72,6 @@ ARGV.each do |arg|
   when "--verbose"
     verbose_mode = :verbose
     arguments.delete("--verbose")
-  else
-    program_usage
-    abort
   end
 end
 
@@ -107,8 +99,30 @@ begin
   when :show
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
       object = APEObjectFile.createFrom(file)
-      puts object.to_s.blue
-      puts object.flags.green
+      if object == nil then
+        puts file.split('/').last.blue + " [INVALID]".red
+      else
+        print object.SHA1.blue + ' '
+        puts object.validate ? "[OK]".green : "[UNREFERENCED]".red
+        puts '| Component: ' + object.component + ', ' + object.version
+        puts '| Source file: ' + object.source.split('/').last
+        puts '| Flags: ' + object.flags
+      end
+    end
+
+  when :prune
+    Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
+      object = APEObjectFile.createFrom(file)
+      if object == nil then
+        File.delete(file)
+        puts file.split('/').last.blue + " [DELETED]".red
+      elsif not object.validate then
+        object.delete
+        puts object.SHA1.blue + " [DELETED]".red
+        puts '| Component: ' + object.component + ', ' + object.version
+        puts '| Source file: ' + object.source.split('/').last
+        puts '| Flags: ' + object.flags
+      end
     end
 
   else
