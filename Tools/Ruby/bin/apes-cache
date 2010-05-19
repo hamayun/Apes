@@ -16,6 +16,7 @@
 require 'apes/object_file'
 
 require 'rubygems'
+require 'fileutils'
 require 'term/ansicolor'
 
 #
@@ -23,7 +24,7 @@ require 'term/ansicolor'
 #
 
 def program_usage
-  puts "Usage: apes-cache {show,purge}"
+  puts "Usage: apes-cache {show,purge, prune}"
   puts "\tshow                    : show the cache's content"
   puts "\tpurge                   : purge the cache"
   puts "\tprune                   : prune invalid cache entries"
@@ -49,8 +50,8 @@ end
 # Duplicate the argument list
 #
 
-verbose_mode = :normal
-cc_action = nil
+verbose = :off
+action = nil
 
 ARGV.uniq!
 arguments = ARGV.clone
@@ -58,8 +59,8 @@ arguments = ARGV.clone
 ARGV.each do |arg|
   case arg
   when "show", "purge", "prune"
-    if cc_action == nil then
-      cc_action = arg.to_sym
+    if action == nil then
+      action = arg.to_sym
       arguments.delete(arg)
     else
       program_usage
@@ -70,7 +71,7 @@ ARGV.each do |arg|
     arguments.delete("--help")
     exit
   when "--verbose"
-    verbose_mode = :verbose
+    verbose = :on
     arguments.delete("--verbose")
   end
 end
@@ -79,7 +80,7 @@ end
 # Check if the action is valid
 #
 
-if cc_action == nil then
+if action == nil then
   program_usage
   abort
 end
@@ -89,39 +90,35 @@ end
 #
 
 begin
-  case cc_action
-  when :purge
-    Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
-      object = APEObjectFile.createFrom(file)
-      object.delete
-    end
-
+  case action
   when :show
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
       object = APEObjectFile.createFrom(file)
       if object == nil then
-        puts file.split('/').last.blue + " [INVALID]".red
+        puts file.split('/').last.blue.bold + " [INVALID]".red.bold
       else
-        print object.SHA1.blue + ' '
-        puts object.validate ? "[OK]".green : "[UNREFERENCED]".red
-        puts '| Component: ' + object.component + ', ' + object.version
-        puts '| Source file: ' + object.source.split('/').last
-        puts '| Flags: ' + object.flags
+        print object.SHA1.blue.bold + ' '
+        puts object.validate ? "[OK]".green.bold : "[UNREFERENCED]".red.bold
+        puts '| Component: '.bold + object.component + ', ' + object.version
+        puts '| Source file: '.bold + object.source.split('/').last
+        puts '| Flags: '.bold + object.flags
       end
     end
 
-  when :prune
+  when :prune, :purge
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
       object = APEObjectFile.createFrom(file)
       if object == nil then
-        File.delete(file)
-        puts file.split('/').last.blue + " [DELETED]".red
-      elsif not object.validate then
+        FileUtils.rm_rf(file)
+        puts file.split('/').last.blue + " [DELETED]".red if verbose == :on
+      elsif action == :purge or (action == :prune and not object.validate) then
         object.delete
-        puts object.SHA1.blue + " [DELETED]".red
-        puts '| Component: ' + object.component + ', ' + object.version
-        puts '| Source file: ' + object.source.split('/').last
-        puts '| Flags: ' + object.flags
+        if verbose == :on then
+          puts object.SHA1.blue + " [DELETED]".red
+          puts '| Component: ' + object.component + ', ' + object.version
+          puts '| Source file: ' + object.source.split('/').last
+          puts '| Flags: ' + object.flags
+        end
       end
     end
 
@@ -130,10 +127,6 @@ begin
     abort
   end
 
-rescue APEObjectFile::ObjectError => e
-  puts "\r\e[2K[Object error]".red
-  puts e.message
-  exit
 rescue RuntimeError
   puts '[apes-cache] variable APES_COMPONENT_PATH not defined.'
   exit

@@ -43,44 +43,71 @@ class APEObjectFile
     flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
       (ENV[component_var] != nil ? ENV[component_var] : "");
 
+    #
     # Compute the object hash
+    #
+
     signature = component.id.name + ':' + source + ':'
     signature += component.id.version + ':' + flags
     sha1 = Digest::SHA1.hexdigest signature
     sandbox = cache + '/' + sha1
 
-    # Check if the object directory exists
+    #
+    # Generate the description file
+    #
+    
     if not File.exist?(sandbox) then 
       Dir.mkdir(sandbox)
+
+      #
+      # Compute the description hash
+      #
+      
+      values = [ component.id.name, flags, includes.join(' '),
+        source, component.id.version ]
+      configuration = Hash[*@@config_keys.zip(values).flatten]
+
+      #
+      # Generate the YAML description file
+      #
+
       File.open(sandbox + '/description', 'w+') do |f|
-        configuration = { "component" => component.id.name,
-          "version" => component.id.version, "source" => source,
-          "includes" => includes.join(' '), "flags" => flags }
         YAML.dump(configuration, f)
       end
     elsif not File.directory?(sandbox)
       raise ObjectError.new "Invalid cache object: prune invalid objects."
     end
 
+    #
     # Create the object file
+    #
+
     APEObjectFile.new(source, component.id.name, component.id.version,
                       sandbox, includes, flags)
   end
 
   def APEObjectFile.createFrom(sandbox)
-    if not File.exist?(sandbox)
-      raise ObjectError.new "Invalid sandbox path."
-    elsif not File.directory?(sandbox)
-      return nil
+    object = nil
+
+    if File.exist?(sandbox) and File.directory?(sandbox) then
+      # Load the object's configuration file, check the keys
+      # and create the object file
+      #
+
+      if File.exist?(sandbox + '/description') then
+        config = File.open(sandbox + '/description', 'r') do |f|
+          YAML.load(f)
+        end
+
+        if config.keys.sort == @@config_keys then
+          object = APEObjectFile.new(config['source'], config['component'],
+                                     config['version'], sandbox,
+                                     config['includes'], config['flags'])
+        end
+      end
     end
 
-    configuration = File.open(sandbox + '/description', 'r') do |f|
-      YAML.load(f)
-    end
-
-    APEObjectFile.new(configuration['source'], configuration['component'],
-                      configuration['version'], sandbox,
-                      configuration['includes'], configuration['flags'])
+    return object
   end
 
   def SHA1
@@ -186,4 +213,8 @@ class APEObjectFile
 
     Dir.delete @sandbox
   end
+
+  private
+
+  @@config_keys = [ "component", "flags", "includes", "source", "version" ]
 end
