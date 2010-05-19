@@ -83,7 +83,13 @@ class APECompilationUnit
 
     # Compile the objects
     begin
-      @objects.each { |o| o.build(mode) if o.update }
+      @objects.each do |o|
+        if o.update then
+          o.build(mode)
+        else
+          print "\e[C".on_green unless mode == :verbose
+        end
+      end
     rescue => e
       print "\r\e[2K" unless mode == :verbose
       raise e

@@ -100,7 +100,7 @@ begin
 
   when 2
     id = APEId.new(arguments[0], nil, arguments[1])
-    components = component_list.find_all { |e| e.id == id }
+    components = APELibraryParser.findComponentWith(id)
 
     if components == nil or components.empty? then
       abort "[apes-compose] " + id.to_s + ": no match found."

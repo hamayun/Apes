@@ -33,6 +33,12 @@ class APELibraryParser
     component_list
   end
 
+  def APELibraryParser.findComponentWith(id)
+    component_list = APELibraryParser.getComponentList
+    components = component_list.find_all { |e| e.id == id }
+    return components
+  end
+
   private
 
   @@ENV_NAME = 'APES_COMPONENT_PATH'

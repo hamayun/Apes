@@ -12,19 +12,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'apes/component'
+
 require 'rubygems'
 require 'digest'
 require 'popen4'
 
 class APEObjectFile
-  attr_reader :update, :object
+  attr_reader :update, :object, :flags
 
   class ObjectError < RuntimeError
   end
 
-  def initialize(source, component, sandbox, includes, flags)
+  def initialize(source, component, version, sandbox, includes, flags)
     @source = source
     @component = component
+    @version = version
     @includes = includes
     @sandbox = sandbox
     @object = sandbox + '/object'
@@ -47,49 +49,58 @@ class APEObjectFile
     if not File.exist?(sandbox) then 
       Dir.mkdir(sandbox)
       description = File.new(sandbox + '/description', 'w+')
-      description.puts('Component: ' + component.path)
+      description.puts('Component: ' + component.id.name)
+      description.puts('Version: ' + component.id.version)
       description.puts('File: ' + source)
       description.puts('Includes: ' + includes.join(' '))
       description.puts('Flags: ' + flags)
     elsif not File.directory?(sandbox)
-      raise ObjectError.new "Invalid cache object. Please purge your cache."
+      raise ObjectError.new "Invalid cache object: manually purge your cache."
     end
 
     # Create the object file
-    APEObjectFile.new(source, component, sandbox, includes, flags)
+    APEObjectFile.new(source, component.id.name, component.id.version,
+                      sandbox, includes, flags)
   end
 
   def APEObjectFile.createFrom(sandbox)
     if not File.exist?(sandbox)
       raise ObjectError.new "Invalid sandbox path."
     elsif not File.directory?(sandbox)
-      raise ObjectError.new "Invalid cache object. Please purge your cache."
+      raise ObjectError.new "Invalid cache object: manually purge your cache."
     end
 
-    # Load the information
-    description = File.new(sandbox + '/description')
+    File.open(sandbox + '/description', 'r') do |f|
+      name = f.readline.chomp.split(' ')
+      raise ObjectError.new "Bad descriptor." if name.first != "Component:"
+      name.delete('Component:')
+      name = name.join(' ')
 
-    path = description.readline.chomp.split(' ')
-    path.delete('Component:')
-    path = path.join(' ')
+      version = f.readline.chomp.split(' ')
+      raise ObjectError.new "Bad descriptor." if version.first != "Version:"
+      version.delete('Version:')
+      version = version.join(' ')
 
-    source = description.readline.chomp.split(' ')
-    source.delete('File:')
-    source = source.join(' ')
+      source = f.readline.chomp.split(' ')
+      raise ObjectError.new "Bad descriptor." if source.first != "File:"
+      source.delete('File:')
+      source = source.join(' ')
 
-    includes = description.readline.chomp.split(' ')
-    includes.delete('Includes:')
-   
-    flags = description.readline.chomp.split(' ')
-    flags.delete('Flags:')
-    flags = flags.join(' ')
+      includes = f.readline.chomp.split(' ')
+      raise ObjectError.new "Bad descriptor." if includes.first != "Includes:"
+      includes.delete('Includes:')
 
-    # Close the description file
-    description.close
+      flags = f.readline.chomp.split(' ')
+      raise ObjectError.new "Bad descriptor." if flags.first != "Flags:"
+      flags.delete('Flags:')
+      flags = flags.join(' ')
 
-    # Create the object file
-    component = APEComponent.createFromXMLFileAtPath(path)
-    APEObjectFile.new(source, component, sandbox, includes, flags)
+      #
+      # Create the object file
+      #
+
+      APEObjectFile.new(source, name, version, sandbox, includes, flags)
+    end
   end
 
   def update
@@ -186,9 +197,8 @@ class APEObjectFile
   end
 
   def to_s
-    id = @component.id.name + '(' + @component.id.version + '):'
-    id += @source.split('/').last + ' '
-    id += '[' + @flags + ']'
+    id = @component + '(' + @version + ')/'
+    id += @source.split('/').last
     return id
   end
 end

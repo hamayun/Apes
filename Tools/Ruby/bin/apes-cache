@@ -107,7 +107,8 @@ begin
   when :show
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
       object = APEObjectFile.createFrom(file)
-      puts object.to_s
+      puts object.to_s.blue
+      puts object.flags.green
     end
 
   else
@@ -117,6 +118,13 @@ begin
 
 rescue APEObjectFile::ObjectError => e
   puts "\r\e[2K[Object error]".red
+  puts e.message
+  exit
+rescue RuntimeError
+  puts '[apes-cache] variable APES_COMPONENT_PATH not defined.'
+  exit
+rescue Errno::ENOENT => e
+  print '[apes-cache] error in APES_COMPONENT_PATH: '
   puts e.message
   exit
 rescue => e
