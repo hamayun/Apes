@@ -24,7 +24,7 @@ require 'term/ansicolor'
 #
 
 def program_usage
-  puts "Usage: apes-cache {show,purge, prune}"
+  puts "Usage: apes-cache {show,purge,prune}"
   puts "\tshow                    : show the cache's content"
   puts "\tpurge                   : purge the cache"
   puts "\tprune                   : prune invalid cache entries"
