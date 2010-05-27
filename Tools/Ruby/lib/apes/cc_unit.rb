@@ -85,7 +85,16 @@ class APECompilationUnit
     begin
       @objects.each do |o|
         if o.update then
-          o.build(mode)
+          begin
+            o.build(mode)
+          rescue APEObjectFile::ObjectError => e
+            path_array = @component.path.split('/')
+            path_array.delete_at(-1)
+            base_path = path_array.join('/') + '/'
+            message = e.message.split("\n")
+            message.each { |l| l.slice!(base_path) }
+            raise CompilationError.new(message.join("\n"))
+          end
         else
           print "\e[C".on_green unless mode == :verbose
         end

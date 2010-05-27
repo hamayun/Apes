@@ -166,8 +166,13 @@ rescue APELinkUnit::LinkError => e
   puts "\r\e[2K[Link error]".red
   puts e.message
   exit
-rescue RuntimeError
+rescue APEObjectFile::ObjectError => e
+  puts "\r\e[2K[Object error]".red
+  puts e.message
+  exit
+rescue RuntimeError => e
   puts '[apes-compose] variable APES_COMPONENT_PATH not defined.'
+  puts e.message
   exit
 rescue Errno::ENOENT => e
   print '[apes-compose] error in APES_COMPONENT_PATH: '
