@@ -44,7 +44,7 @@ class APEObjectFile
       (ENV[component_var] != nil ? ENV[component_var] : "");
 
     #
-    # Compute the object hash
+    # Compute the object SHA1
     #
 
     signature = component.id.name + ':' + source + ':'
@@ -143,7 +143,7 @@ class APEObjectFile
         @includes.each do |inc|
 
           # Check each header file of the dependence
-          updated_files = FileList[inc + '/**/*.h'].find do |f| 
+          updated_files = Dir.glob(inc + '/**/*.h').find do |f| 
             file = File.new(f)
             dep_time = file.mtime
             file.close

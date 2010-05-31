@@ -16,7 +16,6 @@ require 'apes/object_file'
 
 require 'rubygems'
 require 'term/ansicolor'
-require 'rake'
 
 include Term::ANSIColor
 
@@ -41,11 +40,11 @@ class APECompilationUnit
   def APECompilationUnit.createWith(component)
     # Check if the necessary env variables are present
     if ENV['APES_CC_FLAGS'] == nil
-      raise CompilationError.new "Undefined APES_FLAGS variable."
+      raise CompilationError.new "Undefined APES_CC_FLAGS variable."
     end
 
     if ENV['APES_CC_OPTIMIZATIONS'] == nil
-      raise CompilationError.new "Undefined APES_OPTIMIZATIONS variable."
+      raise CompilationError.new "Undefined APES_CC_OPTIMIZATIONS variable."
     end
 
     # If everything is OK, return an instance of the CcUnit
@@ -61,8 +60,8 @@ class APECompilationUnit
     deps << (@component.path + '/Headers')
     deps << (@component.path + '/Headers/Public')
 
-    csrcs = FileList[@component.path + '/Sources/*.c']
-    asrcs = FileList[@component.path + '/Sources/*.S']
+    csrcs = Dir.glob(@component.path + '/Sources/*.c')
+    asrcs = Dir.glob(@component.path + '/Sources/*.S')
 
     (csrcs + asrcs).each do |file|
       object = APEObjectFile.createWith(file, @component, cache, deps)
