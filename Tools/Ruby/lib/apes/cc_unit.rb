@@ -60,10 +60,7 @@ class APECompilationUnit
     deps << (@component.path + '/Headers')
     deps << (@component.path + '/Headers/Public')
 
-    csrcs = Dir.glob(@component.path + '/Sources/*.c')
-    asrcs = Dir.glob(@component.path + '/Sources/*.S')
-
-    (csrcs + asrcs).each do |file|
+    Dir.glob(@component.path + '/Sources/*.{c,S}').each do |file|
       object = APEObjectFile.createWith(file, @component, cache, deps)
       @update = @update || object.update
       @objects << object
