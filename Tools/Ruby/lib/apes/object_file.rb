@@ -166,8 +166,6 @@ class APEObjectFile
 
   def build(mode)
     status = 0
-    stdout = []
-    stderr = []
 
     # Build the command array
     cmd_array = [ENV['APES_COMPILER']]
@@ -183,6 +181,7 @@ class APEObjectFile
 
     # Execute the command
     if update then
+      stdout, stderr = [], []
       status = POpen4::popen4(command) do |out,err|
         stdout = out.readlines
         stderr = err.readlines

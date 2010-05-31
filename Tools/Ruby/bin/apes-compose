@@ -140,22 +140,25 @@ begin
       component_resolve(d, dependencies).each do |l|
         unit << "#{l.path}/Headers/Public" unless l.wrapper
       end
+      
       cc_units << unit
+      unit.updateObjectCache(CACHE_DIRECTORY)
+
+      case cc_action
+      when :compile
+        unit.build(verbose_mode) if unit.update
+      when :clean
+        unit.clean(verbose_mode)
+      end
     end
   end
 
-  # Update units object caches
-  cc_units.each { |cc| cc.updateObjectCache(CACHE_DIRECTORY) }
+  #
+  # If we are compiling, link all the objects altogether
+  #
 
-  # Depending on the execution mode, build or clean the object cache
-  case cc_action
-  when :compile
-    cc_units.each do |cc|
-      cc.build(verbose_mode) unless not cc.update
-    end
+  if cc_action == :compile then
     APELinkUnit.link(BINARY,CACHE_DIRECTORY,cc_units,verbose_mode)
-  when :clean
-    cc_units.each { |cc| cc.clean(verbose_mode) }
   end
 
 rescue APECompilationUnit::CompilationError => e

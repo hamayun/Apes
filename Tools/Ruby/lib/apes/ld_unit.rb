@@ -49,6 +49,7 @@ class APELinkUnit
     # Deal with calling the linker
     puts command unless mode == :normal
 
+    stdout, stderr = [], []
     status = POpen4::popen4(command) do |out,err|
       stdout = out.readlines
       stderr = err.readlines
