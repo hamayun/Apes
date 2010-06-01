@@ -22,18 +22,8 @@ class OCMElement
     @visibility = visibility
   end
 
-  def OCMElement.createWith(name, visibility)
-    e = nil
-    if [:public, :private].include?(visibility) and name != nil
-      e = OCMElement.new(name, visibility)
-    end
-    return e
-  end
-
-  def to_s
-    v = @visibility.to_s
-    v = @visibility == :private ? v.red : v.green
-    return '[' + v + '] ' + @name.bold
+  def OCMElement.createWith(name, visibility = nil)
+    return  OCMElement.new(name, visibility)
   end
 
   def eql?(e)

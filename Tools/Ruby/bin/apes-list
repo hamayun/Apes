@@ -18,11 +18,10 @@ require 'ocm/parse'
 
 require 'rubygems'
 require 'term/ansicolor'
-
 include Term::ANSIColor
 
 def program_usage
-  puts 'Usage: ocm-list'
+  puts 'Usage: apes-list'
 end
 
 if ARGV.count != 0 then
@@ -40,9 +39,9 @@ else
       puts ('[' + c.id.version + ']').green
     end
   rescue RuntimeError
-    puts '[ocm-list] Variable OCM_COMPONENT_PATH not defined.'
+    puts '[apes-list] Variable APES_COMPONENT_PATH not defined.'
   rescue Errno::ENOENT => detail
-    print '[ocm-list] error in OCM_COMPONENT_PATH: '
+    print '[apes-list] error in APES_COMPONENT_PATH: '
     puts detail.message
   end
 end

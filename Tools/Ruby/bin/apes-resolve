@@ -17,7 +17,7 @@ require 'ocm/id'
 require 'ocm/resolve'
 
 def program_usage
-  puts "Usage: ocm-resolve <name> <id>"
+  puts "Usage: apes-resolve <name> <id>"
 end
 
 #
@@ -36,10 +36,10 @@ end
 begin
   component_list = OCMLibraryParser.getComponentList
 rescue RuntimeError
-  puts '[ocm-resolve] Variable OCM_COMPONENT_PATH not defined.'
+  puts '[apes-resolve] Variable APES_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[ocm-resolve] error in OCM_COMPONENT_PATH: '
+  print '[apes-resolve] error in APES_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -57,15 +57,15 @@ id = OCMId.new(ARGV[0], nil, ARGV[1])
 components = component_list.find_all { |e| e.id == id }
 
 if components == nil || components.empty? then
-  abort "[ocm-resolve] " + ARGV[0] + ": no match found."
+  abort "[apes-resolve] " + ARGV[0] + ": no match found."
 elsif components.length != 1 then
-  abort "[ocm-resolve] " + name + ": multiple matches found."
+  abort "[apes-resolve] " + name + ": multiple matches found."
 end
 
 dependencies = component_resolve components[0], component_list
 
 if dependencies.empty? then
-  puts "[ocm-resolve] No dependencies for: " + ARGV[0]
+  puts "[apes-resolve] No dependencies for: " + ARGV[0]
 else
   dependencies.each do |d|
     puts d.id.to_s

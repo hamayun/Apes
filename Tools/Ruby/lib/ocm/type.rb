@@ -16,12 +16,16 @@ require 'rubygems'
 require 'nokogiri'
 
 class OCMType < OCMElement
-  def OCMType.createFromXML(node)
-    return super.new(node["name"], node["visibility"].to_lower.to_sym)
+  def initialize(name, visibility)
+    return super(name, visibility)
+  end
+
+  def OCMType.createWith(name, visibility = nil)
+    return OCMType.new(name, visibility)
   end
 
   def to_s
-    return super.to_s + " type"
+    return "type #{@name} (#{@visibility})"
   end
 end
 

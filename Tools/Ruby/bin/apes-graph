@@ -18,7 +18,7 @@ require 'ocm/depend'
 require 'ocm/resolve'
 
 def program_usage
-  puts "Usage: ocm-graph <name> <version>"
+  puts "Usage: apes-graph <name> <version>"
 end
 
 #
@@ -28,10 +28,10 @@ end
 begin
   component_list = OCMLibraryParser.getComponentList
 rescue RuntimeError
-  puts '[ocm-graph] Variable OCM_COMPONENT_PATH not defined.'
+  puts '[apes-graph] Variable APES_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[ocm-graph] error in OCM_COMPONENT_PATH: '
+  print '[apes-graph] error in APES_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -50,7 +50,7 @@ when 0
   component = OCMComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
-    abort '[ocm-graph] no component in this directory.'
+    abort '[apes-graph] no component in this directory.'
   end
 
   if component_list.find { |e| e == component } == nil then
@@ -63,9 +63,9 @@ when 2
   components = OCMLibraryParser.findComponentWith(id)
 
   if components == nil or components.empty? then
-    abort "[ocm-cc] " + id.to_s + ": no match found."
+    abort "[apes-cc] " + id.to_s + ": no match found."
   elsif components.length != 1 then
-    abort "[ocm-cc] " + id.to_s + ": multiple matches found."
+    abort "[apes-cc] " + id.to_s + ": multiple matches found."
   end
 
   component = components.first
@@ -82,9 +82,9 @@ end
 components = component_list.find_all { |e| e.id == component.id }
 
 if components == nil or components.empty? then
-  abort "[ocm-graph] " + ARGV[0] + ": no match found."
+  abort "[apes-graph] " + ARGV[0] + ": no match found."
 elsif components.length != 1 then
-  abort "[ocm-graph] " + name + ": multiple matches found."
+  abort "[apes-graph] " + name + ": multiple matches found."
 end
 
 #
@@ -94,7 +94,7 @@ end
 dependencies = component_resolve(components[0], component_list)
 
 if dependencies.empty? then
-  puts "[ocm-graph] No dependencies for: " + ARGV[0]
+  puts "[apes-graph] No dependencies for: " + ARGV[0]
 else
   resolved = []
   next_deps = []

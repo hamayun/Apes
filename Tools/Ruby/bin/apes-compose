@@ -15,9 +15,9 @@
 
 require 'ocm/id'
 require 'ocm/resolve'
-require 'ocm/object_file'
-require 'ocm/cc_unit'
-require 'ocm/ld_unit'
+require 'apes/object_file'
+require 'apes/cc_unit'
+require 'apes/ld_unit'
 
 require 'rubygems'
 require 'term/ansicolor'
@@ -28,7 +28,7 @@ require 'tmpdir'
 #
 
 def program_usage
-  puts "Usage: ocm-compose {<name> <version>}"
+  puts "Usage: apes-compose {<name> <version>}"
   puts "\t--clean                 : clean the component graph"
   puts "\t--help                  : print this help"
   puts "\t--verbose               : display the full compilation commands"
@@ -38,7 +38,7 @@ end
 # Define the build directory
 #
 
-CACHE_DIRECTORY = ENV['HOME'] + "/.ocm"
+CACHE_DIRECTORY = ENV['HOME'] + "/.apes"
 
 #
 # Create the objects directory
@@ -87,7 +87,7 @@ begin
     component = OCMComponent.createFromXMLFileAtPath Dir.pwd
 
     if component == nil then
-      abort '[ocm-compose] no component in this directory.'
+      abort '[apes-compose] no component in this directory.'
     end
 
     if OCMLibraryParser.findComponentWith(component.id).empty? then
@@ -99,9 +99,9 @@ begin
     components = OCMLibraryParser.findComponentWith(id)
 
     if components == nil or components.empty? then
-      abort "[ocm-compose] " + id.to_s + ": no match found."
+      abort "[apes-compose] " + id.to_s + ": no match found."
     elsif components.length != 1 then
-      abort "[ocm-compose] " + id.to_s + ": multiple matches found."
+      abort "[apes-compose] " + id.to_s + ": multiple matches found."
     end
 
     component = components.first
@@ -125,7 +125,7 @@ begin
   dependencies = component_resolve(component, component_list)
 
   if dependencies.empty? then
-    abort "[ocm-compose] no dependencies for: " + component.id.to_s
+    abort "[apes-compose] no dependencies for: " + component.id.to_s
   end
 
   #
@@ -136,7 +136,7 @@ begin
 
   dependencies.each do |d|
     if not d.wrapper then
-      unit = OCMCompilationUnit.createWith(d)
+      unit = APECompilationUnit.createWith(d)
       component_resolve(d, dependencies).each do |l|
         unit << "#{l.path}/Headers/Public" unless l.wrapper
       end
@@ -158,27 +158,27 @@ begin
   #
 
   if cc_action == :compile then
-    OCMLinkUnit.link(BINARY,CACHE_DIRECTORY,cc_units,verbose_mode)
+    APELinkUnit.link(BINARY,CACHE_DIRECTORY,cc_units,verbose_mode)
   end
 
-rescue OCMCompilationUnit::CompilationError => e
+rescue APECompilationUnit::CompilationError => e
   puts "\r\e[2K[Compilation error]".red
   puts e.message
   exit
-rescue OCMLinkUnit::LinkError => e
+rescue APELinkUnit::LinkError => e
   puts "\r\e[2K[Link error]".red
   puts e.message
   exit
-rescue OCMObjectFile::ObjectError => e
+rescue APEObjectFile::ObjectError => e
   puts "\r\e[2K[Object error]".red
   puts e.message
   exit
 rescue RuntimeError => e
-  puts '[ocm-compose] variable OCM_COMPONENT_PATH not defined.'
+  puts '[apes-compose] variable APES_COMPONENT_PATH not defined.'
   puts e.message
   exit
 rescue Errno::ENOENT => e
-  print '[ocm-compose] error in OCM_COMPONENT_PATH: '
+  print '[apes-compose] error in APES_COMPONENT_PATH: '
   puts e.message
   exit
 rescue => e

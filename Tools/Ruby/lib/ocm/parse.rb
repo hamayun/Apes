@@ -43,7 +43,7 @@ class OCMLibraryParser
   private
 
   @@component_list = []
-  @@ENV_NAME = 'OCM_COMPONENT_PATH'
+  @@ENV_NAME = 'APES_COMPONENT_PATH'
 
   def OCMLibraryParser.OCMParsePath path
     begin
