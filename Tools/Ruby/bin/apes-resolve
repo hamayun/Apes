@@ -34,7 +34,7 @@ end
 #
 
 begin
-  component_list = OCMLibraryParser.getComponentList
+  component_list = APELibraryParser.getComponentList
 rescue RuntimeError
   puts '[apes-resolve] Variable APES_COMPONENT_PATH not defined.'
   abort

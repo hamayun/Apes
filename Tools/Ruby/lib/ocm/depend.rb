@@ -13,7 +13,6 @@
 
 require 'ocm/component'
 require 'ocm/id'
-require 'ocm/parse'
 
 def component_depend(component, components_list)
   t_deps, d_deps, m_deps = [], [], []
@@ -66,6 +65,7 @@ def component_depend(component, components_list)
     end
 
     if not found then
+      puts m
       abort component.id.name + ": no dependence found for " + m.name
     end
   end

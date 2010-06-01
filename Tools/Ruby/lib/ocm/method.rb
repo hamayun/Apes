@@ -39,7 +39,11 @@ class OCMMethod < OCMElement
     visibility = node["visibility"]
     return_type = node["return_type"]
     m = OCMMethod.new(name, visibility, return_type)
-    node.xpath("/argument") { |a| m.arguments << OCMArgument.createFromXML(a) }
+
+    node.xpath("argument").each do |a|
+      m.arguments << OCMArgument.createFromXML(a)
+    end
+
     return m
   end
 
@@ -47,16 +51,18 @@ class OCMMethod < OCMElement
     args = ""
     @arguments.each { |e| args = args + e.to_s + ", " }
 
-    string = @return_type.empty? ? " procedure " : " function "
-    string += @name + ' ' + args.chop.chop 
+    string = @return_type.empty? ? "procedure ".bold : "function ".bold
+    string += @name + ' ' + args.chop.chop
+    string += ' ' if not args.empty?
     string += "return ".red + @return_type.blue unless @return_type.empty?
+    string += " [#{@visibility}]" if @visibility != nil
     return string
   end
 
   def eql?(m)
     return self.class == NilClass if m == nil
     return m.class == NilClass if self == nil
-    return super.eql?(m) && @arguments == m.arguments
+    return super(m) && @arguments == m.arguments
   end
 
   def hash

@@ -26,12 +26,12 @@ class APELinkUnit
     # Check if the necessary env variables are present
     #
 
-    if ENV['APE_LINKER'] == nil
-      raise LinkError.new "Undefined APE_LINKER variable."
+    if ENV['APES_LINKER'] == nil
+      raise LinkError.new "Undefined APES_LINKER variable."
     end
 
-    if ENV['APE_LINKER_FLAGS'] == nil
-      raise LinkError.new "Undefined APE_LINKER_FLAGS variable."
+    if ENV['APES_LINKER_FLAGS'] == nil
+      raise LinkError.new "Undefined APES_LINKER_FLAGS variable."
     end
 
     #
@@ -45,9 +45,9 @@ class APELinkUnit
     # We try to link the objects
     #
 
-    cmd = [ENV['APE_LINKER']]
+    cmd = [ENV['APES_LINKER']]
     cmd << "-o #{name}"
-    cmd << ENV['APE_LINKER_FLAGS']
+    cmd << ENV['APES_LINKER_FLAGS']
     objects.each { |o| cmd << "#{o.object}" }
     command = cmd.join(' ')
 
@@ -70,7 +70,7 @@ class APELinkUnit
     print "\r\e[2K" if mode == :normal
 
     if status == nil
-      message = "Cannot execute " + ENV['APE_LINKER']
+      message = "Cannot execute " + ENV['APES_LINKER']
       message += ", no such file or directory"
       raise LinkError.new message
     elsif status != 0

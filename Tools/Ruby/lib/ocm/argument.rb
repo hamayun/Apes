@@ -28,7 +28,7 @@ class OCMArgument
   end
 
   def OCMArgument.createWith(name, type, direction)
-    return OCMElement.new(name, visibility)
+    return OCMArgument.new(name, type, direction)
   end
 
   def OCMArgument.createFromXML(node)

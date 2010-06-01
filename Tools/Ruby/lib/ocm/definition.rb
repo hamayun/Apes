@@ -31,7 +31,9 @@ class OCMDefinition < OCMElement
   end
 
   def to_s
-    return "definition #{@name} (#{@visibility})"
+    string = "definition ".bold + @name
+    string += " [#{@visibility}]" if @visibility != nil
+    return string
   end
 end
 

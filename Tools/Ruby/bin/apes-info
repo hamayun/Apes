@@ -14,11 +14,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/id'
-require 'ocm/parse'
+require 'apes/parse'
 
 require 'rubygems'
 require 'term/ansicolor'
-
 include Term::ANSIColor
 
 def program_usage
@@ -39,7 +38,7 @@ end
 #
 
 begin
-  component_list = OCMLibraryParser.getComponentList
+  component_list = APELibraryParser.getComponentList
 rescue RuntimeError
   puts '[apes-info] Variable APES_COMPONENT_PATH not defined.'
   abort
@@ -55,7 +54,7 @@ end
 #
 
 id = OCMId.new(ARGV[0], nil, ARGV[1])
-match_list = OCMLibraryParser.findComponentWith(id)
+match_list = APELibraryParser.findComponentWith(id)
 
 if match_list.empty? then
   abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
@@ -75,40 +74,24 @@ puts "[Path:]".green.bold
 puts component.path
 puts
 
-if not (component.provided_methods.empty? \
-        and component.provided_definitions.empty? \
-        and provided_types.empty?) then
+if not (component.methods["provide"].empty? \
+        and component.defs["provide"].empty? \
+        and types["provide"].empty?) then
   puts "[Provides]".green.bold
 
-  component.provided_types.each do |t|
-    puts t.to_s
-  end
-
-  component.provided_definitions.each do |d|
-    puts d.to_s
-  end
-
-  component.provided_methods.each do |m|
-    puts m.to_s
-  end
+  component.types["provide"].each { |t| puts t.to_s }
+  component.defs["provide"].each { |d| puts d.to_s }
+  component.methods["provide"].each { |m| puts m.to_s }
 end
 
 puts
 
-if not (component.required_methods.empty? \
-        and component.required_definitions.empty? \
-        and component.required_types.empty?) then
-  puts "[Requires:]".green.bold
+if not (component.methods["require"].empty? \
+        and component.defs["require"].empty? \
+        and types["require"].empty?) then
+  puts "[Require]".green.bold
 
-  component.required_types.each do |t|
-    puts t.to_s
-  end
-
-  component.required_definitions.each do |d|
-    puts d.to_s
-  end
-
-  component.required_methods.each do |m|
-    puts m.to_s
-  end
+  component.types["require"].each { |t| puts t.to_s }
+  component.defs["require"].each { |d| puts d.to_s }
+  component.methods["require"].each { |m| puts m.to_s }
 end

@@ -15,7 +15,8 @@ require 'term/ansicolor'
 include Term::ANSIColor
 
 class OCMElement
-  attr :name, :visibility
+  attr :name
+  attr :visibility
 
   def initialize(name, visibility)
     @name = name

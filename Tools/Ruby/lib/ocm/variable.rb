@@ -31,7 +31,9 @@ class OCMVariable < OCMElement
   end
 
   def to_s
-    return super.to_s + " variable"
+    string = "variable ".bold + @name
+    string += " [#{@visibility}]" if @visibility != nil
+    return string
   end
 end
 

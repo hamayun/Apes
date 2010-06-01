@@ -31,7 +31,9 @@ class OCMType < OCMElement
   end
 
   def to_s
-    return "type #{@name} (#{@visibility})"
+    string = "type ".bold + @name
+    string += " [#{@visibility}]" if @visibility != nil
+    return string
   end
 end
 

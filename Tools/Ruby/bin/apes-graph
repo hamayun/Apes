@@ -16,6 +16,7 @@
 require 'ocm/id'
 require 'ocm/depend'
 require 'ocm/resolve'
+require 'apes/parse'
 
 def program_usage
   puts "Usage: apes-graph <name> <version>"
@@ -26,7 +27,7 @@ end
 #
 
 begin
-  component_list = OCMLibraryParser.getComponentList
+  component_list = APELibraryParser.getComponentList
 rescue RuntimeError
   puts '[apes-graph] Variable APES_COMPONENT_PATH not defined.'
   abort
@@ -60,12 +61,12 @@ when 0
 when 2
 
   id = OCMId.new(arguments[0], nil, arguments[1])
-  components = OCMLibraryParser.findComponentWith(id)
+  components = APELibraryParser.findComponentWith(id)
 
   if components == nil or components.empty? then
-    abort "[apes-cc] " + id.to_s + ": no match found."
+    abort "[apes-graph] " + id.to_s + ": no match found."
   elsif components.length != 1 then
-    abort "[apes-cc] " + id.to_s + ": multiple matches found."
+    abort "[apes-graph] " + id.to_s + ": multiple matches found."
   end
 
   component = components.first

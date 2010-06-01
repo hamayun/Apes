@@ -80,7 +80,7 @@ begin
   # Find the component to build
   #
 
-  component_list = OCMLibraryParser.getComponentList
+  component_list = APELibraryParser.getComponentList
 
   case arguments.count
   when 0 
@@ -90,13 +90,13 @@ begin
       abort '[apes-compose] no component in this directory.'
     end
 
-    if OCMLibraryParser.findComponentWith(component.id).empty? then
+    if APELibraryParser.findComponentWith(component.id).empty? then
       component_list << component
     end
 
   when 2
     id = OCMId.new(arguments[0], nil, arguments[1])
-    components = OCMLibraryParser.findComponentWith(id)
+    components = APELibraryParser.findComponentWith(id)
 
     if components == nil or components.empty? then
       abort "[apes-compose] " + id.to_s + ": no match found."

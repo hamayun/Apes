@@ -38,12 +38,12 @@ class APECompilationUnit
 
   def APECompilationUnit.createWith(component)
     # Check if the necessary env variables are present
-    if ENV['APE_CC_FLAGS'] == nil
-      raise CompilationError.new "Undefined APE_CC_FLAGS variable."
+    if ENV['APES_CC_FLAGS'] == nil
+      raise CompilationError.new "Undefined APES_CC_FLAGS variable."
     end
 
-    if ENV['APE_CC_OPTIMIZATIONS'] == nil
-      raise CompilationError.new "Undefined APE_CC_OPTIMIZATIONS variable."
+    if ENV['APES_CC_OPTIMIZATIONS'] == nil
+      raise CompilationError.new "Undefined APES_CC_OPTIMIZATIONS variable."
     end
 
     # If everything is OK, return an instance of the CcUnit
