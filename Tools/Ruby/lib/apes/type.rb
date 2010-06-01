@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
 require 'term/ansicolor'
 
 include Term::ANSIColor
@@ -24,33 +24,23 @@ class APEType
     @name = name
   end
 
-  def APEType.createFromXML (root)
-    name = root.attributes["name"]
-    APEType.new(name)
+  def APEType.createFromXML(node)
+    name = node["name"]
+    return APEType.new(name)
   end
 
   def to_s
-    'type'.red + ' ' + @name.bold
+    return 'type'.red + ' ' + @name.bold
   end
 
-  def == (type)
-    if type == nil then
-      false
-    else
-      @name == type.name
-    end
-  end
-
-  def equ? (type)
-    if type == nil then
-      false
-    else
-      @name == type.name
-    end
+  def eql?(type)
+    return type == nil ? false : @name == type.name
   end
 
   def hash
-    @name.hash
+    return @name.hash
   end
+
+  alias :== :eql?
 end
 

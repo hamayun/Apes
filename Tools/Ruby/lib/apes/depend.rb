@@ -18,11 +18,11 @@ def component_depend(component, components_list)
   d_deps = []
   m_deps = []
 
-  component.required_types.each do |t|
+  component.types["require"].each do |t|
     found = false
 
     components_list.each do |c|
-      match = c.provided_types.find { |i| i == t }
+      match = c.types["provide"].find { |i| i == t }
 
       if match != nil then
         found = true
@@ -36,11 +36,11 @@ def component_depend(component, components_list)
   end
 
 
-  component.required_definitions.each do |d|
+  component.defs["require"].each do |d|
     found = false
 
     components_list.each do |c|
-      match = c.provided_definitions.find { |i| i == d }
+      match = c.defs["provide"].find { |i| i == d }
 
       if match != nil then
         found = true
@@ -53,11 +53,11 @@ def component_depend(component, components_list)
     end
   end
 
-  component.required_methods.each do |m|
+  component.methods["require"].each do |m|
     found = false
 
     components_list.each do |c|
-      match = c.provided_methods.find { |i| i == m }
+      match = c.methods["provide"].find { |i| i == m }
 
       if match != nil then
         found = true
@@ -74,9 +74,9 @@ def component_depend(component, components_list)
   # Check the managed methods
   #
 
-  component.managed_methods.each do |m|
+  component.methods["manage"].each do |m|
     components_list.each do |c|
-      match = c.provided_methods.find { |i| i == m }
+      match = c.methods["provide"].find { |i| i == m }
 
       if match != nil then
         m_deps << c

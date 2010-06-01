@@ -23,22 +23,18 @@ require 'pp'
 #
 
 def component_resolve_r(component, rlist, clist, dlist, xlist)
-  local_deps = []
-  final_deps = []
-  t_deps = []
-  d_deps = []
-  m_deps = []
-  i_deps = []
+  local_deps, final_deps = [], []
+  t_deps, d_deps, m_deps, i_deps = [], [], [], []
 
   #
   # Check the required types
   #
 
-  component.required_types.each do |t|
+  component.types["require"].each do |t|
     found = false
 
     clist.each do |c|
-      match = c.provided_types.find { |i| i == t }
+      match = c.types["provide"].find { |i| i == t }
 
       if match != nil then
         found = true
@@ -53,11 +49,11 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Check the required definitions
   #
 
-  component.required_definitions.each do |d|
+  component.defs["require"].each do |d|
     found = false
 
     clist.each do |c|
-      match = c.provided_definitions.find { |i| i == d }
+      match = c.defs["provide"].find { |i| i == d }
 
       if match != nil then
         found = true
@@ -72,11 +68,11 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Check the required methods
   #
 
-  component.required_methods.each do |m|
+  component.methods["require"].each do |m|
     found = false
 
     clist.each do |c|
-      match = c.provided_methods.find { |i| i == m }
+      match = c.methods["provide"].find { |i| i == m }
 
       if match != nil then
         found = true
@@ -91,7 +87,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Inject the required components
   #
 
-  component.injected_ids.each do |i|
+  component.ids["inject"].each do |i|
     inject = clist.find { |f| f.id == i }
     if inject == nil then
       print component.id.to_s + ": "
@@ -111,7 +107,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Check if the component's restrictions match existing components
   #
   
-  component.restricted_ids.each do |r|
+  component.ids["restrict"].each do |r|
     match = clist.find_all { |m| m.id == r }
 
     if match.empty? then
@@ -124,7 +120,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Update the restrictions
   #
   
-  rlist += component.restricted_ids
+  rlist += component.ids["restrict"]
   rlist.uniq!
 
   #
@@ -198,7 +194,7 @@ def component_resolve(component, clist)
 
   if component.unique then
     filtered_components = clist.find_all do |f|
-      (not f.equ?(component)) && f.overlap?(component)
+      f != component && f.overlap?(component)
     end
     filtered_components.each { |f| clist.delete(f) }
   end

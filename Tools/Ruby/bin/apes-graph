@@ -50,10 +50,10 @@ when 0
   component = APEComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
-    abort '[apes-cc] no component in this directory.'
+    abort '[apes-graph] no component in this directory.'
   end
 
-  if component_list.find { |e| e.equ?(component) } == nil then
+  if component_list.find { |e| e == component } == nil then
     component_list << component
   end
 

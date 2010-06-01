@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
 require 'term/ansicolor'
 
 include Term::ANSIColor
@@ -26,38 +26,26 @@ class APEArgument
     @direction = direction
   end
 
-  def APEArgument.createFromXML (root)
-    name = root.attributes["name"]
-    type = root.attributes["type"]
-    direction = root.attributes["direction"]
-
-    APEArgument.new(name, type, direction)
+  def APEArgument.createFromXML(node)
+    name = node["name"]
+    type = node["type"]
+    direction = node["direction"]
+    return APEArgument.new(name, type, direction)
   end
 
   def to_s
-    @name.underscore + ': ' + @direction.red + ' ' + @type.blue
+    return @name.underscore + ': ' + @direction.red + ' ' + @type.blue
   end
 
-  def == (argument)
-    if argument == nil then
-      false
-    else
-      ((@name == argument.name) and (@type == argument.type) \
-       and (@direction == argument.direction))
-    end
-  end
-
-  def equ? (argument)
-    if argument == nil then
-      false
-    else
-      ((@name == argument.name) and (@type == argument.type) \
-       and (@direction == argument.direction))
-    end
+  def eql?(arg)
+    return false unless arg!= nil
+    return @name == arg.name && @type == arg.type && @direction == arg.direction
   end
 
   def hash
-    [@name, @type, @direction].hash
+    return [@name, @type, @direction].hash
   end
+
+  alias :== :eql?
 end
 

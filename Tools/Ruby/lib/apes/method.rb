@@ -14,7 +14,7 @@
 require 'apes/argument'
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
 require 'term/ansicolor'
 
 include Term::ANSIColor
@@ -25,52 +25,37 @@ class APEMethod
   def initialize(name, return_type)
     @arguments = []
     @name = name
-    @return_type = return_type
+    @return_type = return_type == nil ? "" : return_type
   end
 
-  def APEMethod.createFromXML (root)
-    name = root.attributes["name"]
-    return_type = root.attributes["return_type"]
-
-    method = APEMethod.new(name, return_type)
-    root.elements.each("argument") do |e|
-      method.arguments << APEArgument.createFromXML(e)
-    end
-    
-    method
+  def APEMethod.createFromXML(node)
+    name = node["name"]
+    return_type = node["return_type"]
+    m = APEMethod.new(name, return_type)
+    node.xpath("/argument") { |a| m.arguments << APEArgument.createFromXML(a) }
+    return m
   end
 
   def to_s
     args = ""
 
-    if @return_type.empty? then
-      string = "procedure ".red
-    else
-      string = "function ".red
-    end
+    @arguments.each { |e| args = args + e.to_s + ", " }
 
-    @arguments.each do |e|
-      args = args + e.to_s + ", "
-    end
+    string = @return_type.empty? ? "procedure ".red : "function ".red
     string += @name.bold + " " + args.chop.chop 
-    if not @return_type.empty? then string += " - " + "return ".red + @return_type.blue end
-    string
+    string += "return ".red + @return_type.blue unless @return_type.empty?
+    return string
   end
 
-  def == (method)
-    if method == nil then false
-    else (@name == method.name) and (@arguments == method.arguments)
-    end
-  end
-
-  def equ? (method)
-    if method == nil then false
-    else (@name == method.name) and (@arguments == method.arguments)
-    end
+  def eql?(m)
+    return m == nil ? self.class == NilClass :
+      (@name == m.name) && (@arguments == m.arguments)
   end
 
   def hash
-    [@name, @argument].hash
+    return [@name, @argument].hash
   end
+
+  alias :== :eql?
 end
 

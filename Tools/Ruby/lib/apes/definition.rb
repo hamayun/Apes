@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
 require 'term/ansicolor'
 
 include Term::ANSIColor
@@ -24,33 +24,23 @@ class APEDefinition
     @name = name
   end
 
-  def APEDefinition.createFromXML (root)
-    name = root.attributes["name"]
-    APEDefinition.new(name)
+  def APEDefinition.createFromXML(node)
+    name = node["name"]
+    return APEDefinition.new(name)
   end
 
   def to_s
-    "definition".red + ' ' + @name.bold
+    return "definition".red + ' ' + @name.bold
   end
 
-  def == (definition)
-    if definition == nil then
-      false
-    else
-      @name == definition.name
-    end
-  end
-
-  def equ? (definition)
-    if definition == nil then
-      false
-    else
-      @name == definition.name
-    end
+  def eql?(d)
+    return d == nil ? self.class == NilClass : @name == d.name
   end
 
   def hash
-    @name.hash
+    return @name.hash
   end
+
+  alias :== :eql?
 end
 

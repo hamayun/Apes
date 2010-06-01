@@ -17,13 +17,13 @@ require 'apes/definition'
 require 'apes/method'
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
+require 'pp'
 
 class APEComponent
-  attr_reader :unique, :id, :wrapper, :injected_ids, :restricted_ids
-  attr_reader :author, :path, :provided_types, :required_types
-  attr_reader :provided_definitions, :required_definitions
-  attr_reader :managed_methods, :provided_methods, :required_methods
+  attr_reader :unique, :id, :wrapper
+  attr_reader :author, :path, :types, :ids
+  attr_reader :defs, :methods
 
   def initialize(file_path, id, author, unique, wrapper)
     @path = file_path
@@ -32,202 +32,130 @@ class APEComponent
     @unique = unique
     @wrapper = wrapper
 
-    @injected_ids = []
-    @restricted_ids = []
-
-    @provided_types = []
-    @required_types = []
-
-    @provided_definitions = []
-    @required_definitions = []
-
-    @managed_methods = []
-    @provided_methods = []
-    @required_methods = []
+    @ids = { 'inject' => [], 'restrict' => [] }
+    @types = { 'provide' => [], 'require' => [] }
+    @defs = { 'provide' => [], 'require' => [] }
+    @methods = { 'manage' => [], 'provide' => [], 'require' => [] }
   end
 
-  def APEComponent.createFromXMLFileAtPath(file_path)
-    
-    #
-    # Get the data
+  def APEComponent.createFromXMLFileAtPath(path)
+    # Get the XML data from the input file.
     #
 
-    begin
-      xml_data = File.new(file_path + "/component.xml")
-      file = REXML::Document.new(xml_data)
-      root = file.root
-      author = root.attributes["author"]
-      unique = root.attributes["unique"] == "true"
-      wrapper = root.attributes["wrapper"] == "true"
+    document = nil
+    File.open(path + '/component.xml') { |f| document = Nokogiri.XML(f) }
+    author, unique, wrapper = "", "", ""
 
-      #
-      # Get the component's ID
-      #
+    author = document.root["author"]
+    unique = document.root["unique"] == "true"
+    wrapper = document.root["wrapper"] == "true"
 
-      ids = []
-      root.elements.each("id") do |i|
-        ids << APEId.createFromXML(i)
-      end
+    #
+    # Get the component's ID
+    #
 
-      if ids.length == 0 then
-        abort "[component] no ID found for component at " + file_path
-      elsif ids.length > 1 then
-        abort "[component] too many IDs found for component at " + file_path
-      end
+    ids = []
+    document.xpath("/component/id").each { |n| ids << APEId.createFromXML(n) }
 
-      component = APEComponent.new(file_path, ids[0], author, unique, wrapper)
+    abort "[component] no ID for component at " + path if ids.length == 0 
+    abort "[component] too many IDs for component at " + path if ids.length > 1
 
-      #
-      # Get the injected IDs
-      #
+    cmp = APEComponent.new(path, ids.first, author, unique, wrapper)
 
-      root.elements.each("inject/id") do |i|
-        id = APEId.createFromXML(i)
-        if component.injected_ids.find { |i| i == id } == nil then
-          component.injected_ids << id
-        else
-          abort "Duplicate injected id " + id.to_s + " in component at " + @path
-        end
-      end
+    #
+    # Get the injected IDs
+    #
 
-      #
-      # Get the restricted IDs
-      #
-
-      root.elements.each("restrict/id") do |i|
-        id = APEId.createFromXML(i)
-        if component.restricted_ids.find { |i| i == id } == nil then
-          component.restricted_ids << id
-        else
-          puts "Component at path:"
-          puts "\t" + @path
-          abort "Duplicate restricted id: " + id.to_s
-        end
-      end
-
-      #
-      # Get the managed methods
-      #
-
-      root.elements.each("manage/method") do |m|
-        item = APEMethod.createFromXML(m)
-        if component.managed_methods.find { |i| i == item } == nil then
-          component.managed_methods << item
-        else
-          puts id.to_s
-          abort "Duplicate managed method:" + item.name
-        end
-      end
-
-      #
-      # Get the provided items
-      #
-
-      root.elements.each("provide") do |p|
-        p.elements.each("type") do |t|
-          item = APEType.createFromXML(t)
-          if component.provided_types.find { |i| i == item } == nil then
-            component.provided_types << item
-          else
-            puts item.to_s
-            abort "Duplicate provided type" + item.name
-          end
-        end
-
-        p.elements.each("definition") do |d|
-          item = APEDefinition.createFromXML(d)
-          if component.provided_definitions.find { |i| i == item } == nil then
-            component.provided_definitions << item
-          else
-            puts item.to_s
-            abort "Duplicate provided definition" + item.name
-          end
-        end
-
-        p.elements.each("method") do |m|
-          item = APEMethod.createFromXML(m)
-          if component.provided_methods.find { |i| i == item } == nil then
-            component.provided_methods << item
-          else
-            puts item.to_s
-            abort "Duplicate provided method" + item.name
-          end
-        end
-      end
-
-      #
-      # Get the required items
-      #
-
-      root.elements.each("require") do |p|
-        p.elements.each("type") do |t|
-          item = APEType.createFromXML(t)
-          if component.required_types.find { |i| i == item } == nil then
-            component.required_types << item
-          else
-            puts item.to_s
-            abort "Duplicate required type" + item.name
-          end
-        end
-
-        p.elements.each("definition") do |d|
-          item = APEDefinition.createFromXML(d)
-          if component.required_definitions.find { |i| i == item } == nil then
-            component.required_definitions << item
-          else
-            puts item.to_s
-            abort "Duplicate required definition" + item.name
-          end
-        end
-
-        p.elements.each("method") do |m|
-          item = APEMethod.createFromXML(m)
-          if component.required_methods.find { |i| i == item } == nil then
-            component.required_methods << item
-          else
-            puts item.to_s
-            abort "Duplicate required method" + item.name
-          end
-        end
-      end
-
-      component
-    rescue
-      nil
+    document.xpath("/component/inject/id").each do |node|
+      id = APEId.createFromXML(node)
+      cmp.ids['inject'] << id unless cmp.ids['inject'].include?(id)
     end
+
+    #
+    # Get the restricted IDs
+    #
+
+    document.xpath("/component/restrict/id").each do |node|
+      id = APEId.createFromXML(node)
+      cmp.ids['restrict'] << id unless cmp.ids['restrict'].include?(id)
+    end
+
+    #
+    # Get the managed methods
+    #
+
+    document.xpath("/component/manage/method").each do |node|
+      m = APEMethod.createFromXML(node)
+      cmp.methods['manage'] << m unless cmp.methods['manage'].include?(m)
+    end
+
+    #
+    # Get the provided items
+    #
+
+    document.xpath("/component/provide/type").each do |node|
+      t = APEType.createFromXML(node)
+      cmp.types['provide'] << t unless cmp.types['provide'].include?(t) 
+    end
+
+    document.xpath("/component/provide/definition").each do |node|
+      d = APEDefinition.createFromXML(node)
+      cmp.defs['provide'] << d unless cmp.defs['provide'].include?(d) 
+    end
+
+    document.xpath("/component/provide/method").each do |node|
+      m = APEMethod.createFromXML(node)
+      cmp.methods['provide'] << m unless cmp.methods['provide'].include?(m)
+    end
+
+    #
+    # Get the required items
+    #
+
+    document.xpath("/component/require/type").each do |node|
+      t = APEType.createFromXML(node)
+      cmp.types['require'] << t unless cmp.types['require'].include?(t) 
+    end
+
+    document.xpath("/component/require/definition").each do |node|
+      d = APEDefinition.createFromXML(node)
+      cmp.defs['require'] << d unless cmp.defs['require'].include?(d) 
+    end
+
+    document.xpath("/component/require/method").each do |node|
+      m = APEMethod.createFromXML(node)
+      cmp.methods['require'] << m unless cmp.methods['require'].include?(m)
+    end
+
+    return cmp
   end
 
-  def overlap?(component)
-    overlap = false
+  def overlap?(c)
+    union = (@methods["provide"] + c.methods["provide"]).uniq
+    total_length = @methods["provide"].length + c.methods["provide"].length
+    return true if union.length < total_length
 
-    if component != nil and component != self  then
-      @provided_types.each do |t|
-        item = component.provided_types.find { |f| t == f }
-        overlap = (overlap or (item != nil))
-      end
+    union = (@types["provide"] + c.types["provide"]).uniq
+    total_length = @types["provide"].length + c.types["provide"].length
+    return true if union.length < total_length
 
-      @provided_definitions.each do |d|
-        item = component.provided_definitions.find { |f| d == f }
-        overlap = (overlap or (item != nil))
-      end
+    union = (@defs["provide"] + c.defs["provide"]).uniq
+    total_length = @defs["provide"].length + c.defs["provide"].length
+    return true if union.length < total_length
 
-      @provided_methods.each do |m|
-        item = component.provided_methods.find { |f| m == f }
-        overlap = (overlap or (item != nil))
-      end
-    else
-      overlap = true
-    end
-  
-    overlap
+    return false
   end
 
-  def equ?(component)
-    @id == component.id
+  def eql?(c)
+    return c == nil ? self.class == NilClass : @id == c.id
+  end
+
+  def ==(c)
+    return self.eql?(c)
   end
 
   def hash
-    @id.hash
+    return @id.hash
   end
 end
 

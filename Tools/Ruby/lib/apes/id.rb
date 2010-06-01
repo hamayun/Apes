@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'rexml/document'
+require 'nokogiri'
 
 class APEId
   attr_reader :name, :short_name, :version
@@ -25,36 +25,25 @@ class APEId
     if @short_name == nil then @short_name = @name end
   end
 
-  def APEId.createFromXML (root)
-    name = root.attributes["name"]
-    short_name = root.attributes["short_name"]
-    version = root.attributes["version"]
-
-    APEId.new(name, short_name, version)
+  def APEId.createFromXML(node)
+    name = node["name"]
+    short_name = node["short_name"]
+    version = node["version"]
+    return APEId.new(name, short_name, version)
   end
 
   def to_s
-    "#{@name} [#{@version}]"
+    return "#{@name} [#{@version}]"
   end
 
-  def == (id)
-    if id == nil then
-      false
-    else
-      @name == id.name and @version == id.version
-    end
-  end
-
-  def eql? (id)
-    if id == nil then
-      false
-    else
-      @name == id.name and @version == id.version
-    end
+  def eql?(id)
+    return id == nil ? false : @name == id.name && @version == id.version
   end
 
   def hash
-    [@name, @version].hash
+    return [@name, @version].hash
   end
+
+  alias :== :eql?
 end
 
