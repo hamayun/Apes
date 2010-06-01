@@ -11,49 +11,45 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/argument'
-
 require 'rubygems'
 require 'nokogiri'
 require 'term/ansicolor'
-
 include Term::ANSIColor
 
-class APEMethod
-  attr_reader :name, :arguments, :return_type
+class OCMId
+  attr :name
+  attr :short_name
+  attr :version
 
-  def initialize(name, return_type)
-    @arguments = []
+  def initialize(name, short_name, version)
     @name = name
-    @return_type = return_type == nil ? "" : return_type
+    @short_name = short_name == nil ? name : short_name
+    @version = version
   end
 
-  def APEMethod.createFromXML(node)
+  def OCMId.createWith(name, short_name, version)
+    return OCMId.new(name, short_name, version)
+  end
+
+  def OCMId.createFromXML(node)
     name = node["name"]
-    return_type = node["return_type"]
-    m = APEMethod.new(name, return_type)
-    node.xpath("/argument") { |a| m.arguments << APEArgument.createFromXML(a) }
-    return m
+    short_name = node["short_name"]
+    version = node["version"]
+    return OCMId.createWith(name, short_name, version)
   end
 
   def to_s
-    args = ""
-
-    @arguments.each { |e| args = args + e.to_s + ", " }
-
-    string = @return_type.empty? ? "procedure ".red : "function ".red
-    string += @name.bold + " " + args.chop.chop 
-    string += "return ".red + @return_type.blue unless @return_type.empty?
-    return string
+    return @name.blue + ', ' + @version.green
   end
 
-  def eql?(m)
-    return m == nil ? self.class == NilClass :
-      (@name == m.name) && (@arguments == m.arguments)
+  def eql?(id)
+    return self.class == NilClass if e == nil
+    return e.class == NilClass if self == nil
+    return @name == id.name && @version == id.version
   end
 
   def hash
-    return [@name, @argument].hash
+    return [@name, @version].hash
   end
 
   alias :== :eql?

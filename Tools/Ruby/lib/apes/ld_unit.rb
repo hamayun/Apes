@@ -12,11 +12,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'apes/cc_unit'
-
 require 'rubygems'
-require 'term/ansicolor'
 require 'popen4'
-
+require 'term/ansicolor'
 include Term::ANSIColor
 
 class APELinkUnit
@@ -25,28 +23,38 @@ class APELinkUnit
   end
 
   def APELinkUnit.link(name, buildir, cc_units, mode)
-
     # Check if the necessary env variables are present
-    if ENV['APES_LINKER'] == nil
-      raise LinkError.new "Undefined APES_LINKER variable."
+    #
+
+    if ENV['APE_LINKER'] == nil
+      raise LinkError.new "Undefined APE_LINKER variable."
     end
 
-    if ENV['APES_LINKER_FLAGS'] == nil
-      raise LinkError.new "Undefined APES_LINKER_FLAGS variable."
+    if ENV['APE_LINKER_FLAGS'] == nil
+      raise LinkError.new "Undefined APE_LINKER_FLAGS variable."
     end
 
+    #
     # We get the complete object list
+    #
+
     objects = []
     cc_units.each { |cc| objects += cc.objects }
 
+    #
     # We try to link the objects
-    cmd = [ENV['APES_LINKER']]
+    #
+
+    cmd = [ENV['APE_LINKER']]
     cmd << "-o #{name}"
-    cmd << ENV['APES_LINKER_FLAGS']
+    cmd << ENV['APE_LINKER_FLAGS']
     objects.each { |o| cmd << "#{o.object}" }
     command = cmd.join(' ')
 
+    #
     # Deal with calling the linker
+    #
+
     puts command unless mode == :normal
 
     stdout, stderr = [], []
@@ -55,17 +63,19 @@ class APELinkUnit
       stderr = err.readlines
     end
 
+    #
     # Deal with the errors
+    #
+
     print "\r\e[2K" if mode == :normal
 
     if status == nil
-      message = "Cannot execute " + ENV['APES_LINKER']
+      message = "Cannot execute " + ENV['APE_LINKER']
       message += ", no such file or directory"
       raise LinkError.new message
     elsif status != 0
       raise LinkError.new(stderr.join)
     end
-
   end
 end
 

@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/id'
-require 'apes/parse'
+require 'ocm/id'
+require 'ocm/parse'
 
 require 'rubygems'
 require 'term/ansicolor'
@@ -22,7 +22,7 @@ require 'term/ansicolor'
 include Term::ANSIColor
 
 def program_usage
-  puts "Usage: apes-info <name> <version>"
+  puts "Usage: ocm-info <name> <version>"
 end
 
 #
@@ -39,12 +39,12 @@ end
 #
 
 begin
-  component_list = APELibraryParser.getComponentList
+  component_list = OCMLibraryParser.getComponentList
 rescue RuntimeError
-  puts '[apes-info] Variable APES_COMPONENT_PATH not defined.'
+  puts '[ocm-info] Variable OCM_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[apes-info] error in APES_COMPONENT_PATH: '
+  print '[ocm-info] error in OCM_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -54,13 +54,13 @@ end
 # Retrieve the component
 #
 
-id = APEId.new(ARGV[0], nil, ARGV[1])
-match_list = APELibraryParser.findComponentWith(id)
+id = OCMId.new(ARGV[0], nil, ARGV[1])
+match_list = OCMLibraryParser.findComponentWith(id)
 
 if match_list.empty? then
-  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
+  abort "[ocm-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
 elsif match_list.length > 1 then
-  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
+  abort "[ocm-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
 end
 
 component = match_list.first

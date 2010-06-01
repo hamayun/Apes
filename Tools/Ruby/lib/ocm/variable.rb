@@ -11,36 +11,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'ocm/element'
 require 'rubygems'
 require 'nokogiri'
-require 'term/ansicolor'
 
-include Term::ANSIColor
-
-class APEType
-  attr_reader :name
-
-  def initialize(name)
-    @name = name
-  end
-
-  def APEType.createFromXML(node)
-    name = node["name"]
-    return APEType.new(name)
+class OCMVariable < OCMElement
+  def OCMVariable.createFromXML(node)
+    return super.new(node["name"], node["visibility"].to_lower.to_sym)
   end
 
   def to_s
-    return 'type'.red + ' ' + @name.bold
+    return super.to_s + " variable"
   end
-
-  def eql?(type)
-    return type == nil ? false : @name == type.name
-  end
-
-  def hash
-    return @name.hash
-  end
-
-  alias :== :eql?
 end
 

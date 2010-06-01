@@ -14,31 +14,46 @@
 require 'rubygems'
 require 'nokogiri'
 require 'term/ansicolor'
-
 include Term::ANSIColor
 
-class APEDefinition
-  attr_reader :name
+class OCMArgument
+  attr :name
+  attr :type
+  attr :direction
 
-  def initialize(name)
+  def initialize(name, type, direction)
     @name = name
+    @type = type
+    @direction = direction
   end
 
-  def APEDefinition.createFromXML(node)
+  def OCMArgument.createWith(name, type, direction)
+    a = nil
+    if [:in, :out, :inout].include?(direction) and name != nil
+      a = OCMElement.new(name, visibility)
+    end
+    return a
+  end
+
+  def OCMArgument.createFromXML(node)
     name = node["name"]
-    return APEDefinition.new(name)
+    type = node["type"]
+    direction = node["direction"]
+    return OCMArgument.createWith(name, type, direction)
   end
 
   def to_s
-    return "definition".red + ' ' + @name.bold
+    return @name.underscore + ': ' + @direction.to_s.red + ' ' + @type.blue
   end
 
-  def eql?(d)
-    return d == nil ? self.class == NilClass : @name == d.name
+  def eql?(arg)
+    return self.class == NilClass if arg == nil
+    return arg.class == NilClass if self == nil
+    return @name == arg.name && @type == arg.type && @direction == arg.direction
   end
 
   def hash
-    return @name.hash
+    return [@name, @type, @direction].hash
   end
 
   alias :== :eql?

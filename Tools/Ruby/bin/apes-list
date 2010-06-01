@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/id'
-require 'apes/parse'
+require 'ocm/id'
+require 'ocm/parse'
 
 require 'rubygems'
 require 'term/ansicolor'
@@ -22,14 +22,14 @@ require 'term/ansicolor'
 include Term::ANSIColor
 
 def program_usage
-  puts 'Usage: apes-list'
+  puts 'Usage: ocm-list'
 end
 
 if ARGV.count != 0 then
   program_usage
 else
   begin
-    component_list = APELibraryParser.getComponentList
+    component_list = OCMLibraryParser.getComponentList
     longer_id = component_list.max do |a,b|
       a.id.name.length <=> b.id.name.length
     end
@@ -40,9 +40,9 @@ else
       puts ('[' + c.id.version + ']').green
     end
   rescue RuntimeError
-    puts '[apes-list] Variable APES_COMPONENT_PATH not defined.'
+    puts '[ocm-list] Variable OCM_COMPONENT_PATH not defined.'
   rescue Errno::ENOENT => detail
-    print '[apes-list] error in APES_COMPONENT_PATH: '
+    print '[ocm-list] error in OCM_COMPONENT_PATH: '
     puts detail.message
   end
 end

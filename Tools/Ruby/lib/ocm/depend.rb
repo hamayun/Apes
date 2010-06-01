@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/component'
-require 'apes/id'
-require 'apes/parse'
+require 'ocm/component'
+require 'ocm/id'
+require 'ocm/parse'
 
 def component_depend(component, components_list)
   t_deps, d_deps, m_deps = [], [], []

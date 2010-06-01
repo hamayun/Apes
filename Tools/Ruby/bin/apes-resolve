@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/id'
-require 'apes/resolve'
+require 'ocm/id'
+require 'ocm/resolve'
 
 def program_usage
-  puts "Usage: apes-resolve <name> <id>"
+  puts "Usage: ocm-resolve <name> <id>"
 end
 
 #
@@ -34,12 +34,12 @@ end
 #
 
 begin
-  component_list = APELibraryParser.getComponentList
+  component_list = OCMLibraryParser.getComponentList
 rescue RuntimeError
-  puts '[apes-resolve] Variable APES_COMPONENT_PATH not defined.'
+  puts '[ocm-resolve] Variable OCM_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[apes-resolve] error in APES_COMPONENT_PATH: '
+  print '[ocm-resolve] error in OCM_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -48,7 +48,7 @@ end
 # Create an ID for the component
 #
 
-id = APEId.new(ARGV[0], nil, ARGV[1])
+id = OCMId.new(ARGV[0], nil, ARGV[1])
 
 #
 # Search the component
@@ -57,15 +57,15 @@ id = APEId.new(ARGV[0], nil, ARGV[1])
 components = component_list.find_all { |e| e.id == id }
 
 if components == nil || components.empty? then
-  abort "[apes-resolve] " + ARGV[0] + ": no match found."
+  abort "[ocm-resolve] " + ARGV[0] + ": no match found."
 elsif components.length != 1 then
-  abort "[apes-resolve] " + name + ": multiple matches found."
+  abort "[ocm-resolve] " + name + ": multiple matches found."
 end
 
 dependencies = component_resolve components[0], component_list
 
 if dependencies.empty? then
-  puts "[apes-resolve] No dependencies for: " + ARGV[0]
+  puts "[ocm-resolve] No dependencies for: " + ARGV[0]
 else
   dependencies.each do |d|
     puts d.id.to_s

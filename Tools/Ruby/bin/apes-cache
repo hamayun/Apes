@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/object_file'
+require 'ocm/object_file'
 
 require 'rubygems'
 require 'fileutils'
@@ -24,7 +24,7 @@ require 'term/ansicolor'
 #
 
 def program_usage
-  puts "Usage: apes-cache {show,purge,prune}"
+  puts "Usage: ocm-cache {show,purge,prune}"
   puts "\tshow                    : show the cache's content"
   puts "\tpurge                   : purge the cache"
   puts "\tprune                   : prune invalid cache entries"
@@ -36,7 +36,7 @@ end
 # Define the build directory
 #
 
-CACHE_DIRECTORY = ENV['HOME'] + "/.apes"
+CACHE_DIRECTORY = ENV['HOME'] + "/.ocm"
 
 #
 # Create the objects directory
@@ -93,7 +93,7 @@ begin
   case action
   when :show
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
-      object = APEObjectFile.createFrom(file)
+      object = OCMObjectFile.createFrom(file)
       if object == nil then
         puts file.split('/').last.blue.bold + " [INVALID]".red.bold
       else
@@ -107,7 +107,7 @@ begin
 
   when :prune, :purge
     Dir.glob(CACHE_DIRECTORY + "/*").each do |file|
-      object = APEObjectFile.createFrom(file)
+      object = OCMObjectFile.createFrom(file)
       if object == nil then
         FileUtils.rm_rf(file)
         puts file.split('/').last.blue + " [DELETED]".red if verbose == :on
@@ -128,10 +128,10 @@ begin
   end
 
 rescue RuntimeError
-  puts '[apes-cache] variable APES_COMPONENT_PATH not defined.'
+  puts '[ocm-cache] variable OCM_COMPONENT_PATH not defined.'
   exit
 rescue Errno::ENOENT => e
-  print '[apes-cache] error in APES_COMPONENT_PATH: '
+  print '[ocm-cache] error in OCM_COMPONENT_PATH: '
   puts e.message
   exit
 rescue => e

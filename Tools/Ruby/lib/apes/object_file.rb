@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/component'
-require 'apes/id'
-require 'apes/parse'
+require 'ocm/component'
+require 'ocm/id'
+require 'ocm/parse'
 
 require 'rubygems'
 require 'yaml'
@@ -21,8 +21,12 @@ require 'digest'
 require 'popen4'
 
 class APEObjectFile
-  attr_reader :update, :object, :flags
-  attr_reader :component, :version, :source
+  attr :update
+  attr :object
+  attr :flags
+  attr :component
+  attr :version
+  attr :source
 
   class ObjectError < RuntimeError
   end
@@ -40,7 +44,7 @@ class APEObjectFile
 
   def APEObjectFile.createWith(source, component, cache, includes)
     component_var = component.id.short_name.upcase + '_CC_FLAGS'
-    flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
+    flags = ENV['APE_CC_OPTIMIZATIONS'] + ' ' +
       (ENV[component_var] != nil ? ENV[component_var] : "");
 
     #
@@ -117,8 +121,8 @@ class APEObjectFile
   end
 
   def validate
-    id = APEId.new(@component, nil, @version)
-    components = APELibraryParser.findComponentWith(id)
+    id = OCMId.new(@component, nil, @version)
+    components = OCMLibraryParser.findComponentWith(id)
     return (components != nil and not components.empty?)
   end
 
@@ -168,9 +172,9 @@ class APEObjectFile
     status = 0
 
     # Build the command array
-    cmd_array = [ENV['APES_COMPILER']]
+    cmd_array = [ENV['APE_COMPILER']]
     cmd_array << "-c -o #{@object}"
-    cmd_array << ENV['APES_CC_FLAGS']
+    cmd_array << ENV['APE_CC_FLAGS']
     cmd_array << @flags
 
     cmd_array << @includes.collect { |d| '-I' + d }.join(' ')
@@ -188,7 +192,7 @@ class APEObjectFile
       end
 
       if status == nil
-        message = "Cannot execute " + ENV['APES_COMPILER']
+        message = "Cannot execute " + ENV['APE_COMPILER']
         message += ", no such file or directory"
         raise ObjectError.new message
       elsif status != 0

@@ -11,37 +11,39 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'rubygems'
-require 'nokogiri'
+require 'term/ansicolor'
+include Term::ANSIColor
 
-class APEId
-  attr_reader :name, :short_name, :version
+class OCMElement
+  attr :name, :visibility
 
-  def initialize (name, short_name, version)
+  def initialize(name, visibility)
     @name = name
-    @short_name = short_name
-    @version = version
-
-    if @short_name == nil then @short_name = @name end
+    @visibility = visibility
   end
 
-  def APEId.createFromXML(node)
-    name = node["name"]
-    short_name = node["short_name"]
-    version = node["version"]
-    return APEId.new(name, short_name, version)
+  def OCMElement.createWith(name, visibility)
+    e = nil
+    if [:public, :private].include?(visibility) and name != nil
+      e = OCMElement.new(name, visibility)
+    end
+    return e
   end
 
   def to_s
-    return "#{@name} [#{@version}]"
+    v = @visibility.to_s
+    v = @visibility == :private ? v.red : v.green
+    return '[' + v + '] ' + @name.bold
   end
 
-  def eql?(id)
-    return id == nil ? false : @name == id.name && @version == id.version
+  def eql?(e)
+    return self.class == NilClass if e == nil
+    return e.class == NilClass if self == nil
+    return @name == e.name && @visibility == e.visibility
   end
 
   def hash
-    return [@name, @version].hash
+    return [@name, @visibility].hash
   end
 
   alias :== :eql?

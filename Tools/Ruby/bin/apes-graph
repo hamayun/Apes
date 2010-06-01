@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/id'
-require 'apes/depend'
-require 'apes/resolve'
+require 'ocm/id'
+require 'ocm/depend'
+require 'ocm/resolve'
 
 def program_usage
-  puts "Usage: apes-graph <name> <version>"
+  puts "Usage: ocm-graph <name> <version>"
 end
 
 #
@@ -26,12 +26,12 @@ end
 #
 
 begin
-  component_list = APELibraryParser.getComponentList
+  component_list = OCMLibraryParser.getComponentList
 rescue RuntimeError
-  puts '[apes-graph] Variable APES_COMPONENT_PATH not defined.'
+  puts '[ocm-graph] Variable OCM_COMPONENT_PATH not defined.'
   abort
 rescue Errno::ENOENT => detail
-  print '[apes-graph] error in APES_COMPONENT_PATH: '
+  print '[ocm-graph] error in OCM_COMPONENT_PATH: '
   puts detail.message
   abort
 end
@@ -47,10 +47,10 @@ components = []
 case arguments.count
 when 0 
 
-  component = APEComponent.createFromXMLFileAtPath Dir.pwd
+  component = OCMComponent.createFromXMLFileAtPath Dir.pwd
 
   if component == nil then
-    abort '[apes-graph] no component in this directory.'
+    abort '[ocm-graph] no component in this directory.'
   end
 
   if component_list.find { |e| e == component } == nil then
@@ -59,13 +59,13 @@ when 0
 
 when 2
 
-  id = APEId.new(arguments[0], nil, arguments[1])
-  components = APELibraryParser.findComponentWith(id)
+  id = OCMId.new(arguments[0], nil, arguments[1])
+  components = OCMLibraryParser.findComponentWith(id)
 
   if components == nil or components.empty? then
-    abort "[apes-cc] " + id.to_s + ": no match found."
+    abort "[ocm-cc] " + id.to_s + ": no match found."
   elsif components.length != 1 then
-    abort "[apes-cc] " + id.to_s + ": multiple matches found."
+    abort "[ocm-cc] " + id.to_s + ": multiple matches found."
   end
 
   component = components.first
@@ -82,9 +82,9 @@ end
 components = component_list.find_all { |e| e.id == component.id }
 
 if components == nil or components.empty? then
-  abort "[apes-graph] " + ARGV[0] + ": no match found."
+  abort "[ocm-graph] " + ARGV[0] + ": no match found."
 elsif components.length != 1 then
-  abort "[apes-graph] " + name + ": multiple matches found."
+  abort "[ocm-graph] " + name + ": multiple matches found."
 end
 
 #
@@ -94,7 +94,7 @@ end
 dependencies = component_resolve(components[0], component_list)
 
 if dependencies.empty? then
-  puts "[apes-graph] No dependencies for: " + ARGV[0]
+  puts "[ocm-graph] No dependencies for: " + ARGV[0]
 else
   resolved = []
   next_deps = []

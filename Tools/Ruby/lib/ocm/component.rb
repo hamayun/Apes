@@ -11,16 +11,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/id'
-require 'apes/type'
-require 'apes/definition'
-require 'apes/method'
+require 'ocm/id'
+require 'ocm/type'
+require 'ocm/definition'
+require 'ocm/method'
 
 require 'rubygems'
 require 'nokogiri'
 require 'pp'
 
-class APEComponent
+class OCMComponent
   attr_reader :unique, :id, :wrapper
   attr_reader :author, :path, :types, :ids
   attr_reader :defs, :methods
@@ -38,7 +38,7 @@ class APEComponent
     @methods = { 'provide' => [], 'require' => [] }
   end
 
-  def APEComponent.createFromXMLFileAtPath(path)
+  def OCMComponent.createFromXMLFileAtPath(path)
     # Get the XML data from the input file.
     #
 
@@ -55,19 +55,19 @@ class APEComponent
     #
 
     ids = []
-    document.xpath("/component/id").each { |n| ids << APEId.createFromXML(n) }
+    document.xpath("/component/id").each { |n| ids << OCMId.createFromXML(n) }
 
     abort "[component] no ID for component at " + path if ids.length == 0 
     abort "[component] too many IDs for component at " + path if ids.length > 1
 
-    cmp = APEComponent.new(path, ids.first, author, unique, wrapper)
+    cmp = OCMComponent.new(path, ids.first, author, unique, wrapper)
 
     #
     # Get the injected IDs
     #
 
     document.xpath("/component/inject/id").each do |node|
-      id = APEId.createFromXML(node)
+      id = OCMId.createFromXML(node)
       cmp.ids['inject'] << id unless cmp.ids['inject'].include?(id)
     end
 
@@ -76,7 +76,7 @@ class APEComponent
     #
 
     document.xpath("/component/restrict/id").each do |node|
-      id = APEId.createFromXML(node)
+      id = OCMId.createFromXML(node)
       cmp.ids['restrict'] << id unless cmp.ids['restrict'].include?(id)
     end
 
@@ -85,17 +85,17 @@ class APEComponent
     #
 
     document.xpath("/component/provide/type").each do |node|
-      t = APEType.createFromXML(node)
+      t = OCMType.createFromXML(node)
       cmp.types['provide'] << t unless cmp.types['provide'].include?(t) 
     end
 
     document.xpath("/component/provide/definition").each do |node|
-      d = APEDefinition.createFromXML(node)
+      d = OCMDefinition.createFromXML(node)
       cmp.defs['provide'] << d unless cmp.defs['provide'].include?(d) 
     end
 
     document.xpath("/component/provide/method").each do |node|
-      m = APEMethod.createFromXML(node)
+      m = OCMMethod.createFromXML(node)
       cmp.methods['provide'] << m unless cmp.methods['provide'].include?(m)
     end
 
@@ -104,17 +104,17 @@ class APEComponent
     #
 
     document.xpath("/component/require/type").each do |node|
-      t = APEType.createFromXML(node)
+      t = OCMType.createFromXML(node)
       cmp.types['require'] << t unless cmp.types['require'].include?(t) 
     end
 
     document.xpath("/component/require/definition").each do |node|
-      d = APEDefinition.createFromXML(node)
+      d = OCMDefinition.createFromXML(node)
       cmp.defs['require'] << d unless cmp.defs['require'].include?(d) 
     end
 
     document.xpath("/component/require/method").each do |node|
-      m = APEMethod.createFromXML(node)
+      m = OCMMethod.createFromXML(node)
       cmp.methods['require'] << m unless cmp.methods['require'].include?(m)
     end
 

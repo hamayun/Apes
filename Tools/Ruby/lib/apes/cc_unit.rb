@@ -11,17 +11,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/component'
-require 'apes/object_file'
-
+require 'ocm/component'
+require 'ocm/object_file'
 require 'rubygems'
 require 'term/ansicolor'
-
 include Term::ANSIColor
 
 class APECompilationUnit
   @@longer_name = ""
-  attr_reader :objects, :update
+  attr :objects
+  attr :update
 
   class CompilationError < RuntimeError
   end
@@ -39,12 +38,12 @@ class APECompilationUnit
 
   def APECompilationUnit.createWith(component)
     # Check if the necessary env variables are present
-    if ENV['APES_CC_FLAGS'] == nil
-      raise CompilationError.new "Undefined APES_CC_FLAGS variable."
+    if ENV['APE_CC_FLAGS'] == nil
+      raise CompilationError.new "Undefined APE_CC_FLAGS variable."
     end
 
-    if ENV['APES_CC_OPTIMIZATIONS'] == nil
-      raise CompilationError.new "Undefined APES_CC_OPTIMIZATIONS variable."
+    if ENV['APE_CC_OPTIMIZATIONS'] == nil
+      raise CompilationError.new "Undefined APE_CC_OPTIMIZATIONS variable."
     end
 
     # If everything is OK, return an instance of the CcUnit

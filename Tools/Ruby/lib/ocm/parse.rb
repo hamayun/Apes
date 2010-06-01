@@ -11,11 +11,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/component'
+require 'ocm/component'
 
-class APELibraryParser
+class OCMLibraryParser
   
-  def APELibraryParser.getComponentList
+  def OCMLibraryParser.getComponentList
     component_path = []
     if @@component_list.empty?
 
@@ -27,15 +27,15 @@ class APELibraryParser
       component_path.uniq!
 
       component_path.each do |path|
-        APELibraryParser.APEParsePath path
+        OCMLibraryParser.OCMParsePath path
       end
     end
 
     return @@component_list
   end
 
-  def APELibraryParser.findComponentWith(id)
-    APELibraryParser.getComponentList if @@component_list.empty?
+  def OCMLibraryParser.findComponentWith(id)
+    OCMLibraryParser.getComponentList if @@component_list.empty?
     components = @@component_list.find_all { |e| e.id == id }
     return components
   end
@@ -43,9 +43,9 @@ class APELibraryParser
   private
 
   @@component_list = []
-  @@ENV_NAME = 'APES_COMPONENT_PATH'
+  @@ENV_NAME = 'OCM_COMPONENT_PATH'
 
-  def APELibraryParser.APEParsePath path
+  def OCMLibraryParser.OCMParsePath path
     begin
       directory = Dir.new(path)
 
@@ -54,7 +54,7 @@ class APELibraryParser
       if directory.entries.find { |e| e == "component.xml" } != nil then
 
         # Create a component object from the path
-        cmp = APEComponent.createFromXMLFileAtPath path 
+        cmp = OCMComponent.createFromXMLFileAtPath path 
 
         if @@component_list.entries.find { |e| e.id == cmp.id } == nil
           @@component_list << cmp
@@ -64,7 +64,7 @@ class APELibraryParser
           if e != "." and e != ".." and e[0] != "." then
             new_path = path + '/' + e
             if FileTest.directory? new_path  then
-              APELibraryParser.APEParsePath new_path
+              OCMLibraryParser.OCMParsePath new_path
             end
           end
         end
