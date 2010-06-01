@@ -35,7 +35,7 @@ class APEComponent
     @ids = { 'inject' => [], 'restrict' => [] }
     @types = { 'provide' => [], 'require' => [] }
     @defs = { 'provide' => [], 'require' => [] }
-    @methods = { 'manage' => [], 'provide' => [], 'require' => [] }
+    @methods = { 'provide' => [], 'require' => [] }
   end
 
   def APEComponent.createFromXMLFileAtPath(path)
@@ -78,15 +78,6 @@ class APEComponent
     document.xpath("/component/restrict/id").each do |node|
       id = APEId.createFromXML(node)
       cmp.ids['restrict'] << id unless cmp.ids['restrict'].include?(id)
-    end
-
-    #
-    # Get the managed methods
-    #
-
-    document.xpath("/component/manage/method").each do |node|
-      m = APEMethod.createFromXML(node)
-      cmp.methods['manage'] << m unless cmp.methods['manage'].include?(m)
     end
 
     #
