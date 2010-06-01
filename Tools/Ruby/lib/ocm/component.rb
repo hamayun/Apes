@@ -38,6 +38,10 @@ class OCMComponent
     @methods = { 'provide' => [], 'require' => [] }
   end
 
+  def OCMComponent.createWith(path, id, author, unique, wrapper)
+    return OCMComponent.new(path, id, author, unique, wrapper)
+  end
+
   def OCMComponent.createFromXMLFileAtPath(path)
     # Get the XML data from the input file.
     #
@@ -60,7 +64,7 @@ class OCMComponent
     abort "[component] no ID for component at " + path if ids.length == 0 
     abort "[component] too many IDs for component at " + path if ids.length > 1
 
-    cmp = OCMComponent.new(path, ids.first, author, unique, wrapper)
+    cmp = OCMComponent.createWith(path, ids.first, author, unique, wrapper)
 
     #
     # Get the injected IDs

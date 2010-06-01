@@ -13,9 +13,9 @@
 
 require 'ocm/component'
 
-class OCMLibraryParser
+class APELibraryParser
   
-  def OCMLibraryParser.getComponentList
+  def APELibraryParser.getComponentList
     component_path = []
     if @@component_list.empty?
 
@@ -27,15 +27,15 @@ class OCMLibraryParser
       component_path.uniq!
 
       component_path.each do |path|
-        OCMLibraryParser.OCMParsePath path
+        APELibraryParser.parse path
       end
     end
 
     return @@component_list
   end
 
-  def OCMLibraryParser.findComponentWith(id)
-    OCMLibraryParser.getComponentList if @@component_list.empty?
+  def APELibraryParser.findComponentWith(id)
+    APELibraryParser.getComponentList if @@component_list.empty?
     components = @@component_list.find_all { |e| e.id == id }
     return components
   end
@@ -45,7 +45,7 @@ class OCMLibraryParser
   @@component_list = []
   @@ENV_NAME = 'APES_COMPONENT_PATH'
 
-  def OCMLibraryParser.OCMParsePath path
+  def APELibraryParser.parse path
     begin
       directory = Dir.new(path)
 
@@ -64,7 +64,7 @@ class OCMLibraryParser
           if e != "." and e != ".." and e[0] != "." then
             new_path = path + '/' + e
             if FileTest.directory? new_path  then
-              OCMLibraryParser.OCMParsePath new_path
+              APELibraryParser.parse new_path
             end
           end
         end

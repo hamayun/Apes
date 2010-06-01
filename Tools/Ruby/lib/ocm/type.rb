@@ -24,6 +24,12 @@ class OCMType < OCMElement
     return OCMType.new(name, visibility)
   end
 
+  def OCMType.createFromXML(node)
+    name = node["name"]
+    visibility = node["visibility"]
+    return OCMType.createWith(name, visibility)
+  end
+
   def to_s
     return "type #{@name} (#{@visibility})"
   end

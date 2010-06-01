@@ -43,8 +43,8 @@ class OCMId
   end
 
   def eql?(id)
-    return self.class == NilClass if e == nil
-    return e.class == NilClass if self == nil
+    return self.class == NilClass if id == nil
+    return id.class == NilClass if self == nil
     return @name == id.name && @version == id.version
   end
 

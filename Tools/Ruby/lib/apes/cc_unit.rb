@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/component'
-require 'ocm/object_file'
+require 'apes/object_file'
 require 'rubygems'
 require 'term/ansicolor'
 include Term::ANSIColor

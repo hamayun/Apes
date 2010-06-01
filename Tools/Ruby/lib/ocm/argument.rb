@@ -28,11 +28,7 @@ class OCMArgument
   end
 
   def OCMArgument.createWith(name, type, direction)
-    a = nil
-    if [:in, :out, :inout].include?(direction) and name != nil
-      a = OCMElement.new(name, visibility)
-    end
-    return a
+    return OCMElement.new(name, visibility)
   end
 
   def OCMArgument.createFromXML(node)

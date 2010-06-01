@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/id'
-require 'ocm/parse'
+require 'apes/parse'
 
 require 'rubygems'
 require 'term/ansicolor'
@@ -28,7 +28,7 @@ if ARGV.count != 0 then
   program_usage
 else
   begin
-    component_list = OCMLibraryParser.getComponentList
+    component_list = APELibraryParser.getComponentList
     longer_id = component_list.max do |a,b|
       a.id.name.length <=> b.id.name.length
     end

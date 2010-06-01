@@ -16,12 +16,22 @@ require 'rubygems'
 require 'nokogiri'
 
 class OCMDefinition < OCMElement
+  def initialize(name, visibility)
+    return super(name, visibility)
+  end
+
+  def OCMDefinition.createWith(name, visibility = nil)
+    return OCMDefinition.new(name, visibility)
+  end
+
   def OCMDefinition.createFromXML(node)
-    return super.new(node["name"], node["visibility"].to_lower.to_sym)
+    name = node["name"]
+    visibility = node["visibility"]
+    return OCMDefinition.createWith(name, visibility)
   end
 
   def to_s
-    return super.to_s + " definition"
+    return "definition #{@name} (#{@visibility})"
   end
 end
 
