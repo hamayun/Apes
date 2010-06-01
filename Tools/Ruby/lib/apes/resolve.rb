@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'apes/parse'
-require 'pp'
+require 'apes/depend'
 
 #
 # component_resolve_r arguments:
@@ -24,64 +24,13 @@ require 'pp'
 
 def component_resolve_r(component, rlist, clist, dlist, xlist)
   local_deps, final_deps = [], []
-  t_deps, d_deps, m_deps, i_deps = [], [], [], []
+  dependences, injections = [], []
 
   #
-  # Check the required types
+  # Check the direct dependencies
   #
 
-  component.types["require"].each do |t|
-    found = false
-
-    clist.each do |c|
-      match = c.types["provide"].find { |i| i == t }
-
-      if match != nil then
-        found = true
-        t_deps << c
-      end
-    end
-
-    abort component.id.name + ": unresolved type " + t.name unless found
-  end
-
-  #
-  # Check the required definitions
-  #
-
-  component.defs["require"].each do |d|
-    found = false
-
-    clist.each do |c|
-      match = c.defs["provide"].find { |i| i == d }
-
-      if match != nil then
-        found = true
-        d_deps << c
-      end
-    end
-
-    abort component.id.name + ": unresolved definition " + d.name unless found
-  end
-
-  #
-  # Check the required methods
-  #
-
-  component.methods["require"].each do |m|
-    found = false
-
-    clist.each do |c|
-      match = c.methods["provide"].find { |i| i == m }
-
-      if match != nil then
-        found = true
-        m_deps << c
-      end
-    end
-
-    abort component.id.name + ": unresolved method " + m.name unless found
-  end
+  dependences = component_depend(component, clist)
 
   #
   # Inject the required components
@@ -93,7 +42,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
       print component.id.to_s + ": "
       abort "cannot inject " + i.to_s + ", it does not exist."
     else
-      i_deps << inject
+      dependences << inject
     end
   end
 
@@ -101,7 +50,7 @@ def component_resolve_r(component, rlist, clist, dlist, xlist)
   # Compute the local dependencies
   #
 
-  local_deps = (t_deps + d_deps + m_deps + i_deps).uniq
+  local_deps = dependences.uniq
 
   #
   # Check if the component's restrictions match existing components

@@ -11,12 +11,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'apes/component'
+require 'apes/id'
 require 'apes/parse'
 
 def component_depend(component, components_list)
-  t_deps = []
-  d_deps = []
-  m_deps = []
+  t_deps, d_deps, m_deps = [], [], []
 
   component.types["require"].each do |t|
     found = false
@@ -31,7 +31,7 @@ def component_depend(component, components_list)
     end
 
     if not found then
-      abort component.name + ": no dependence found for the type " + t.name
+      abort component.name + ": no dependence found for " + t.name
     end
   end
 
@@ -49,7 +49,7 @@ def component_depend(component, components_list)
     end
 
     if not found then
-      abort component.name + ": no dependence found for the definition " + d.name
+      abort component.name + ": no dependence found for " + d.name
     end
   end
 
@@ -66,25 +66,10 @@ def component_depend(component, components_list)
     end
 
     if not found then
-      abort component.id.name + ": no dependence found for the method " + m.name
-    end
-  end
-
-  #
-  # Check the managed methods
-  #
-
-  component.methods["manage"].each do |m|
-    components_list.each do |c|
-      match = c.methods["provide"].find { |i| i == m }
-
-      if match != nil then
-        m_deps << c
-      end
+      abort component.id.name + ": no dependence found for " + m.name
     end
   end
 
   (t_deps + d_deps + m_deps).uniq
 end
-
 
