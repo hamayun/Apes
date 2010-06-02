@@ -99,7 +99,7 @@ begin
       else
         print object.SHA1.blue.bold + ' '
         puts object.validate ? "[OK]".green.bold : "[UNREFERENCED]".red.bold
-        puts '| Component: '.bold + object.component + ', ' + object.version
+        puts '| Interface: '.bold + object.interface + ', ' + object.version
         puts '| Source file: '.bold + object.source.split('/').last
         puts '| Flags: '.bold + object.flags
       end
@@ -115,7 +115,7 @@ begin
         object.delete
         if verbose == :on then
           puts object.SHA1.blue + " [DELETED]".red
-          puts '| Component: ' + object.component + ', ' + object.version
+          puts '| Interface: ' + object.interface + ', ' + object.version
           puts '| Source file: ' + object.source.split('/').last
           puts '| Flags: ' + object.flags
         end

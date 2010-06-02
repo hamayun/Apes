@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'ocm/component'
+require 'ocm/interface'
 require 'apes/object_file'
 require 'rubygems'
 require 'term/ansicolor'
@@ -25,18 +25,18 @@ class APECompilationUnit
   class CompilationError < RuntimeError
   end
 
-  def initialize(component)
-    @component = component
-    @dependencies = []
+  def initialize(interface)
+    @interface = interface
+    @dependences = []
     @objects = []
     @update = false
 
-    if @component.id.name.length >= @@longer_name.length
-      @@longer_name = @component.id.name
+    if @interface.id.name.length >= @@longer_name.length
+      @@longer_name = @interface.id.name
     end
   end
 
-  def APECompilationUnit.createWith(component)
+  def APECompilationUnit.createWith(interface)
     # Check if the necessary env variables are present
     if ENV['APES_CC_FLAGS'] == nil
       raise CompilationError.new "Undefined APES_CC_FLAGS variable."
@@ -47,20 +47,20 @@ class APECompilationUnit
     end
 
     # If everything is OK, return an instance of the CcUnit
-    APECompilationUnit.new(component)
+    APECompilationUnit.new(interface)
   end
 
   def << (dependency)
-    @dependencies << dependency
+    @dependences << dependency
   end
 
   def updateObjectCache(cache)
-    deps = @dependencies
-    deps << (@component.path + '/Headers')
-    deps << (@component.path + '/Headers/Public')
+    deps = @dependences
+    deps << (@interface.path + '/Headers')
+    deps << (@interface.path + '/Headers/Public')
 
-    Dir.glob(@component.path + '/Sources/*.{c,S}').each do |file|
-      object = APEObjectFile.createWith(file, @component, cache, deps)
+    Dir.glob(@interface.path + '/Sources/*.{c,S}').each do |file|
+      object = APEObjectFile.createWith(file, @interface, cache, deps)
       @update = @update || object.update
       @objects << object
     end
@@ -68,8 +68,8 @@ class APECompilationUnit
 
   def build(mode)
     unless mode == :verbose
-      print @component.id.name.blue
-      (@@longer_name.length - @component.id.name.length + 1).times { print ' ' }
+      print @interface.id.name.blue
+      (@@longer_name.length - @interface.id.name.length + 1).times { print ' ' }
 
       print '|'.bold
       @objects.each { |object| print object.update ? ' '.on_cyan : ' '.on_green }
@@ -83,7 +83,7 @@ class APECompilationUnit
           begin
             o.build(mode)
           rescue APEObjectFile::ObjectError => e
-            path_array = @component.path.split('/')
+            path_array = @interface.path.split('/')
             path_array.delete_at(-1)
             base_path = path_array.join('/') + '/'
             message = e.message.split("\n")

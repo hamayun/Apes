@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/id'
-require 'apes/parse'
+require 'apes/parser'
 
 require 'rubygems'
 require 'term/ansicolor'
@@ -28,12 +28,12 @@ if ARGV.count != 0 then
   program_usage
 else
   begin
-    component_list = APELibraryParser.getComponentList
-    longer_id = component_list.max do |a,b|
+    interface_list = APELibraryParser.getInterfaceList
+    longer_id = interface_list.max do |a,b|
       a.id.name.length <=> b.id.name.length
     end
 
-    component_list.each do |c|
+    interface_list.each do |c|
       print c.id.name.blue
       (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
       puts ('[' + c.id.version + ']').green

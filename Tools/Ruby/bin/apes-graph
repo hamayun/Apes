@@ -14,20 +14,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/id'
-require 'ocm/depend'
-require 'ocm/resolve'
-require 'apes/parse'
+require 'ocm/interface'
+require 'apes/parser'
 
 def program_usage
   puts "Usage: apes-graph <name> <version>"
 end
 
 #
-# Get the component list
+# Get the interface list
 #
 
 begin
-  component_list = APELibraryParser.getComponentList
+  interface_list = APELibraryParser.getInterfaceList
 rescue RuntimeError
   puts '[apes-graph] Variable APES_COMPONENT_PATH not defined.'
   abort
@@ -43,33 +42,33 @@ end
 
 ARGV.uniq!
 arguments = ARGV.clone
-components = []
+interfaces = []
 
 case arguments.count
 when 0 
 
-  component = OCMComponent.createFromXMLFileAtPath Dir.pwd
+  interface = OCMInterface.createFromXMLFileAtPath Dir.pwd
 
-  if component == nil then
-    abort '[apes-graph] no component in this directory.'
+  if interface == nil then
+    abort '[apes-graph] no interface in this directory.'
   end
 
-  if component_list.find { |e| e == component } == nil then
-    component_list << component
+  if interface_list.find { |e| e == interface } == nil then
+    interface_list << interface
   end
 
 when 2
 
   id = OCMId.new(arguments[0], nil, arguments[1])
-  components = APELibraryParser.findComponentWith(id)
+  interfaces = APELibraryParser.findInterfaceWith(id)
 
-  if components == nil or components.empty? then
+  if interfaces == nil or interfaces.empty? then
     abort "[apes-graph] " + id.to_s + ": no match found."
-  elsif components.length != 1 then
+  elsif interfaces.length != 1 then
     abort "[apes-graph] " + id.to_s + ": multiple matches found."
   end
 
-  component = components.first
+  interface = interfaces.first
 
 else
   program_usage
@@ -77,34 +76,20 @@ else
 end
 
 #
-# Look for the component in the library
-#
-
-components = component_list.find_all { |e| e.id == component.id }
-
-if components == nil or components.empty? then
-  abort "[apes-graph] " + ARGV[0] + ": no match found."
-elsif components.length != 1 then
-  abort "[apes-graph] " + name + ": multiple matches found."
-end
-
-#
 # Compute the graph
 #
 
-dependencies = component_resolve(components[0], component_list)
+dependences = interface.resolveDependences(interface_list)
 
-if dependencies.empty? then
-  puts "[apes-graph] No dependencies for: " + ARGV[0]
+if dependences.empty? then
+  puts "[apes-graph] No dependences for: " + ARGV[0]
 else
-  resolved = []
-  next_deps = []
+  resolved, next_deps = [], []
+  puts "digraph " + interface.id.name + " {"
 
-  puts "digraph " + components[0].id.name + " {"
-
-  dependencies.each do |d|
+  dependences.each do |d|
     if resolved.find { |r| r == d } == nil then
-      next_deps = component_depend d, dependencies 
+      next_deps = d.computeDependences(dependences)
       puts "\t" + d.id.short_name + " [fontsize=16,style=filled];"
       next_deps.each do |n|
         puts "\t" + d.id.short_name + " -> " + n.id.short_name + ";"

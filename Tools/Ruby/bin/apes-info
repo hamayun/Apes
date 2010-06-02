@@ -13,12 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'apes/parser'
 require 'ocm/id'
-require 'apes/parse'
-
-require 'rubygems'
-require 'term/ansicolor'
-include Term::ANSIColor
+require 'ocm/interface'
 
 def program_usage
   puts "Usage: apes-info <name> <version>"
@@ -34,11 +31,11 @@ if ARGV.count != 2 then
 end
 
 #
-# Get the component list
+# Get the interface list
 #
 
 begin
-  component_list = APELibraryParser.getComponentList
+  interface_list = APELibraryParser.getInterfaceList
 rescue RuntimeError
   puts '[apes-info] Variable APES_COMPONENT_PATH not defined.'
   abort
@@ -49,12 +46,12 @@ rescue Errno::ENOENT => detail
 end
 
 #
-# Create an ID for the component
-# Retrieve the component
+# Create an ID for the interface
+# Retrieve the interface
 #
 
 id = OCMId.new(ARGV[0], nil, ARGV[1])
-match_list = APELibraryParser.findComponentWith(id)
+match_list = APELibraryParser.findInterfaceWith(id)
 
 if match_list.empty? then
   abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
@@ -62,36 +59,4 @@ elsif match_list.length > 1 then
   abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
 end
 
-component = match_list.first
-
-puts ("[" + component.id.name + ", " + component.id.version + "]").green.bold
-puts "author = ".blue + component.author
-print "wrapper = ".blue + component.wrapper.to_s
-puts ", unique = ".blue + component.unique.to_s
-puts
-
-puts "[Path:]".green.bold
-puts component.path
-puts
-
-if not (component.methods["provide"].empty? \
-        and component.defs["provide"].empty? \
-        and types["provide"].empty?) then
-  puts "[Provides]".green.bold
-
-  component.types["provide"].each { |t| puts t.to_s }
-  component.defs["provide"].each { |d| puts d.to_s }
-  component.methods["provide"].each { |m| puts m.to_s }
-end
-
-puts
-
-if not (component.methods["require"].empty? \
-        and component.defs["require"].empty? \
-        and types["require"].empty?) then
-  puts "[Require]".green.bold
-
-  component.types["require"].each { |t| puts t.to_s }
-  component.defs["require"].each { |d| puts d.to_s }
-  component.methods["require"].each { |m| puts m.to_s }
-end
+match_list.first.display

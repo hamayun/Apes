@@ -11,29 +11,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/parse'
-require 'ocm/component'
+require 'apes/parser'
+require 'ocm/interface'
 require 'ocm/id'
 
 require 'rubygems'
 require 'yaml'
 require 'digest'
 require 'popen4'
+require 'pp'
 
 class APEObjectFile
   attr :update
   attr :object
   attr :flags
-  attr :component
+  attr :interface
   attr :version
   attr :source
 
   class ObjectError < RuntimeError
   end
 
-  def initialize(source, component, version, sandbox, includes, flags)
+  def initialize(source, interface, version, sandbox, includes, flags)
     @source = source
-    @component = component
+    @interface = interface
     @version = version
     @includes = includes
     @sandbox = sandbox
@@ -42,17 +43,17 @@ class APEObjectFile
     @flags = flags
   end
 
-  def APEObjectFile.createWith(source, component, cache, includes)
-    component_var = component.id.short_name.upcase + '_CC_FLAGS'
+  def APEObjectFile.createWith(source, interface, cache, includes)
+    interface_var = interface.id.short_name.upcase + '_CC_FLAGS'
     flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
-      (ENV[component_var] != nil ? ENV[component_var] : "");
+      (ENV[interface_var] != nil ? ENV[interface_var] : "");
 
     #
     # Compute the object SHA1
     #
 
-    signature = component.id.name + ':' + source + ':'
-    signature += component.id.version + ':' + flags
+    signature = interface.id.name + ':' + source + ':'
+    signature += interface.id.version + ':' + flags
     sha1 = Digest::SHA1.hexdigest signature
     sandbox = cache + '/' + sha1
 
@@ -67,9 +68,9 @@ class APEObjectFile
       # Compute the description hash
       #
       
-      values = [ component.id.name, flags, includes.join(' '),
-        source, component.id.version ]
-      configuration = Hash[*@@config_keys.zip(values).flatten]
+      values = [ flags, includes.join(' '), interface.id.name, 
+        source, interface.id.version ]
+      configuration = Hash[*CONFIGURATION_KEYS.zip(values).flatten]
 
       #
       # Generate the YAML description file
@@ -86,7 +87,7 @@ class APEObjectFile
     # Create the object file
     #
 
-    APEObjectFile.new(source, component.id.name, component.id.version,
+    APEObjectFile.new(source, interface.id.name, interface.id.version,
                       sandbox, includes, flags)
   end
 
@@ -103,8 +104,8 @@ class APEObjectFile
           YAML.load(f)
         end
 
-        if config.keys.sort == @@config_keys then
-          object = APEObjectFile.new(config['source'], config['component'],
+        if config.keys.sort == CONFIGURATION_KEYS then
+          object = APEObjectFile.new(config['source'], config['interface'],
                                      config['version'], sandbox,
                                      config['includes'], config['flags'])
         end
@@ -115,15 +116,15 @@ class APEObjectFile
   end
 
   def SHA1
-    signature = @component + ':' + @source + ':'
+    signature = @interface + ':' + @source + ':'
     signature += @version + ':' + @flags
     return Digest::SHA1.hexdigest signature
   end
 
   def validate
-    id = OCMId.new(@component, nil, @version)
-    components = APELibraryParser.findComponentWith(id)
-    return (components != nil and not components.empty?)
+    id = OCMId.new(@interface, nil, @version)
+    interfaces = APELibraryParser.findInterfaceWith(id)
+    return (interfaces != nil and not interfaces.empty?)
   end
 
   def update
@@ -219,5 +220,5 @@ class APEObjectFile
 
   private
 
-  @@config_keys = [ "component", "flags", "includes", "source", "version" ]
+  CONFIGURATION_KEYS = [ "flags", "includes", "interface", "source", "version" ]
 end
