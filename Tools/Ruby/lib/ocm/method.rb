@@ -13,38 +13,23 @@
 
 require 'ocm/argument'
 require 'ocm/element'
-
-require 'rubygems'
-require 'nokogiri'
-require 'term/ansicolor'
-
-include Term::ANSIColor
+require 'pp'
 
 class OCMMethod < OCMElement
-  attr :arguments
+  attr :arguments, true
   attr :return_type
 
-  def initialize(name, visibility, return_type)
+  def initialize(*args)
+    super(*args)
     @arguments = []
-    super(name, visibility)
-    @return_type = return_type == nil ? "" : return_type
+    @return_type = return_type == nil ? "" : args[2]
   end
 
-  def OCMMethod.createWith(name, visibility, return_type)
-    return OCMMethod.new(name, visibility, return_type)
-  end
-
-  def OCMMethod.createFromXML(node)
-    name = node["name"]
-    visibility = node["visibility"]
+  def self.createFromXML(node, *args)
     return_type = node["return_type"]
-    m = OCMMethod.new(name, visibility, return_type)
-
-    node.xpath("argument").each do |a|
-      m.arguments << OCMArgument.createFromXML(a)
-    end
-
-    return m
+    method = super(node, *(args << return_type))
+    node.xpath("argument").each { |a| method.arguments << OCMArgument.new(a) }
+    return method
   end
 
   def to_s

@@ -27,6 +27,7 @@ class OCMInterface
   attr :author
   attr :id
   attr :ids
+  attr :inheritFrom
   attr :path
   attr :provide
   attr :require
@@ -37,26 +38,19 @@ class OCMInterface
   # Initialization method.
   #
 
-  def initialize(path, id, author, unique, wrapper)
+  def initialize(path, id, author, unique, wrapper, inheritFrom)
     @author = author
     @id = id
     @path = path
     @unique = unique
     @wrapper = wrapper
+    @inheritFrom = inheritFrom
 
     @ids = { 'inject' => [], 'restrict' => [] }
     @provide = { 'type' => [], 'definition' => [],
       'variable' => [], 'method' => [] }
     @require = { 'type' => [], 'definition' => [],
       'variable' => [], 'method' => [] }
-  end
-
-  #
-  # Creation class method.
-  #
-
-  def OCMInterface.createWith(path, id, author, unique, wrapper)
-    return OCMInterface.new(path, id, author, unique, wrapper)
   end
 
   #
@@ -67,7 +61,6 @@ class OCMInterface
   def OCMInterface.createFromXMLFileAtPath(path)
     document = nil
     root, context = "interface", "context"
-    author, unique, wrapper = "", "", ""
 
     #
     # Get the XML data from the input file.
@@ -87,6 +80,7 @@ class OCMInterface
     author = document.root["author"]
     unique = document.root["unique"] == "true"
     wrapper = document.root["wrapper"] == "true"
+    inheritFrom = document.root["inheritFrom"]
 
     #
     # Get the interface's ID
@@ -98,7 +92,7 @@ class OCMInterface
     abort "[interface] no ID for interface at " + path if ids.length == 0 
     abort "[interface] too many IDs for interface at " + path if ids.length > 1
 
-    iface = OCMInterface.createWith(path, ids.first, author, unique, wrapper)
+    iface = OCMInterface.new(path, ids[0], author, unique, wrapper, inheritFrom)
 
     #
     # Get the injected IDs

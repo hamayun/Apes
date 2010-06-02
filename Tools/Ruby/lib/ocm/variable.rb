@@ -16,24 +16,12 @@ require 'rubygems'
 require 'nokogiri'
 
 class OCMVariable < OCMElement
-  def initialize(name, visibility)
-    return super(name, visibility)
-  end
-
-  def OCMVariable.createWith(name, visibility = nil)
-    return OCMVariable.new(name, visibility)
-  end
-
-  def OCMVariable.createFromXML(node)
-    name = node["name"]
-    visibility = node["visibility"]
-    return OCMVariable.createWith(name, visibility)
-  end
 
   def to_s
     string = "variable ".bold + @name
     string += " [#{@visibility}]" if @visibility != nil
     return string
   end
+
 end
 

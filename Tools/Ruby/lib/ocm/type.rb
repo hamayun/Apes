@@ -12,28 +12,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/element'
-require 'rubygems'
-require 'nokogiri'
 
 class OCMType < OCMElement
-  def initialize(name, visibility)
-    return super(name, visibility)
-  end
-
-  def OCMType.createWith(name, visibility = nil)
-    return OCMType.new(name, visibility)
-  end
-
-  def OCMType.createFromXML(node)
-    name = node["name"]
-    visibility = node["visibility"]
-    return OCMType.createWith(name, visibility)
-  end
 
   def to_s
     string = "type ".bold + @name
     string += " [#{@visibility}]" if @visibility != nil
     return string
   end
+
 end
 

@@ -11,6 +11,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'rubygems'
+require 'nokogiri'
 require 'term/ansicolor'
 include Term::ANSIColor
 
@@ -18,13 +20,15 @@ class OCMElement
   attr :name
   attr :visibility
 
-  def initialize(name, visibility)
-    @name = name
-    @visibility = visibility
+  def initialize(*args)
+    @name = args[0]
+    @visibility = args[1]
   end
 
-  def OCMElement.createWith(name, visibility = nil)
-    return  OCMElement.new(name, visibility)
+  def self.createFromXML(node, *args)
+    name = node["name"]
+    visibility = node["visibility"]
+    return self.new(name, visibility, *args)
   end
 
   def eql?(e)

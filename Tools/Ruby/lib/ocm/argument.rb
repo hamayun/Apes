@@ -27,15 +27,10 @@ class OCMArgument
     @direction = direction
   end
 
-  def OCMArgument.createWith(name, type, direction)
-    return OCMArgument.new(name, type, direction)
-  end
-
-  def OCMArgument.createFromXML(node)
-    name = node["name"]
-    type = node["type"]
-    direction = node["direction"]
-    return OCMArgument.createWith(name, type, direction)
+  def initialize(node)
+    @name = node["name"]
+    @type = node["type"]
+    @direction = node["direction"]
   end
 
   def to_s
