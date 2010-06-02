@@ -13,21 +13,22 @@
 
 require 'ocm/argument'
 require 'ocm/element'
-require 'pp'
 
 class OCMMethod < OCMElement
   attr :arguments, true
-  attr :return_type
+  attr :result
 
   def initialize(*args)
     super(*args)
     @arguments = []
-    @return_type = return_type == nil ? "" : args[2]
+    @result = args[2]
   end
 
   def self.createFromXML(node, *args)
-    return_type = node["return_type"]
-    method = super(node, *(args << return_type))
+    result = node["result"]
+    result = node["return_type"] if result == nil
+
+    method = super(node, *(args << result))
     node.xpath("argument").each { |a| method.arguments << OCMArgument.new(a) }
     return method
   end
@@ -36,10 +37,10 @@ class OCMMethod < OCMElement
     args = ""
     @arguments.each { |e| args = args + e.to_s + ", " }
 
-    string = @return_type.empty? ? "procedure ".bold : "function ".bold
+    string = @result.empty? ? "procedure ".bold : "function ".bold
     string += @name + ' ' + args.chop.chop
     string += ' ' if not args.empty?
-    string += "return ".red + @return_type.blue unless @return_type.empty?
+    string += "return ".red + @result.blue unless @result.empty?
     string += " [#{@visibility}]" if @visibility != nil
     return string
   end

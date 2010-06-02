@@ -15,13 +15,13 @@ require 'ocm/id'
 require 'ocm/type'
 require 'ocm/definition'
 require 'ocm/method'
+require 'ocm/set'
 require 'ocm/variable'
 
 require 'rubygems'
 require 'nokogiri'
 require 'term/ansicolor'
 include Term::ANSIColor
-require 'pp'
 
 class OCMInterface
   attr :author
@@ -47,10 +47,8 @@ class OCMInterface
     @inheritFrom = inheritFrom
 
     @ids = { 'inject' => [], 'restrict' => [] }
-    @provide = { 'type' => [], 'definition' => [],
-      'variable' => [], 'method' => [] }
-    @require = { 'type' => [], 'definition' => [],
-      'variable' => [], 'method' => [] }
+    @provide = OCMSet.new
+    @require = OCMSet.new
   end
 
   #
@@ -59,7 +57,7 @@ class OCMInterface
   #
 
   def OCMInterface.createFromXMLFileAtPath(path)
-    document = nil
+    xml = nil
     root, context = "interface", "context"
 
     #
@@ -67,7 +65,7 @@ class OCMInterface
     #
 
     begin
-      File.open(path + '/' + root + '.xml') { |f| document = Nokogiri.XML(f) }
+      File.open(path + '/' + root + '.xml') { |f| xml = Nokogiri.XML(f) }
     rescue Errno::ENOENT
       if root == "interface" then
         root, context = "component", ""
@@ -77,17 +75,17 @@ class OCMInterface
       end
     end
 
-    author = document.root["author"]
-    unique = document.root["unique"] == "true"
-    wrapper = document.root["wrapper"] == "true"
-    inheritFrom = document.root["inheritFrom"]
+    author = xml.root["author"]
+    unique = xml.root["unique"] == "true"
+    wrapper = xml.root["wrapper"] == "true"
+    inheritFrom = xml.root["inheritFrom"]
 
     #
     # Get the interface's ID
     #
 
     ids = []
-    document.xpath("/#{root}/id").each { |n| ids << OCMId.createFromXML(n) }
+    xml.xpath("/#{root}/id").each { |n| ids << OCMId.createFromXML(n) }
 
     abort "[interface] no ID for interface at " + path if ids.length == 0 
     abort "[interface] too many IDs for interface at " + path if ids.length > 1
@@ -98,7 +96,7 @@ class OCMInterface
     # Get the injected IDs
     #
 
-    document.xpath("/#{root}/inject/id").each do |node|
+    xml.xpath("/#{root}/inject/id").each do |node|
       id = OCMId.createFromXML(node)
       iface.ids['inject'] << id unless iface.ids['inject'].include?(id)
     end
@@ -107,7 +105,7 @@ class OCMInterface
     # Get the restricted IDs
     #
 
-    document.xpath("/#{root}/restrict/id").each do |node|
+    xml.xpath("/#{root}/restrict/id").each do |node|
       id = OCMId.createFromXML(node)
       iface.ids['restrict'] << id unless iface.ids['restrict'].include?(id)
     end
@@ -119,7 +117,7 @@ class OCMInterface
     ROLES.each do |role|
       SECTIONS.each do |key, value|
         xpath = "/#{root}/#{role}/#{context}/#{key}"
-        document.xpath(xpath).each do |node|
+        xml.xpath(xpath).each do |node|
           t = value.createFromXML(node)
           v = iface.instance_variable_get(('@' + role).to_sym)
           v[key] << t unless v[key].include?(t) 
@@ -135,8 +133,7 @@ class OCMInterface
   #
 
   def computeDependences(list)
-    dependences = { 'type' => [], 'definition' => [],
-      'variable' => [], 'method' => [] }
+    dependences = OCMSet.new
 
     SECTIONS.each do |key, value|
       @require[key].each do |req|
@@ -147,7 +144,6 @@ class OCMInterface
             dependences[key] << iface
             found = true
           end
-          
         end
 
         raise "#{@id.name}: no dependence found for #{req.name}." unless found
@@ -190,9 +186,9 @@ class OCMInterface
     end
 
     if not xlist.empty? then
-      puts "Conflict found:"
-      xlist.each { |x| print x.id.to_s + ' ' }
-      abort "\nTry to restrict the graph to one of them."
+      error = "Conflict found: "
+      xlist.each { |x| error += x.id.to_s + ' ' }
+      abort error
     end
 
     return dlist

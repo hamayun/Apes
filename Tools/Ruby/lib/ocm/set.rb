@@ -11,28 +11,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'ocm/element'
-require 'rubygems'
-require 'nokogiri'
+class OCMSet < Hash
 
-class OCMVariable < OCMElement
-  attr :type
-
-  def initialize(*args)
-    super(*args)
-    @type = args[2]
-  end
-
-  def self.createFromXML(node, *args)
-    type = node["type"]
-    return super(node, *(args << type))
-  end
-
-  def to_s
-    string = "variable ".bold + @name
-    string += " [#{@visibility}]" if @visibility != nil
-    return string
+  def self.new
+    h = super
+    h['type'], h['definition'], h['variable'], h['method'] = [], [], [], []
+    return h
   end
 
 end
-
