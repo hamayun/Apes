@@ -27,10 +27,13 @@ class OCMArgument
     @direction = direction
   end
 
-  def initialize(node)
-    @name = node["name"]
-    @type = node["type"]
-    @direction = node["direction"]
+  def self.createFromXML(node)
+    name = node["name"]
+    type = node["type"]
+    dir = node["direction"]
+
+    return nil if name.empty? or type.empty? or not DIRECTIONS.include?(dir)
+    return self.new(name, type, dir)
   end
 
   def to_s
@@ -46,6 +49,10 @@ class OCMArgument
   def hash
     return [@name, @type, @direction].hash
   end
+
+  private
+
+  DIRECTIONS = [ "in", "out", "inout" ]
 
   alias :== :eql?
 end

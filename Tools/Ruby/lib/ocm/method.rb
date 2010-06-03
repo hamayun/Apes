@@ -29,7 +29,10 @@ class OCMMethod < OCMElement
     result = node["return_type"] if result == nil
 
     method = super(node, *(args << result))
-    node.xpath("argument").each { |a| method.arguments << OCMArgument.new(a) }
+    node.xpath("argument").each do |a|
+      method.arguments << OCMArgument.createFromXML(a)
+    end
+
     return method
   end
 
@@ -38,8 +41,8 @@ class OCMMethod < OCMElement
     @arguments.each { |e| args = args + e.to_s + ", " }
 
     string = @result.empty? ? "procedure ".bold : "function ".bold
-    string += @name + ' ' + args.chop.chop
-    string += ' ' if not args.empty?
+    string += @name + ' ' + (args.empty? ? "" : '('.bold + args.chop.chop)
+    string += ') '.bold if not args.empty?
     string += "return ".red + @result.blue unless @result.empty?
     string += " [#{@visibility}]" if @visibility != nil
     return string
