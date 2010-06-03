@@ -27,7 +27,6 @@ class OCMInterface
   attr :author
   attr :id
   attr :ids
-  attr :inheritFrom
   attr :path
   attr :provide
   attr :require
@@ -38,13 +37,12 @@ class OCMInterface
   # Initialization method.
   #
 
-  def initialize(path, id, author, unique, wrapper, inheritFrom)
+  def initialize(path, id, author, unique, wrapper)
     @author = author
     @id = id
     @path = path
     @unique = unique
     @wrapper = wrapper
-    @inheritFrom = inheritFrom
 
     @ids = { 'inject' => [], 'restrict' => [] }
     @provide = OCMSet.new
@@ -58,7 +56,7 @@ class OCMInterface
 
   def OCMInterface.createFromXMLFileAtPath(path)
     xml = nil
-    root, context = "interface", "context"
+    root = "interface"
 
     #
     # Get the XML data from the input file.
@@ -68,7 +66,7 @@ class OCMInterface
       File.open(path + '/' + root + '.xml') { |f| xml = Nokogiri.XML(f) }
     rescue Errno::ENOENT
       if root == "interface" then
-        root, context = "component", ""
+        root = "component"
         retry
       else
         return nil
@@ -78,19 +76,13 @@ class OCMInterface
     author = xml.root["author"]
     unique = xml.root["unique"] == "true"
     wrapper = xml.root["wrapper"] == "true"
-    inheritFrom = xml.root["inheritFrom"]
 
     #
     # Get the interface's ID
     #
 
-    ids = []
-    xml.xpath("/#{root}/id").each { |n| ids << OCMId.createFromXML(n) }
-
-    abort "[interface] no ID for interface at " + path if ids.length == 0 
-    abort "[interface] too many IDs for interface at " + path if ids.length > 1
-
-    iface = OCMInterface.new(path, ids[0], author, unique, wrapper, inheritFrom)
+    id = OCMId.createFromXML(xml.xpath("/#{root}/id").first)
+    iface = OCMInterface.new(path, id, author, unique, wrapper)
 
     #
     # Get the injected IDs
@@ -115,12 +107,13 @@ class OCMInterface
     #
 
     ROLES.each do |role|
-      SECTIONS.each do |key, value|
-        xpath = "/#{root}/#{role}/#{context}/#{key}"
+      OCMSet::SECTIONS.each do |section|
+        xpath = "/#{root}/#{role}//#{section}"
         xml.xpath(xpath).each do |node|
-          t = value.createFromXML(node)
+          c = Kernel.const_get('OCM' + section.capitalize)
+          t = c.createFromXML(node)
           v = iface.instance_variable_get(('@' + role).to_sym)
-          v[key] << t unless v[key].include?(t) 
+          v[section] << t unless v[section].include?(t) 
         end
       end
     end
@@ -135,13 +128,13 @@ class OCMInterface
   def computeDependences(list)
     dependences = OCMSet.new
 
-    SECTIONS.each do |key, value|
-      @require[key].each do |req|
+    OCMSet::SECTIONS.each do |section|
+      @require[section].each do |req|
         found = false
 
         list.each do |iface|
-          if iface.provide[key].include?(req) then
-            dependences[key] << iface
+          if iface.provide[section].include?(req) then
+            dependences[section] << iface
             found = true
           end
         end
@@ -158,10 +151,6 @@ class OCMInterface
   #
 
   def resolveDependences(list)
-    # Filter interfaces in the interface_list conflicting with the
-    # main interface if it is tagged unique
-    # 
-
     if @unique then
       filtered_interfaces = list.find_all do |f|
         f != self && f.overlap?(self)
@@ -214,12 +203,12 @@ class OCMInterface
     end
 
     local_deps = dependences.uniq
-
+        
     #
     # Check if the interface's restrictions match existing interfaces
     #
 
-   @ids["restrict"].each do |r|
+    @ids["restrict"].each do |r|
       match = clist.find_all { |m| m.id == r }
 
       if match.empty? then
@@ -295,17 +284,11 @@ class OCMInterface
   end
 
   #
-  # Check if two interfaces overlap.
+  # Check if two interfaces are equal.
   #
 
-  def overlap?(c)
-    union = @provide.merge(c.provide) { |k, o, n| (o + n).uniq }
-    union.each do |key, value|
-      length = @provide[key].length + c.provide[key].length
-      return true if value.length < length
-    end
-
-    return false
+  def overlap?(interface)
+    return @provide.overlap?(interface.provide)
   end
 
   #
@@ -349,8 +332,6 @@ class OCMInterface
 
   private
 
-  SECTIONS = { 'type' => OCMType, 'definition' => OCMDefinition,
-        'variable' => OCMVariable, 'method' => OCMMethod }
   ROLES = [ 'provide', 'require' ]
 
   alias :== :eql?

@@ -13,10 +13,22 @@
 
 class OCMSet < Hash
 
+  SECTIONS = [ 'method', 'type', 'definition', 'variable' ]
+
   def self.new
     h = super
-    h['type'], h['definition'], h['variable'], h['method'] = [], [], [], []
+    SECTIONS.each { |s| h.store(s, []) }
     return h
+  end
+
+  def overlap?(set)
+    SECTIONS.each do |key, value|
+      union = (set[key] + self[key]).uniq
+      length = self[key].length + set[key].length
+      return true if union.length < length
+    end
+
+    return false
   end
 
 end

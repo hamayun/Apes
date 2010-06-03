@@ -31,8 +31,6 @@ class OCMArgument
     name = node["name"]
     type = node["type"]
     dir = node["direction"]
-
-    return nil if name.empty? or type.empty? or not DIRECTIONS.include?(dir)
     return self.new(name, type, dir)
   end
 
@@ -51,8 +49,6 @@ class OCMArgument
   end
 
   private
-
-  DIRECTIONS = [ "in", "out", "inout" ]
 
   alias :== :eql?
 end
