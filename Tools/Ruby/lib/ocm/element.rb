@@ -32,8 +32,7 @@ class OCMElement
   end
 
   def eql?(e)
-    return self.class == NilClass if e == nil
-    return e.class == NilClass if self == nil
+    return false if e == nil
     return @name == e.name && @visibility == e.visibility
   end
 

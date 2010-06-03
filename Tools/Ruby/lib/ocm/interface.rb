@@ -296,8 +296,7 @@ class OCMInterface
   #
 
   def eql?(i)
-    return self.class == NilClass if i == nil
-    return i.class == NilClass if self == nil
+    return false if i == nil
     return @id == i.id
   end
 

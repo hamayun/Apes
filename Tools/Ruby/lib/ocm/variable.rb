@@ -34,5 +34,10 @@ class OCMVariable < OCMElement
     return string
   end
 
+  def eql?(v)
+    return false if v == nil
+    return super(v) && @type == v.type
+  end
+
 end
 

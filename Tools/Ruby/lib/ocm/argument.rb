@@ -39,8 +39,7 @@ class OCMArgument
   end
 
   def eql?(arg)
-    return self.class == NilClass if arg == nil
-    return arg.class == NilClass if self == nil
+    return false if arg == nil
     return @name == arg.name && @type == arg.type && @direction == arg.direction
   end
 

@@ -49,8 +49,7 @@ class OCMMethod < OCMElement
   end
 
   def eql?(m)
-    return self.class == NilClass if m == nil
-    return m.class == NilClass if self == nil
+    return false if m == nil
     return super(m) && @arguments == m.arguments
   end
 
