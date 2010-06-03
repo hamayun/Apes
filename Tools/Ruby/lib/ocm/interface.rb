@@ -54,24 +54,31 @@ class OCMInterface
   # from a Nokogir NodeSet.
   #
 
-  def OCMInterface.createFromXMLFileAtPath(path)
-    xml = nil
-    root = "interface"
+  def OCMInterface.createFromXMLFileAtPath(path, mode = :normal)
 
     #
-    # Get the XML data from the input file.
+    # Open and validate the XML using the interface schema
     #
 
     begin
-      File.open(path + '/' + root + '.xml') { |f| xml = Nokogiri.XML(f) }
-    rescue Errno::ENOENT
-      if root == "interface" then
-        root = "component"
-        retry
-      else
+      xml = Nokogiri.XML(File.open(path + '/interface.xmi'))
+      xsd = Nokogiri::XML::Schema(File.open(SCHEMA_PATH))
+      errors = xsd.validate(xml)
+
+      if not errors.empty? then
+        if mode == :verbose then
+          puts "[SYNTAX ERROR]".red + " #{path}"
+          errors.each { |e| puts e.message }
+        end
         return nil
       end
+    rescue Errno::ENOENT
+      puts "[WARNING]".red + " The interface schema file cannot be found."
     end
+
+    #
+    # Get the top-level attributes
+    #
 
     author = xml.root["author"]
     unique = xml.root["unique"] == "true"
@@ -81,14 +88,14 @@ class OCMInterface
     # Get the interface's ID
     #
 
-    id = OCMId.createFromXML(xml.xpath("/#{root}/id").first)
+    id = OCMId.createFromXML(xml.xpath("/APES:Interface/id").first)
     iface = OCMInterface.new(path, id, author, unique, wrapper)
 
     #
     # Get the injected IDs
     #
 
-    xml.xpath("/#{root}/inject/id").each do |node|
+    xml.xpath("/APES:Interface/inject/id").each do |node|
       id = OCMId.createFromXML(node)
       iface.ids['inject'] << id unless iface.ids['inject'].include?(id)
     end
@@ -97,7 +104,7 @@ class OCMInterface
     # Get the restricted IDs
     #
 
-    xml.xpath("/#{root}/restrict/id").each do |node|
+    xml.xpath("/APES:Interface/restrict/id").each do |node|
       id = OCMId.createFromXML(node)
       iface.ids['restrict'] << id unless iface.ids['restrict'].include?(id)
     end
@@ -108,7 +115,7 @@ class OCMInterface
 
     ROLES.each do |role|
       OCMSet::SECTIONS.each do |section|
-        xpath = "/#{root}/#{role}//#{section}"
+        xpath = "/APES:Interface/#{role}//#{section}"
         xml.xpath(xpath).each do |node|
           c = Kernel.const_get('OCM' + section.capitalize)
           t = c.createFromXML(node)
@@ -325,13 +332,14 @@ class OCMInterface
     ROLES.each do |role|
       puts "\n[#{role.capitalize}]".green.bold
       v = self.instance_variable_get(('@' + role).to_sym)
-      SECTIONS.each { |key, value| v[key].each { |k| puts k } }
+      OCMSet::SECTIONS.each { |key, value| v[key].each { |k| puts k } }
     end
   end
 
   private
 
   ROLES = [ 'provide', 'require' ]
+  SCHEMA_PATH = ENV['APES_ROOT'] + '/Tools/Schemas/APESInterface.xsd'
 
   alias :== :eql?
 end

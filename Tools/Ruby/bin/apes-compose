@@ -79,11 +79,11 @@ begin
   # Find the interface to build
   #
 
-  interface_list = APELibraryParser.getInterfaceList
+  interface_list = APELibraryParser.getInterfaceList(verbose_mode)
 
   case arguments.count
   when 0 
-    interface = OCMInterface.createFromXMLFileAtPath Dir.pwd
+    interface = OCMInterface.createFromXMLFileAtPath(Dir.pwd, verbose_mode)
 
     if interface == nil then
       abort '[apes-compose] no interface in this directory.'

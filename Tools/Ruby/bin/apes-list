@@ -22,13 +22,44 @@ include Term::ANSIColor
 
 def program_usage
   puts 'Usage: apes-list'
+  puts "\t--help                  : print this help"
+  puts "\t--verbose               : display eventual errors"
 end
 
-if ARGV.count != 0 then
+#
+# Duplicate the argument list
+#
+
+verbose_mode = :normal
+
+ARGV.uniq!
+arguments = ARGV.clone
+
+begin
+  ARGV.each do |arg|
+    if arg.include?("--") then
+      case arg
+      when "--help"
+        program_usage
+        arguments.delete("--help")
+        exit
+      when "--verbose"
+        verbose_mode = :verbose
+        arguments.delete("--verbose")
+      end
+    end
+  end
+end
+
+#
+# Construct and display the interface list
+#
+ 
+if arguments.count != 0 then
   program_usage
 else
   begin
-    interface_list = APELibraryParser.getInterfaceList
+    interface_list = APELibraryParser.getInterfaceList(verbose_mode)
     longer_id = interface_list.max do |a,b|
       a.id.name.length <=> b.id.name.length
     end

@@ -15,7 +15,7 @@ require 'ocm/interface'
 
 class APELibraryParser
   
-  def APELibraryParser.getInterfaceList
+  def APELibraryParser.getInterfaceList(mode = :normal)
     interface_path = []
     if @@interface_list.empty?
 
@@ -27,7 +27,7 @@ class APELibraryParser
       interface_path.uniq!
 
       interface_path.each do |path|
-        APELibraryParser.parse path
+        APELibraryParser.parse(path, mode)
       end
     end
 
@@ -45,25 +45,24 @@ class APELibraryParser
   @@interface_list = []
   @@ENV_NAME = 'APES_PATH'
 
-  def APELibraryParser.parse path
+  def APELibraryParser.parse(path, mode = :normal)
     begin
-      directory = Dir.new(path)
-      iface = OCMInterface.createFromXMLFileAtPath path 
+      if File.exist?(path + '/interface.xmi') then
+        iface = OCMInterface.createFromXMLFileAtPath(path, mode)
 
-      if iface != nil and not @@interface_list.entries.include?(iface)
-        @@interface_list << iface
+        if iface != nil and not @@interface_list.entries.include?(iface)
+          @@interface_list << iface
+        end
       end
 
-      directory.entries.each do |e|
+      Dir.new(path).entries.each do |e|
         if e != "." and e != ".." and e[0] != "." then
-          new_path = path + '/' + e
-          if FileTest.directory? new_path  then
-            APELibraryParser.parse new_path
-          end
+          dir = path + '/' + e
+          APELibraryParser.parse(dir, mode) if FileTest.directory?(dir)
         end
       end
     rescue Errno::EACCES
-      # Do nothing
+      puts "[ACCESS ERROR] " + path
     end
   end
 end
