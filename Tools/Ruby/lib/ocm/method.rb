@@ -18,17 +18,16 @@ class OCMMethod < OCMElement
   attr :arguments, true
   attr :result
 
-  def initialize(*args)
-    super(*args)
+  def initialize(arguments)
+    super(arguments)
     @arguments = []
-    @result = args[2]
+    @result = arguments.pop
   end
 
-  def self.createFromXML(node, *args)
-    result = node["result"]
-    result = node["return_type"] if result == nil
+  def self.createFromXML(node, arguments = [])
+    arguments.push(node["result"])
 
-    method = super(node, *(args << result))
+    method = super(node, arguments)
     node.xpath("argument").each do |a|
       method.arguments << OCMArgument.createFromXML(a)
     end

@@ -13,67 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'ocm/id'
-require 'apes/parser'
+require 'apes/list'
 
-require 'rubygems'
-require 'term/ansicolor'
-include Term::ANSIColor
-
-def program_usage
-  puts 'Usage: apes-list'
-  puts "\t--help                  : print this help"
-  puts "\t--verbose               : display eventual errors"
-end
-
-#
-# Duplicate the argument list
-#
-
-verbose_mode = :normal
-
-ARGV.uniq!
-arguments = ARGV.clone
-
-begin
-  ARGV.each do |arg|
-    if arg.include?("--") then
-      case arg
-      when "--help"
-        program_usage
-        arguments.delete("--help")
-        exit
-      when "--verbose"
-        verbose_mode = :verbose
-        arguments.delete("--verbose")
-      end
-    end
-  end
-end
-
-#
-# Construct and display the interface list
-#
- 
-if arguments.count != 0 then
-  program_usage
-else
-  begin
-    interface_list = APELibraryParser.getInterfaceList(verbose_mode)
-    longer_id = interface_list.max do |a,b|
-      a.id.name.length <=> b.id.name.length
-    end
-
-    interface_list.each do |c|
-      print c.id.name.blue
-      (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
-      puts ('[' + c.id.version + ']').green
-    end
-  rescue RuntimeError
-    puts '[apes-list] Variable APES_COMPONENT_PATH not defined.'
-  rescue Errno::ENOENT => detail
-    print '[apes-list] error in APES_COMPONENT_PATH: '
-    puts detail.message
-  end
-end
-
+apes_list = APEListApplication.new
+apes_list.run(ARGV)

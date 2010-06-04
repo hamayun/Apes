@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/cc_unit'
+require 'apes/compiler'
 require 'rubygems'
 require 'popen4'
 require 'term/ansicolor'
@@ -22,7 +22,7 @@ class APELinkUnit
   class LinkError < RuntimeError
   end
 
-  def APELinkUnit.link(name, buildir, cc_units, mode)
+  def APELinkUnit.link(name, buildir, compilers, mode)
     # Check if the necessary env variables are present
     #
 
@@ -39,7 +39,7 @@ class APELinkUnit
     #
 
     objects = []
-    cc_units.each { |cc| objects += cc.objects }
+    compilers.each { |cc| objects += cc.objects }
 
     #
     # We try to link the objects

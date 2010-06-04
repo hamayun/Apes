@@ -20,15 +20,15 @@ class OCMElement
   attr :name
   attr :visibility
 
-  def initialize(*args)
-    @name = args[0]
-    @visibility = args[1]
+  def initialize(arguments)
+    @name = arguments.pop
+    @visibility = arguments.pop
   end
 
-  def self.createFromXML(node, *args)
-    name = node["name"]
-    visibility = node["visibility"]
-    return self.new(name, visibility, *args)
+  def self.createFromXML(node, arguments = [])
+    arguments.push(node["visibility"])
+    arguments.push(node["name"])
+    return self.new(arguments)
   end
 
   def eql?(e)

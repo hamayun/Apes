@@ -13,50 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'apes/parser'
-require 'ocm/id'
-require 'ocm/interface'
+require 'apes/info'
 
-def program_usage
-  puts "Usage: apes-info <name> <version>"
-end
-
-#
-# Test the arguments
-#
-
-if ARGV.count != 2 then
-  program_usage
-  abort
-end
-
-#
-# Get the interface list
-#
-
-begin
-  interface_list = APELibraryParser.getInterfaceList
-rescue RuntimeError
-  puts '[apes-info] Variable APES_COMPONENT_PATH not defined.'
-  abort
-rescue Errno::ENOENT => detail
-  print '[apes-info] error in APES_COMPONENT_PATH: '
-  puts detail.message
-  abort
-end
-
-#
-# Create an ID for the interface
-# Retrieve the interface
-#
-
-id = OCMId.new(ARGV[0], nil, ARGV[1])
-match_list = APELibraryParser.findInterfaceWith(id)
-
-if match_list.empty? then
-  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": no match found."
-elsif match_list.length > 1 then
-  abort "[apes-info] " + ARGV[0] + "-" + ARGV[1] + ": multiple matches found."
-end
-
-match_list.first.display
+app = APEInfoApplication.new
+app.run(ARGV)

@@ -61,6 +61,8 @@ class OCMInterface
     #
 
     begin
+      return nil unless File.exist?(path + '/interface.xmi')
+
       xml = Nokogiri.XML(File.open(path + '/interface.xmi'))
       xsd = Nokogiri::XML::Schema(File.open(SCHEMA_PATH))
       errors = xsd.validate(xml)

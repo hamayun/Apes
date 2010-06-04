@@ -19,11 +19,11 @@ class APELibraryParser
     interface_path = []
     if @@interface_list.empty?
 
-      if ENV[@@ENV_NAME] == nil or ENV[@@ENV_NAME].empty? then
-        raise RuntimeError
+      if ENV['APES_PATH'] == nil or ENV['APES_PATH'].empty? then
+        raise Exception.new("Invalid or undefined APES_PATH variable.")
       end
 
-      interface_path = ENV[@@ENV_NAME].split ':'
+      interface_path = ENV['APES_PATH'].split ':'
       interface_path.uniq!
 
       interface_path.each do |path|
@@ -36,23 +36,24 @@ class APELibraryParser
 
   def APELibraryParser.findInterfaceWith(id)
     APELibraryParser.getInterfaceList if @@interface_list.empty?
-    interfaces = @@interface_list.find_all { |e| e.id == id }
-    return interfaces
+    ifs = @@interface_list.find_all { |e| e.id == id }
+
+    raise Exception.new "#{id.to_s}: multiple match found." if ifs.count > 1
+    raise Exception.new "#{id.to_s}: no match found." if ifs.count == 0
+
+    return ifs.first
   end
 
   private
 
   @@interface_list = []
-  @@ENV_NAME = 'APES_PATH'
 
   def APELibraryParser.parse(path, mode = :normal)
     begin
-      if File.exist?(path + '/interface.xmi') then
-        iface = OCMInterface.createFromXMLFileAtPath(path, mode)
+      iface = OCMInterface.createFromXMLFileAtPath(path, mode)
 
-        if iface != nil and not @@interface_list.entries.include?(iface)
-          @@interface_list << iface
-        end
+      if iface != nil and not @@interface_list.entries.include?(iface)
+        @@interface_list << iface
       end
 
       Dir.new(path).entries.each do |e|
