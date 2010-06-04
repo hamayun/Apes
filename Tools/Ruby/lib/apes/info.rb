@@ -27,17 +27,18 @@ class APEInfoApplication < APEApplication
     self.displayHelpAndExit unless @arguments.empty? or @arguments.count == 2
 
     begin
-      interface_list = APELibraryParser.getInterfaceList(@verbose)
-
       case @arguments.count
       when 0 
         i = OCMInterface.createFromXMLFileAtPath(Dir.pwd, @verbose)
         raise Exception.new('No interface in this directory.') if i == nil
+
+        interface_list = APELibraryParser.getInterfaceList(@verbose)
         interface_list << i if APELibraryParser.findInterfaceWith(i.id).empty?
 
       when 2
         id = OCMId.new(@arguments[0], nil, @arguments[1])
         interface = APELibraryParser.findInterfaceWith(id)
+        interface_list = APELibraryParser.getInterfaceList(@verbose)
       end
 
       interface.display

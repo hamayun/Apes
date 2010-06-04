@@ -160,6 +160,11 @@ class OCMInterface
   #
 
   def resolveDependences(list)
+
+    #
+    # Resolve potential conflict if interface is unique.
+    #
+
     if @unique then
       filtered_interfaces = list.find_all do |f|
         f != self && f.overlap?(self)
@@ -171,7 +176,8 @@ class OCMInterface
     # Compute the dependencies and try to resolve the conflicts, if any.
     #
 
-    dlist, rlist, xlist = self.resolveDependencesRecursive([], list, [], [])
+    dlist = [ self ]
+    dlist, rlist, xlist = self.resolveDependencesRecursive([], list, dlist, [])
 
     rlist.each do |r|
       overlap = []
@@ -186,7 +192,7 @@ class OCMInterface
     if not xlist.empty? then
       error = "Conflict found: "
       xlist.each { |x| error += x.id.to_s + ' ' }
-      abort error
+      raise Exception.new(error)
     end
 
     return dlist
@@ -205,7 +211,7 @@ class OCMInterface
       inject = clist.find { |f| f.id == i }
       if inject == nil then
         print @id.to_s + ": "
-        abort "cannot inject " + i.to_s + ", it does not exist."
+        raise Exception.new("cannot inject " + i.to_s + ", it does not exist.")
       else
         dependences << inject
       end
@@ -222,7 +228,7 @@ class OCMInterface
 
       if match.empty? then
         puts "Error with restriction: " + r.to_s 
-        abort "Cannot find a matching interface."
+        raise Exception.new("Cannot find a matching interface.")
       end
     end
 
@@ -279,15 +285,14 @@ class OCMInterface
     # Parse through the dependencies, if necessary
     #
 
-    if not filtered_deps.empty? then
-      final_deps = (filtered_deps + dlist).uniq
-      filtered_deps.each do |f|
-        d, r, x = f.resolveDependencesRecursive(rlist, clist, final_deps, xlist)
-        final_deps += d
-        rlist += r
-        xlist += x
-      end
-    end
+    final_deps = (filtered_deps + dlist).uniq
+
+    filtered_deps.each do |f|
+      d, r, x = f.resolveDependencesRecursive(rlist, clist, final_deps, xlist)
+      final_deps += d
+      rlist += r
+      xlist += x
+    end unless filtered_deps.empty?
 
     return final_deps.uniq, rlist.uniq, xlist.uniq
   end
