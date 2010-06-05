@@ -18,8 +18,9 @@ require 'nokogiri'
 class OCMDefinition < OCMElement
 
   def to_s
-    string = "definition ".bold + @name
-    string += " [#{@visibility}]" if @visibility != nil
+    string = ""
+    string += "#{@visibility} ".downcase.red if @visibility != nil
+    string += "definition ".bold + @name
     return string
   end
 

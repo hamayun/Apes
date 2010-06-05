@@ -54,7 +54,7 @@ class OCMInterface
   # from a Nokogir NodeSet.
   #
 
-  def OCMInterface.createFromXMLFileAtPath(path, mode = :normal)
+  def OCMInterface.createFromXMLFileAtPath(path, verbose)
 
     #
     # Open and validate the XML using the interface schema
@@ -68,7 +68,7 @@ class OCMInterface
       errors = xsd.validate(xml)
 
       if not errors.empty? then
-        if mode == :verbose then
+        if verbose then
           puts "[SYNTAX ERROR]".red + " #{path}"
           errors.each { |e| puts e.message }
         end

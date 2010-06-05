@@ -43,6 +43,7 @@ class APEApplication
     results = @parser.parse(arguments)
     @arguments = results.args
     self.displayHelpAndExit if results["--help"]
+    @verbose = results["--verbose"]
     return 0
   end
 

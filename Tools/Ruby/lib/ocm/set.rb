@@ -13,11 +13,12 @@
 
 class OCMSet < Hash
 
-  SECTIONS = [ 'method', 'type', 'definition', 'variable' ]
+  SECTIONS = [ 'type', 'definition', 'variable', 'method' ]
 
-  def self.new
-    h = super
+  def self.new(*arguments)
+    h = super(*arguments)
     SECTIONS.each { |s| h.store(s, []) }
+    h.send(:initialize, *arguments)
     return h
   end
 

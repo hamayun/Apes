@@ -31,11 +31,11 @@ class APEGraphApplication < APEApplication
         raise Exception.new('No interface in this directory.') if i == nil
 
         interface_list = APELibraryParser.getInterfaceList(@verbose)
-        interface_list << i if APELibraryParser.findInterfaceWith(i.id).empty?
+        interface_list << i if APELibraryParser.findInterfaceWith(i.id) == nil
 
       when 2
         id = OCMId.new(@arguments[0], nil, @arguments[1])
-        interface = APELibraryParser.findInterfaceWith(id)
+        i = APELibraryParser.findInterfaceWith(id)
         interface_list = APELibraryParser.getInterfaceList(@verbose)
       end
       
@@ -43,10 +43,10 @@ class APEGraphApplication < APEApplication
       # Compute the graph
       #
 
-      deps = interface.resolveDependences(interface_list)
+      deps = i.resolveDependences(interface_list)
 
       resolved, next_deps = [], []
-      puts "digraph " + interface.id.name + " {"
+      puts "digraph " + i.id.name + " {"
 
       deps.each do |d|
         if resolved.find { |r| r == d } == nil then
@@ -64,6 +64,7 @@ class APEGraphApplication < APEApplication
 
     rescue Exception => e
       puts e.message
+      puts e.backtrace if @verbose
       return -1
     end
 

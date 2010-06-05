@@ -13,14 +13,17 @@
   <xsd:element ecore:ignore="true" name="Type" type="APES:Type"/>
   <xsd:element ecore:ignore="true" name="Variable" type="APES:Variable"/>
   <xsd:complexType name="Argument">
-    <xsd:attribute ecore:default="" name="direction" type="APES:Direction" use="required"/>
-    <xsd:attribute name="name" type="xsd:string" use="required"/>
-    <xsd:attribute name="type" type="xsd:string" use="required"/>
+    <xsd:complexContent>
+      <xsd:extension base="APES:Element">
+        <xsd:attribute ecore:default="" name="direction" type="APES:Direction" use="required"/>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:complexContent>
   </xsd:complexType>
   <xsd:complexType name="Context">
     <xsd:complexContent>
       <xsd:extension base="APES:Set">
-        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
@@ -38,12 +41,13 @@
   </xsd:simpleType>
   <xsd:complexType abstract="true" name="Element">
     <xsd:attribute name="name" type="xsd:string" use="required"/>
-    <xsd:attribute ecore:unsettable="false" name="visibility" type="APES:Visibility" use="required"/>
   </xsd:complexType>
   <xsd:complexType name="Identifier">
-    <xsd:attribute name="name" type="xsd:string" use="required"/>
-    <xsd:attribute ecore:name="short_name" name="short_name" type="xsd:string" use="required"/>
-    <xsd:attribute name="version" type="xsd:string" use="required"/>
+    <xsd:complexContent>
+      <xsd:extension base="APES:Element">
+        <xsd:attribute name="version" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:complexContent>
   </xsd:complexType>
   <xsd:complexType name="Interface">
     <xsd:sequence>
@@ -96,10 +100,4 @@
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
-  <xsd:simpleType name="Visibility">
-    <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="Public"/>
-      <xsd:enumeration value="Private"/>
-    </xsd:restriction>
-  </xsd:simpleType>
 </xsd:schema>

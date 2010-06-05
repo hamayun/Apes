@@ -37,13 +37,13 @@ class OCMMethod < OCMElement
 
   def to_s
     args = ""
-    @arguments.each { |e| args = args + e.to_s + ", " }
+    @arguments.each { |e| args = args + "    " + e.to_s + "\n" }
 
     string = "#{@visibility.downcase.red} " if @visibility != nil
     string += @result.empty? ? "procedure ".bold : "function ".bold
-    string += @name + ' ' + (args.empty? ? "" : '('.bold + args.chop.chop)
-    string += ') '.bold if not args.empty?
-    string += "return ".red + @result.blue unless @result.empty?
+    string += @name
+    string += " return ".red + @result.blue unless @result.empty?
+    string += "\n" + args unless args.empty?
     return string
   end
 
