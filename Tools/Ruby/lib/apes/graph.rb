@@ -63,11 +63,12 @@ class APEGraphApplication < APEApplication
       return 0
 
     rescue Exception => e
+      puts "\r\e[2K[#{e.class}]".red
       puts e.message
       puts e.backtrace if @verbose
-      return -1
     end
 
+    return -1
   end
 
   def displayHelpAndExit

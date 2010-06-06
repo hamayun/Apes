@@ -108,17 +108,10 @@ class APEComposeApplication < APEApplication
 
       return 0
 
-    rescue APECompilationUnit::CompilationError => e
-      puts "\r\e[2K[Compilation error]".red
-      puts e.message
-    rescue APELinkUnit::LinkError => e
-      puts "\r\e[2K[Link error]".red
-      puts e.message
-    rescue APEObjectFile::ObjectError => e
-      puts "\r\e[2K[Object error]".red
-      puts e.message
     rescue Exception => e
+      puts "\r\e[2K[#{e.class}]".red
       puts e.message
+      puts e.backtrace if @verbose
     end
 
     return -1

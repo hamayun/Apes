@@ -37,10 +37,14 @@ class APEListApplication < APEApplication
       end
 
       return 0
+
     rescue Exception => e
+      puts "\r\e[2K[#{e.class}]".red
       puts e.message
-      return -1
+      puts e.backtrace if @verbose
     end
+
+    return -1
   end
 
   def displayHelpAndExit
