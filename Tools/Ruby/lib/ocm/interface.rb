@@ -162,9 +162,12 @@ class OCMInterface
         found = false
 
         list.each do |iface|
-          if iface.provide[section].include?(req) then
-            dependences[section] << iface
-            found = true
+          for context in iface.provide do
+            if context[section].include?(req) then
+              dependences[section] << iface
+              found = true
+              break
+            end
           end
         end
 
@@ -321,8 +324,13 @@ class OCMInterface
   # Check if two interfaces are equal.
   #
 
-  def overlap?(interface)
-    return @provide.overlap?(interface.provide)
+  def overlap?(i)
+    for context in @provide do
+      return false if i.provide[context.name] == nil
+      return true if context.overlap?(i.provide[context.name])
+    end
+
+    return false
   end
 
   #
@@ -360,8 +368,9 @@ class OCMInterface
     # Display the provided elements
     #
 
+    puts "\n[Provide]".green.bold
     @provide.each do |context|
-      puts "\n[Provide context #{context.name}]".green.bold
+      puts "\n<Context #{context.name}>".blue.bold
       OCMSet::SECTIONS.each { |section| context[section].each { |k| puts k } }
     end
 
