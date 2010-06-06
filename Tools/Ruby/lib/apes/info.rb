@@ -43,6 +43,7 @@ class APEInfoApplication < APEApplication
 
     rescue Exception => e
       puts e.message
+      puts e.backtrace if @verbose
       return -1
     end
   end

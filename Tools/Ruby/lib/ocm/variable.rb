@@ -29,10 +29,7 @@ class OCMVariable < OCMElement
   end
 
   def to_s
-    string = ""
-    string += "#{@visibility} ".downcase.red if @visibility != nil
-    string += "variable ".bold + @type + ' ' + @name
-    return string
+    return "variable ".bold + @type + ' ' + @name
   end
 
   def eql?(v)

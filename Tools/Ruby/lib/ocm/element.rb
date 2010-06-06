@@ -18,26 +18,23 @@ include Term::ANSIColor
 
 class OCMElement
   attr :name
-  attr :visibility
 
   def initialize(arguments)
     @name = arguments.pop
-    @visibility = arguments.pop
   end
 
   def self.createFromXML(node, arguments = [])
-    arguments.push(node["visibility"])
     arguments.push(node["name"])
     return self.new(arguments)
   end
 
   def eql?(e)
     return false if e == nil
-    return @name == e.name && @visibility == e.visibility
+    return @name == e.name
   end
 
   def hash
-    return [@name, @visibility].hash
+    return @name.hash
   end
 
   alias :== :eql?

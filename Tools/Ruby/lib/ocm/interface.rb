@@ -29,7 +29,7 @@ class OCMInterface
   attr :ids
   attr :path
   attr :provide
-  attr :require
+  attr :require, true
   attr :unique
   attr :wrapper
 
@@ -45,8 +45,8 @@ class OCMInterface
     @wrapper = wrapper
 
     @ids = { 'inject' => [], 'restrict' => [] }
-    @provide = OCMSet.new
-    @require = OCMSet.new
+    @provide = {}
+    @require = nil
   end
 
   #
@@ -112,17 +112,37 @@ class OCMInterface
     end
 
     #
-    # Get the different items
+    # Get the provided items
     #
 
-    ROLES.each do |role|
+    xml.xpath("/APES:Interface/provide/context").each do |context|
+      set = OCMSet.new
+      name = context["name"]
+
       OCMSet::SECTIONS.each do |section|
-        xpath = "/APES:Interface/#{role}//#{section}"
-        xml.xpath(xpath).each do |node|
+        context.xpath(section).each do |node|
           c = Kernel.const_get('OCM' + section.capitalize)
           t = c.createFromXML(node)
-          v = iface.instance_variable_get(('@' + role).to_sym)
-          v[section] << t unless v[section].include?(t) 
+          set[section] << t unless set[section].include?(t) 
+        end
+      end
+
+      iface.provide[name] = set
+    end
+
+    #
+    # Get the required items
+    #
+
+    requires = xml.xpath("/APES:Interface/require")
+    unless requires.empty? then
+      iface.require = OCMSet.new
+
+      OCMSet::SECTIONS.each do |section|
+        requires.xpath(section).each do |node|
+          c = Kernel.const_get('OCM' + section.capitalize)
+          t = c.createFromXML(node)
+          iface.require[section] << t unless iface.require[section].include?(t) 
         end
       end
     end
@@ -336,16 +356,28 @@ class OCMInterface
     puts "[Path:]".green.bold
     puts @path
 
-    ROLES.each do |role|
-      puts "\n[#{role.capitalize}]".green.bold
-      v = self.instance_variable_get(('@' + role).to_sym)
-      OCMSet::SECTIONS.each { |key, value| v[key].each { |k| puts k } }
+    #
+    # Display the provided elements
+    #
+
+    @provide.each do |name, context|
+      puts "\n[Provide context #{name}]".green.bold
+      OCMSet::SECTIONS.each { |section| context[section].each { |k| puts k } }
     end
+
+    #
+    # Display the required elements
+    #
+
+    if @require != nil then
+      puts "\n[Require]".green.bold
+      OCMSet::SECTIONS.each { |section| @require[section].each { |k| puts k } }
+    end
+
   end
 
   private
 
-  ROLES = [ 'provide', 'require' ]
   SCHEMA_PATH = ENV['APES_ROOT'] + '/Tools/Schemas/APESInterface.xsd'
 
   alias :== :eql?

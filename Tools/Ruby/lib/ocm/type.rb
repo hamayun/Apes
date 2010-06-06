@@ -16,10 +16,7 @@ require 'ocm/element'
 class OCMType < OCMElement
 
   def to_s
-    string = ""
-    string += "#{@visibility} ".downcase.red if @visibility != nil
-    string += "type ".bold + @name
-    return string
+    return "type ".bold + @name
   end
 
 end
