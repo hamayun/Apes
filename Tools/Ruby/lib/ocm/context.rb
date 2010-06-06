@@ -11,24 +11,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class OCMSet < Hash
+require 'ocm/set'
 
-  SECTIONS = [ 'type', 'definition', 'variable', 'method' ]
+class OCMContext < OCMSet
 
-  def self.new(*arguments)
-    h = super(*arguments)
-    SECTIONS.each { |s| h.store(s, []) }
-    return h
-  end
+  attr :name
 
-  def overlap?(set)
-    SECTIONS.each do |key, value|
-      union = (set[key] + self[key]).uniq
-      length = self[key].length + set[key].length
-      return true if union.length < length
-    end
-
-    return false
+  def initialize(*arguments)
+    @name = arguments.pop
   end
 
 end

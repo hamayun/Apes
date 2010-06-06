@@ -11,9 +11,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'ocm/context'
+require 'ocm/definition'
 require 'ocm/id'
 require 'ocm/type'
-require 'ocm/definition'
 require 'ocm/method'
 require 'ocm/set'
 require 'ocm/variable'
@@ -45,7 +46,7 @@ class OCMInterface
     @wrapper = wrapper
 
     @ids = { 'inject' => [], 'restrict' => [] }
-    @provide = {}
+    @provide = []
     @require = nil
   end
 
@@ -116,8 +117,7 @@ class OCMInterface
     #
 
     xml.xpath("/APES:Interface/provide/context").each do |context|
-      set = OCMSet.new
-      name = context["name"]
+      set = OCMContext.new(context["name"])
 
       OCMSet::SECTIONS.each do |section|
         context.xpath(section).each do |node|
@@ -127,7 +127,7 @@ class OCMInterface
         end
       end
 
-      iface.provide[name] = set
+      iface.provide << set
     end
 
     #
@@ -360,8 +360,8 @@ class OCMInterface
     # Display the provided elements
     #
 
-    @provide.each do |name, context|
-      puts "\n[Provide context #{name}]".green.bold
+    @provide.each do |context|
+      puts "\n[Provide context #{context.name}]".green.bold
       OCMSet::SECTIONS.each { |section| context[section].each { |k| puts k } }
     end
 
