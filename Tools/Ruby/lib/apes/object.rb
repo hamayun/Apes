@@ -123,8 +123,8 @@ class APEObjectFile
 
   def validate
     id = OCMId.new(@interface, nil, @version)
-    interfaces = APELibraryParser.findInterfaceWith(id)
-    return (interfaces != nil and not interfaces.empty?)
+    interface = APELibraryParser.findInterfaceWith(id)
+    return interface != nil
   end
 
   def update
