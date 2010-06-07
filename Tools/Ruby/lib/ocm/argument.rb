@@ -29,7 +29,7 @@ class OCMArgument < OCMElement
   def self.createFromXML(node, arguments = [])
     arguments.push(node["direction"])
     arguments.push(node["type"])
-    return super(name, arguments)
+    return super(node, arguments)
   end
 
   def to_s

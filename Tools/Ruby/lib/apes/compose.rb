@@ -58,7 +58,7 @@ class APEComposeApplication < APEApplication
         interface_list << i if APELibraryParser.findInterfaceWith(i.id) == nil
 
       when 2
-        id = OCMId.new(@arguments[0], nil, @arguments[1])
+        id = OCMId.new(@arguments[0], @arguments[1])
         i = APELibraryParser.findInterfaceWith(id)
         interface_list = APELibraryParser.getInterfaceList(@verbose)
       end

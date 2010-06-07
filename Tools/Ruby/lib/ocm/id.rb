@@ -16,26 +16,19 @@ require 'nokogiri'
 require 'term/ansicolor'
 include Term::ANSIColor
 
-class OCMId
+class OCMId < OCMElement
   attr :name
-  attr :short_name
   attr :version
 
-  def initialize(name, short_name, version)
+  def initialize(name, version)
     @name = name
-    @short_name = short_name == nil ? name : short_name
     @version = version
-  end
-
-  def OCMId.createWith(name, short_name, version)
-    return OCMId.new(name, short_name, version)
   end
 
   def OCMId.createFromXML(node)
     name = node["name"]
-    short_name = node["short_name"]
     version = node["version"]
-    return OCMId.createWith(name, short_name, version)
+    return self.new(name, version)
   end
 
   def to_s

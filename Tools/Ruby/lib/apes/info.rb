@@ -33,7 +33,7 @@ class APEInfoApplication < APEApplication
         raise Exception.new('No interface in this directory.') if i == nil
 
       when 2
-        id = OCMId.new(@arguments[0], nil, @arguments[1])
+        id = OCMId.new(@arguments[0], @arguments[1])
         i = APELibraryParser.findInterfaceWith(id)
 
       end

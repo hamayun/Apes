@@ -34,7 +34,7 @@ class APEGraphApplication < APEApplication
         interface_list << i if APELibraryParser.findInterfaceWith(i.id) == nil
 
       when 2
-        id = OCMId.new(@arguments[0], nil, @arguments[1])
+        id = OCMId.new(@arguments[0], @arguments[1])
         i = APELibraryParser.findInterfaceWith(id)
         interface_list = APELibraryParser.getInterfaceList(@verbose)
       end
@@ -51,9 +51,9 @@ class APEGraphApplication < APEApplication
       deps.each do |d|
         if resolved.find { |r| r == d } == nil then
           next_deps = d.computeDependences(deps)
-          puts "\t" + d.id.short_name + " [fontsize=16,style=filled];"
+          puts "\t" + d.id.name + " [fontsize=16,style=filled];"
           next_deps.each do |n|
-            puts "\t" + d.id.short_name + " -> " + n.id.short_name + ";"
+            puts "\t" + d.id.name + " -> " + n.id.name + ";"
           end
           resolved << d
         end

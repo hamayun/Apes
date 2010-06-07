@@ -44,7 +44,7 @@ class APEObjectFile
   end
 
   def APEObjectFile.createWith(source, interface, cache, includes)
-    interface_var = interface.id.short_name.upcase + '_CC_FLAGS'
+    interface_var = interface.id.name.upcase + '_CC_FLAGS'
     flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
       (ENV[interface_var] != nil ? ENV[interface_var] : "");
 
@@ -122,7 +122,7 @@ class APEObjectFile
   end
 
   def validate
-    id = OCMId.new(@interface, nil, @version)
+    id = OCMId.new(@interface, @version)
     interface = APELibraryParser.findInterfaceWith(id)
     return interface != nil
   end
