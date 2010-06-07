@@ -5,10 +5,12 @@
   <xsd:element ecore:ignore="true" name="Definition" type="APES:Definition"/>
   <xsd:element ecore:ignore="true" name="Element" type="APES:Element"/>
   <xsd:element ecore:ignore="true" name="Identifier" type="APES:Identifier"/>
+  <xsd:element ecore:ignore="true" name="Inject" type="APES:Inject"/>
   <xsd:element ecore:ignore="true" name="Interface" type="APES:Interface"/>
   <xsd:element ecore:ignore="true" name="Method" type="APES:Method"/>
   <xsd:element ecore:ignore="true" name="Provide" type="APES:Provide"/>
   <xsd:element ecore:ignore="true" name="Require" type="APES:Require"/>
+  <xsd:element ecore:ignore="true" name="Restrict" type="APES:Restrict"/>
   <xsd:element ecore:ignore="true" name="Set" type="APES:Set"/>
   <xsd:element ecore:ignore="true" name="Type" type="APES:Type"/>
   <xsd:element ecore:ignore="true" name="Variable" type="APES:Variable"/>
@@ -49,9 +51,16 @@
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
+  <xsd:complexType name="Inject">
+    <xsd:sequence>
+      <xsd:element ecore:resolveProxies="true" maxOccurs="unbounded" name="id" type="APES:Identifier"/>
+    </xsd:sequence>
+  </xsd:complexType>
   <xsd:complexType name="Interface">
     <xsd:sequence>
       <xsd:element ecore:resolveProxies="true" name="id" type="APES:Identifier"/>
+      <xsd:element ecore:resolveProxies="true" minOccurs="0" name="inject" type="APES:Inject"/>
+      <xsd:element ecore:resolveProxies="true" minOccurs="0" name="restrict" type="APES:Restrict"/>
       <xsd:element ecore:resolveProxies="true" name="provide" type="APES:Provide"/>
       <xsd:element ecore:resolveProxies="true" minOccurs="0" name="require" type="APES:Require"/>
     </xsd:sequence>
@@ -79,6 +88,11 @@
     <xsd:complexContent>
       <xsd:extension base="APES:Set"/>
     </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:complexType name="Restrict">
+    <xsd:sequence>
+      <xsd:element ecore:resolveProxies="true" maxOccurs="unbounded" name="id" type="APES:Identifier"/>
+    </xsd:sequence>
   </xsd:complexType>
   <xsd:complexType abstract="true" name="Set">
     <xsd:sequence>

@@ -39,9 +39,7 @@ class APELibraryParser
     ifs = @@interface_list.find_all { |e| e.id == id }
 
     raise Exception.new "#{id.to_s}: multiple match found." if ifs.count > 1
-    raise Exception.new "#{id.to_s}: no match found." if ifs.count == 0
-
-    return ifs.first
+    return ifs.count == 0 ? nil : ifs.first
   end
 
   private

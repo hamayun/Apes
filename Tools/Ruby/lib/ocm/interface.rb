@@ -326,8 +326,9 @@ class OCMInterface
 
   def overlap?(i)
     for context in @provide do
-      return false if i.provide[context.name] == nil
-      return true if context.overlap?(i.provide[context.name])
+      c = i.provide.find { |o| o.name == context.name }
+      return false if c == nil
+      return true if context.overlap?(c)
     end
 
     return false
