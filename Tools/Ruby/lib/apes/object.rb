@@ -169,7 +169,7 @@ class APEObjectFile
     return update
   end
 
-  def build(mode)
+  def build(verbose)
     status = 0
 
     # Build the command array
@@ -182,7 +182,7 @@ class APEObjectFile
     cmd_array << @source
     command = cmd_array.join(' ')
 
-    puts command unless mode == :normal
+    puts command if verbose
 
     # Execute the command
     if update then
@@ -200,22 +200,22 @@ class APEObjectFile
         raise ObjectError.new(stderr.join)
       end
 
-      print (mode == :normal) ? ' '.on_green : stdout.join
+      print verbose ? stdout.join : ' '.on_green
     else
-      print "\e[C".on_green unless mode == :verbose
+      print "\e[C".on_green unless verbose
     end
   end
 
-  def delete
-    if File.exist? @object then
-      File.delete @object
+  def delete(verbose)
+    if File.exist?(@object) then
+      File.delete(@object)
     end
 
-    if File.exist? @description then
-      File.delete @description
+    if File.exist?(@description) then
+      File.delete(@description)
     end
 
-    Dir.delete @sandbox
+    Dir.delete(@sandbox)
   end
 
   private

@@ -16,22 +16,20 @@ require 'nokogiri'
 require 'term/ansicolor'
 include Term::ANSIColor
 
-class OCMArgument
-  attr :name
+class OCMArgument < OCMElement
   attr :type
   attr :direction
 
-  def initialize(name, type, direction)
-    @name = name
-    @type = type
-    @direction = direction
+  def initialize(arguments)
+    super(arguments)
+    @type = arguments.pop
+    @direction = arguments.pop
   end
 
-  def self.createFromXML(node)
-    name = node["name"]
-    type = node["type"]
-    dir = node["direction"]
-    return self.new(name, type, dir)
+  def self.createFromXML(node, arguments = [])
+    arguments.push(node["direction"])
+    arguments.push(node["type"])
+    return super(name, arguments)
   end
 
   def to_s
@@ -40,7 +38,7 @@ class OCMArgument
 
   def eql?(arg)
     return false if arg == nil
-    return @name == arg.name && @type == arg.type && @direction == arg.direction
+    return super(arg) && @type == arg.type && @direction == arg.direction
   end
 
   def hash

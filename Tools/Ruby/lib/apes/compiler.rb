@@ -66,8 +66,8 @@ class APECompilationUnit
     end
   end
 
-  def build(mode)
-    unless mode == :verbose
+  def build(verbose)
+    unless verbose
       print @interface.id.name.blue
       (@@longer_name.length - @interface.id.name.length + 1).times { print ' ' }
 
@@ -81,7 +81,7 @@ class APECompilationUnit
       @objects.each do |o|
         if o.update then
           begin
-            o.build(mode)
+            o.build(verbose)
           rescue APEObjectFile::ObjectError => e
             path_array = @interface.path.split('/')
             path_array.delete_at(-1)
@@ -91,21 +91,20 @@ class APECompilationUnit
             raise CompilationError.new(message.join("\n"))
           end
         else
-          print "\e[C".on_green unless mode == :verbose
+          print "\e[C".on_green unless verbose
         end
       end
     rescue => e
-      print "\r\e[2K" unless mode == :verbose
+      print "\r\e[2K" unless verbose
       raise e
     end
 
-    print "\r\e[2K" unless mode == :verbose
+    print "\r\e[2K" unless verbose
   end
 
-  def clean(mode)
+  def clean(verbose)
     @objects.each do |o|
-      puts o.to_s unless mode == :normal
-      o.delete
+      o.delete(verbose)
     end
   end
 end

@@ -18,14 +18,14 @@ require 'nokogiri'
 class OCMVariable < OCMElement
   attr :type
 
-  def initialize(*args)
-    super(*args)
-    @type = args[2]
+  def initialize(arguments)
+    super(arguments)
+    @type = arguments.pop
   end
 
   def self.createFromXML(node, *args)
     type = node["type"]
-    return super(node, *(args << type))
+    return super(node, args << type)
   end
 
   def to_s

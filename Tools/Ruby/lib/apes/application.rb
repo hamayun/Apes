@@ -15,40 +15,42 @@ require 'rubygems'
 require 'commandline/optionparser'
 include CommandLine
 
-class APEApplication
+class APEApplication < OptionParser
 
-  def initialize(parser)
-    @parser = parser
-    @verbose = false
+  def initialize(*arguments)
+    super(*arguments)
     @arguments = []
   end
 
+  def extendOptions
+    self << Option.new(:names => %w(--verbose -v),
+                       :arg_arity => [ 0, 0 ],
+                       :opt_description => "Enables verbose mode.",
+                       :opt_found => lambda { @verbose = true},
+                       :opt_not_found => lambda { @verbose = false })
+
+    self << Option.new(:names => %w(--help -h),
+                       :arg_arity => [ 0, 0 ],
+                       :opt_description => "Displays this help.",
+                       :opt_found => lambda { @help = true },
+                       :opt_not_found => lambda { @help = false })
+
+  end
+
   def self.new
-    parser = OptionParser.new(:unknown_options_action => :raise) do |o|
-      yield(o) if block_given?
-
-      o << Option.new(:names => %w(--verbose -v),
-                      :arg_arity => [ 0, 0 ],
-                      :opt_description => "Enables verbose mode.")
-
-      o << Option.new(:names => %w(--help -h),
-                      :arg_arity => [ 0, 0 ],
-                      :opt_description => "Displays this help.")
-    end
-
-    return super(parser)
+    parser = super(:unknown_options_action => :raise)
+    parser.extendOptions
+    return parser
   end
 
   def run(arguments)
-    results = @parser.parse(arguments)
-    @arguments = results.args
-    self.displayHelpAndExit if results["--help"]
-    @verbose = results["--verbose"]
+    @arguments = self.parse(arguments).args
+    self.displayHelpAndExit if @help
     return 0
   end
 
   def displayHelpAndExit
-    puts @parser.to_s
+    puts self.to_s
     exit 0
   end
 

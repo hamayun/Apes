@@ -22,7 +22,7 @@ class APELinkUnit
   class LinkError < RuntimeError
   end
 
-  def APELinkUnit.link(name, buildir, compilers, mode)
+  def APELinkUnit.link(name, buildir, compilers, verbose)
     # Check if the necessary env variables are present
     #
 
@@ -55,7 +55,7 @@ class APELinkUnit
     # Deal with calling the linker
     #
 
-    puts command unless mode == :normal
+    puts command if verbose
 
     stdout, stderr = [], []
     status = POpen4::popen4(command) do |out,err|
@@ -67,7 +67,7 @@ class APELinkUnit
     # Deal with the errors
     #
 
-    print "\r\e[2K" if mode == :normal
+    print "\r\e[2K" unless verbose
 
     if status == nil
       message = "Cannot execute " + ENV['APES_LINKER']

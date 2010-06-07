@@ -25,14 +25,12 @@ include Term::ANSIColor
 
 class APEComposeApplication < APEApplication
 
-  def self.new
-    return super do |o|
-      yield(o) if block_given?
-
-      o << Option.new(:names => %w(--clean -c),
-                      :arg_arity => [ 0, 0 ],
-                      :opt_description => "Clean the interface graph objects.")
-    end
+  def extendOptions
+    self << Option.new(:names => %w(--clean -c),
+                       :arg_arity => [ 0, 0 ],
+                       :opt_description => "Clean the interface graph objects.",
+                       :opt_found => lambda { @clean = true } )
+    super
   end
 
   def run(arguments = "")
@@ -57,11 +55,11 @@ class APEComposeApplication < APEApplication
         raise Exception.new('No interface in this directory.') if i == nil
 
         interface_list = APELibraryParser.getInterfaceList(@verbose)
-        interface_list << i if APELibraryParser.findInterfaceWith(i.id).empty?
+        interface_list << i if APELibraryParser.findInterfaceWith(i.id) == nil
 
       when 2
         id = OCMId.new(@arguments[0], nil, @arguments[1])
-        interface = APELibraryParser.findInterfaceWith(id)
+        i = APELibraryParser.findInterfaceWith(id)
         interface_list = APELibraryParser.getInterfaceList(@verbose)
       end
 
@@ -69,8 +67,8 @@ class APEComposeApplication < APEApplication
       # Check the interface dependences
       #
 
-      deps = interface.resolveDependences(interface_list)
-      raise Exception.new("Cannot resolve " + interface.id.to_s) if deps.empty?
+      deps = i.resolveDependences(interface_list)
+      raise Exception.new("Cannot resolve " + i.id.to_s) if deps.empty?
 
       #
       # Build the interface
@@ -88,11 +86,10 @@ class APEComposeApplication < APEApplication
           compilers << unit
           unit.updateObjectCache(CACHE_DIRECTORY)
 
-          case cc_action
-          when :compile
-            unit.build(@verbose) if unit.update
-          when :clean
+          if @clean then
             unit.clean(@verbose)
+          else
+            unit.build(@verbose) if unit.update
           end
         end
       end
@@ -101,8 +98,8 @@ class APEComposeApplication < APEApplication
       # If we are compiling, link all the objects altogether
       #
 
-      if cc_action == :compile then
-        binary = "#{Dir.pwd}/#{interface.id.short_name}"
+      unless @clean then
+        binary = "#{Dir.pwd}/#{i.id.name}"
         APELinkUnit.link(binary, CACHE_DIRECTORY, compilers, @verbose)
       end
 
