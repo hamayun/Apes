@@ -92,10 +92,7 @@ class APECacheApplication < APEApplication
 
   def displayHelpAndExit
     puts "USAGE"
-    puts "    apes-cache {show,purge,prune}"
-    puts "        show      : show the cache's content"
-    puts "        purge     : purge the cache"
-    puts "        prune     : prune invalid cache entries"
+    puts "    apes-cache {<name> <version>}"
     puts
     super
   end
