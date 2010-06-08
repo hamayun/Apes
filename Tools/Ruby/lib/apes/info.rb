@@ -35,6 +35,7 @@ class APEInfoApplication < APEApplication
       when 2
         id = OCMId.new(@arguments[0], @arguments[1])
         i = APELibraryParser.findInterfaceWith(id)
+        raise Exception.new(id.to_s + ': No such interface.') if i == nil
 
       end
 
