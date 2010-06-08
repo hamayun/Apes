@@ -25,17 +25,7 @@ class APEListApplication < APEApplication
     self.displayHelpAndExit unless @arguments.empty?
 
     begin
-      interface_list = APELibraryParser.getInterfaceList(@verbose)
-      longer_id = interface_list.max do |a,b|
-        a.id.name.length <=> b.id.name.length
-      end
-
-      interface_list.each do |c|
-        print c.id.name.blue
-        (longer_id.id.name.length - c.id.name.length + 1).times { print ' ' }
-        puts ('[' + c.id.version + ']').green
-      end
-
+      APELibraryParser.getInterfaceList(@verbose) { |c| puts c.id }
       return 0
 
     rescue Exception => e

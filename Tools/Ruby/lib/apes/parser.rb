@@ -15,7 +15,7 @@ require 'ocm/interface'
 
 class APELibraryParser
   
-  def APELibraryParser.getInterfaceList(mode = :normal)
+  def APELibraryParser.getInterfaceList(verbose = false, &block)
     interface_path = []
     if @@interface_list.empty?
 
@@ -27,8 +27,10 @@ class APELibraryParser
       interface_path.uniq!
 
       interface_path.each do |path|
-        APELibraryParser.parse(path, mode)
+        APELibraryParser.parse(path, verbose, block)
       end
+    elsif block_given? then
+      @@interface_path.each { |i| yield(i) }
     end
 
     return @@interface_list
@@ -46,18 +48,19 @@ class APELibraryParser
 
   @@interface_list = []
 
-  def APELibraryParser.parse(path, mode = :normal)
+  def APELibraryParser.parse(path, verbose, block)
     begin
-      iface = OCMInterface.createFromXMLFileAtPath(path, mode)
+      iface = OCMInterface.createFromXMLFileAtPath(path, verbose)
 
       if iface != nil and not @@interface_list.entries.include?(iface)
+        block.call(iface) if block != nil
         @@interface_list << iface
       end
 
       Dir.new(path).entries.each do |e|
         if e != "." and e != ".." and e[0] != "." then
           dir = path + '/' + e
-          APELibraryParser.parse(dir, mode) if FileTest.directory?(dir)
+          APELibraryParser.parse(dir, verbose, block) if FileTest.directory?(dir)
         end
       end
     rescue Errno::EACCES
