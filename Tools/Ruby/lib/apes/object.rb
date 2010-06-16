@@ -41,6 +41,7 @@ class APEObjectFile
     @object = sandbox + '/object'
     @description = sandbox + '/description'
     @flags = flags
+    @update = false
   end
 
   def APEObjectFile.createWith(source, interface, cache, includes)
@@ -127,7 +128,7 @@ class APEObjectFile
     return interface != nil
   end
 
-  def update
+  def update(local_deps)
     update = true
     has_modification = false
 
@@ -145,7 +146,7 @@ class APEObjectFile
 
       # Check if an update is needed
       if object_time > source_time then
-        @includes.each do |inc|
+        local_deps.each do |inc|
 
           # Check each header file of the dependence
           updated_files = Dir.glob(inc + '/**/*.h').find do |f| 
@@ -166,6 +167,7 @@ class APEObjectFile
       end
     end
 
+    @update = update
     return update
   end
 
@@ -185,7 +187,7 @@ class APEObjectFile
     puts command if verbose
 
     # Execute the command
-    if update then
+    if @update then
       stdout, stderr = [], []
       status = POpen4::popen4(command) do |out,err|
         stdout = out.readlines

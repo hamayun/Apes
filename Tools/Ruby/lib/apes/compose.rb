@@ -78,12 +78,19 @@ class APEComposeApplication < APEApplication
 
       deps.each do |d|
         if not d.wrapper then
-          unit = APECompilationUnit.createWith(d)
+          locals, globals = [], []
+
           d.resolveDependences(deps).each do |l|
-            unit << "#{l.path}/Headers/Public" unless l.wrapper
+            globals << "#{l.path}/Headers/Public" unless l.wrapper
           end
 
+          d.computeDependences(deps).each do |l|
+            locals << "#{l.path}/Headers/Public" unless l.wrapper
+          end
+
+          unit = APECompilationUnit.createWith(d, locals, globals)
           compilers << unit
+
           unit.updateObjectCache(CACHE_DIRECTORY)
 
           if @clean then

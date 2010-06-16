@@ -25,18 +25,25 @@ class APECompilationUnit
   class CompilationError < RuntimeError
   end
 
-  def initialize(interface)
+  def initialize(interface, locals, globals)
     @interface = interface
-    @dependences = []
     @objects = []
     @update = false
+
+    @locals = locals
+    @locals << (@interface.path + '/Headers')
+    @locals << (@interface.path + '/Headers/Public')
+
+    @globals = globals
+    @globals << (@interface.path + '/Headers/Public')
+    @globals << (@interface.path + '/Headers')
 
     if @interface.id.name.length >= @@longer_name.length
       @@longer_name = @interface.id.name
     end
   end
 
-  def APECompilationUnit.createWith(interface)
+  def APECompilationUnit.createWith(interface, locals, globals)
     # Check if the necessary env variables are present
     if ENV['APES_CC_FLAGS'] == nil
       raise CompilationError.new "Undefined APES_CC_FLAGS variable."
@@ -47,21 +54,13 @@ class APECompilationUnit
     end
 
     # If everything is OK, return an instance of the CcUnit
-    APECompilationUnit.new(interface)
-  end
-
-  def << (dependency)
-    @dependences << dependency
+    APECompilationUnit.new(interface, locals, globals)
   end
 
   def updateObjectCache(cache)
-    deps = @dependences
-    deps << (@interface.path + '/Headers')
-    deps << (@interface.path + '/Headers/Public')
-
     Dir.glob(@interface.path + '/Sources/*.{c,S}').each do |file|
-      object = APEObjectFile.createWith(file, @interface, cache, deps)
-      @update = @update || object.update
+      object = APEObjectFile.createWith(file, @interface, cache, @globals)
+      @update = @update || object.update(@locals)
       @objects << object
     end
   end
@@ -72,14 +71,14 @@ class APECompilationUnit
       (@@longer_name.length - @interface.id.name.length + 1).times { print ' ' }
 
       print '|'.bold
-      @objects.each { |object| print object.update ? ' '.on_cyan : ' '.on_green }
+      @objects.each { |object| print object.update(@locals) ? ' '.on_cyan : ' '.on_green }
       print "|\e[#{@objects.length + 1}D".bold
     end
 
     # Compile the objects
     begin
       @objects.each do |o|
-        if o.update then
+        if o.update(@locals) then
           begin
             o.build(verbose)
           rescue APEObjectFile::ObjectError => e
