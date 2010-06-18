@@ -399,7 +399,7 @@ gdb_install()
 
 print_usage()
 {
-  echo "Usage : build-xtool {arm, mips} INSTALL_DIR"
+  echo "Usage : build-xtool {arm, mips, native} INSTALL_DIR"
   exit
 }
 
@@ -415,6 +415,11 @@ case "$1" in
 arm*)
 ARCH=arm
 TARGET=arm-sls-dnaos
+;;
+
+native*)
+ARCH=i386
+TARGET=i386-sls-dnaos
 ;;
 
 mips*)
