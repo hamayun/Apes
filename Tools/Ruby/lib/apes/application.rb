@@ -44,9 +44,17 @@ class APEApplication < OptionParser
   end
 
   def run(arguments)
-    @arguments = self.parse(arguments).args
-    self.displayHelpAndExit if @help
-    return 0
+    begin
+      @arguments = self.parse(arguments).args
+      self.displayHelpAndExit if @help
+      return 0
+
+    rescue Exception => e
+      puts "\r\e[2K[#{e.class}]".red
+      puts e.message
+      puts e.backtrace if @verbose
+      exit
+    end
   end
 
   def displayHelpAndExit
