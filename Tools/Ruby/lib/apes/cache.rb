@@ -25,17 +25,17 @@ class APECacheApplication < APEApplication
     self << Option.new(:names => %w(--show),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Shows the cache's content.",
-                       :opt_found => lambda { @cmd = :show } )
+                       :opt_found => lambda { |*arg| @cmd = :show } )
 
     self << Option.new(:names => %w(--purge),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Purges the cache.",
-                       :opt_found => lambda { @cmd = :purge } )
+                       :opt_found => lambda { |*arg| @cmd = :purge } )
 
     self << Option.new(:names => %w(--prune),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Prunes invalid cache entries.",
-                       :opt_found => lambda { @cmd = :prune } )
+                       :opt_found => lambda { |*arg| @cmd = :prune } )
     super
   end
 

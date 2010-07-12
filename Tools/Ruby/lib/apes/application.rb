@@ -26,14 +26,14 @@ class APEApplication < OptionParser
     self << Option.new(:names => %w(--verbose -v),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Enables verbose mode.",
-                       :opt_found => lambda { @verbose = true},
-                       :opt_not_found => lambda { @verbose = false })
+                       :opt_found => lambda { |*arg| @verbose = true},
+                       :opt_not_found => lambda { |*arg| @verbose = false })
 
     self << Option.new(:names => %w(--help -h),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Displays this help.",
-                       :opt_found => lambda { @help = true },
-                       :opt_not_found => lambda { @help = false })
+                       :opt_found => lambda { |*arg|@help = true },
+                       :opt_not_found => lambda { |*arg| @help = false })
 
   end
 
@@ -52,7 +52,7 @@ class APEApplication < OptionParser
     rescue Exception => e
       puts "\r\e[2K[#{e.class}]".red
       puts e.message
-      puts e.backtrace if @verbose
+      puts e.backtrace
       exit
     end
   end

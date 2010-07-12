@@ -29,7 +29,7 @@ class APEComposeApplication < APEApplication
     self << Option.new(:names => %w(--clean -c),
                        :arg_arity => [ 0, 0 ],
                        :opt_description => "Clean the interface graph objects.",
-                       :opt_found => lambda { @clean = true } )
+                       :opt_found => lambda { |*arg| @clean = true } )
     super
   end
 
