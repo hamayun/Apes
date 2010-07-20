@@ -20,6 +20,7 @@ class APEApplication < OptionParser
   def initialize(*arguments)
     super(*arguments)
     @arguments = []
+    @verbose = true
   end
 
   def extendOptions
@@ -46,15 +47,15 @@ class APEApplication < OptionParser
   def run(arguments)
     begin
       @arguments = self.parse(arguments).args
-      self.displayHelpAndExit if @help
-      return 0
-
     rescue Exception => e
       puts "\r\e[2K[#{e.class}]".red
       puts e.message
       puts e.backtrace
       exit
     end
+
+    self.displayHelpAndExit if @help
+    return 0
   end
 
   def displayHelpAndExit
