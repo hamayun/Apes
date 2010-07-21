@@ -6,7 +6,7 @@ elif [ ! -d $APES_ROOT ] ; then
   echo "\$APES_ROOT invalid."
 else
   export APES_PATH=$APES_ROOT/Components
-  export RUBYLIB=$RUBYLIB:$APES_ROOT/Tools/Ruby/li
+  export RUBYLIB=$RUBYLIB:$APES_ROOT/Tools/Ruby/lib
   export PATH=$PATH:$APES_ROOT/Tools/Ruby/bin
   export PATH=$PATH:$APES_ROOT/Tools/Shell/bin
 
