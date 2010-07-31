@@ -251,7 +251,7 @@ class OCMInterface
 
       if match.empty? then
         puts "Error with restriction: " + r.to_s 
-        raise Exception.new("Cannot find a matching interface.")
+        raise Exception.new("Not a dependency or interface not found.")
       end
     end
 
