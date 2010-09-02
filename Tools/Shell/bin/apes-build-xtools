@@ -137,19 +137,16 @@ install_error(){
 }
 
 #
-# Installation Functions
+# Getter functions
 #
 
-get_sources()
+get_patches()
 {
-
-  print_step "Getting and preparing sources"
-
-  #
-  # Getting patch repository
-  #
-
   print_substep "Downloading GNU patches"
+
+  #
+  # Getting the patches
+  #
 
   if [ ! -e ${DLS_DIR}/${PATCH_REPOSITORY} ] ; then
     git clone ${PATCH_URL}/${PATCH_REPOSITORY}.git ${DLS_DIR}/${PATCH_REPOSITORY} &> ${TMP_DIR}/git_clone.log || exit -1 ;
@@ -159,6 +156,15 @@ get_sources()
     popd
   fi ;
 
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/patches_installed
+}
+
+get_binutils()
+{
   #
   # Getting binutils
   #
@@ -182,6 +188,15 @@ get_sources()
   patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/binutils &> logs/binutils-patch.log
 
   #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/binutils_sources_installed
+}
+
+get_gcc()
+{
+  #
   # Getting GCC
   #
 
@@ -204,6 +219,15 @@ get_sources()
   patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/gcc  &> logs/gcc-patch.log
 
   #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/gcc_sources_installed
+}
+
+get_newlib()
+{
+  #
   # Getting Newlib
   #
 
@@ -225,6 +249,15 @@ get_sources()
   mkdir -p logs
   patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/newlib &> logs/newlib-patch.log
 
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/newlib_sources_installed
+}
+
+get_gdb()
+{
   #
   # Getting Gdb
   #
@@ -251,8 +284,12 @@ get_sources()
   # Done ...
   #
 
-  touch ${STAMPS_DIR}/sources_installed
+  touch ${STAMPS_DIR}/gdb_sources_installed
 }
+
+#
+# Installation functions
+#
 
 binutils_install()
 {
@@ -446,8 +483,30 @@ mkdir -p ${DLS_DIR}
 mkdir -p ${INSTALL_DIR}
 mkdir -p ${STAMPS_DIR}
 
-[ -e ${STAMPS_DIR}/sources_installed ] || \
-    get_sources      || install_error
+#
+# Check the validity of the sources and patches
+#
+
+print_step "Getting and preparing sources"
+
+[ -e ${STAMPS_DIR}/patches_installed ] || \
+    get_patches || install_error
+
+[ -e ${STAMPS_DIR}/binutils_sources_installed ] || \
+    get_binutils || install_error
+
+[ -e ${STAMPS_DIR}/gcc_sources_installed ] || \
+    get_gcc || install_error
+
+[ -e ${STAMPS_DIR}/newlib_sources_installed ] || \
+    get_newlib || install_error
+
+[ -e ${STAMPS_DIR}/gdb_sources_installed ] || \
+    get_gdb || install_error
+
+#
+# Perform the installation process
+#
 
 [ -e ${STAMPS_DIR}/binutils_installed ] || \
     binutils_install || install_error
