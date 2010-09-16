@@ -52,13 +52,13 @@ class APELibraryParser
     begin
       iface = OCMInterface.createFromXMLFileAtPath(path, verbose)
 
-      if iface != nil and not @@interface_list.entries.include?(iface)
+      if iface != nil && ! @@interface_list.entries.include?(iface)
         block.call(iface) if block != nil
         @@interface_list << iface
       end
 
       Dir.new(path).entries.each do |e|
-        if e != "." and e != ".." and e[0] != "." then
+        if e != "." && e != ".." && e[0] != "." then
           dir = path + '/' + e
           APELibraryParser.parse(dir, verbose, block) if FileTest.directory?(dir)
         end

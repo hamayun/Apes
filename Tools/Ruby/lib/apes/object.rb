@@ -95,7 +95,7 @@ class APEObjectFile
   def APEObjectFile.createFrom(sandbox)
     object = nil
 
-    if File.exist?(sandbox) and File.directory?(sandbox) then
+    if File.exist?(sandbox) && File.directory?(sandbox) then
       # Load the object's configuration file, check the keys
       # and create the object file
       #
