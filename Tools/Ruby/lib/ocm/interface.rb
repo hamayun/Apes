@@ -272,7 +272,7 @@ class OCMInterface
       overlap = []
       overlap = local_deps.find_all { |f| f != d && f.overlap?(d) }
 
-      if not overlap.empty? && overlap.find { |o| o.unique } != nil then
+      if ! overlap.empty? && overlap.find { |o| o.unique } != nil then
         overlap << d
         filtered_overlap = overlap.clone
 
