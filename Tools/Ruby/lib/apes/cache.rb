@@ -67,7 +67,7 @@ class APECacheApplication < APEApplication
           if object == nil then
             FileUtils.rm_rf(file)
             puts file.split('/').last.blue + " [DELETED]".red if @verbose
-          elsif @cmd == :purge or (@cmd == :prune && not object.validate) then
+          elsif @cmd == :purge || (@cmd == :prune && ! object.validate) then
             object.delete(@verbose)
             if @verbose then
               puts object.SHA1.blue + " [DELETED]".red
