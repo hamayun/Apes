@@ -190,7 +190,7 @@ class OCMInterface
 
     if @unique then
       filtered_interfaces = list.find_all do |f|
-        f != self && f.overlap?(self)
+        f != self && self.overlap?(f)
       end
       filtered_interfaces.each { |f| list.delete(f) }
     end
@@ -327,8 +327,7 @@ class OCMInterface
   def overlap?(i)
     for context in @provide do
       c = i.provide.find { |o| o.name == context.name }
-      return false if c == nil
-      return true if context.overlap?(c)
+      return true if c != nil && context.overlap?(c)
     end
 
     return false
