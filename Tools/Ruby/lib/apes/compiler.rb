@@ -58,7 +58,7 @@ class APECompilationUnit
   end
 
   def updateObjectCache(cache)
-    Dir.glob(@interface.path + '/Sources/*.{c,S}').each do |file|
+    Dir.glob(@interface.path + '/Sources/**/*.{c,S}').each do |file|
       object = APEObjectFile.createWith(file, @interface, cache, @globals)
       @update = @update || object.update(@locals)
       @objects << object

@@ -310,6 +310,7 @@ binutils_install()
   --target=${TARGET}                    \
   --disable-nls                         \
   --disable-werror                      \
+  $APES_BINUTILS_EXTRA                  \
   --enable-multilib     &> logs/configure.log || return
 
   print_substep "compiling ..."
@@ -342,6 +343,7 @@ gcc_1_install()
   --enable-multilib                 \
   --with-newlib                     \
   --enable-interwork                \
+  $APES_GCC_EXTRA                   \
   --enable-languages=c      &> logs/configure.log || return
 
   print_substep "compiling ..."
@@ -378,6 +380,7 @@ newlib_install()
   --enable-newlib-io-c99-formats          \
   --disable-newlib-may-supply-syscalls    \
   --enable-newlib-multithread             \
+  $APES_NEWLIB_EXTRA                      \
   --disable-newlib-supplied-syscalls      &> logs/configure.log || return
 
   print_substep "compiling ..." 
