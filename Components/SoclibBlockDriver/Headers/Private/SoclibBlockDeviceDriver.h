@@ -65,6 +65,8 @@ extern status_t block_device_read (void * handler, void * destination,
     int64_t offset, int32_t * p_count) ;
 extern status_t block_device_write (void * handler, void * source, 
     int64_t offset, int32_t * p_count) ;
+extern status_t block_device_control (void * handler, int32_t function,
+    va_list arguments, int32_t * p_ret) ;
 
 extern status_t access_device_blocks(block_device_control_t * block_device, 
     void * access, int64_t block_offset, int32_t block_count,

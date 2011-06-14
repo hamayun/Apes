@@ -65,6 +65,8 @@ status_t path_split (char * restrict path, char * restrict token)
     while (*p_end == '/') p_end -= 1;
     p_start = p_end;
 #endif
+    // MMH: I guess this line is needed here. 
+    p_start = p_end;
 
     /*
      * Look for the beginning of the token, that is to

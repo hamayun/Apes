@@ -16,11 +16,13 @@ device_cmd_t block_device_commands = {
   block_device_free,
   block_device_read,
   block_device_write,
-  NULL
+  block_device_control
 } ;
 
 const char * block_devices[] =
 {
   "disk/simulator/0",
+  "disk/simulator/1",
+  "disk/simulator/2",
   NULL
 } ;
