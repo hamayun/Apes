@@ -49,6 +49,9 @@ class APELinkUnit
     cmd << "-o #{name}"
     cmd << ENV['APES_LINKER_FLAGS']
     objects.each { |o| cmd << "#{o.object}" }
+    if ENV['APES_LINKER_TRAIL_FLAGS'] != nil
+        cmd << ENV['APES_LINKER_TRAIL_FLAGS']
+    end
     command = cmd.join(' ')
 
     #

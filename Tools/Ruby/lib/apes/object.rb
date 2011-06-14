@@ -171,6 +171,7 @@ class APEObjectFile
     return update
   end
 
+  # Normal Build Method
   def build(verbose)
     status = 0
 
@@ -208,6 +209,113 @@ class APEObjectFile
     end
   end
 
+  # Split Build Method
+  def splitbuild(verbose)
+    status = 0
+
+    # Build the command array
+    cmd_array = [ENV['APES_CC1']]
+    cmd_array << "-c -o #{@object}.1"
+    cmd_array << ENV['APES_CC1_FLAGS']
+    cmd_array << @flags
+
+    cmd_array << @includes.collect { |d| '-I' + d }.join(' ')
+    cmd_array << @source
+    command = cmd_array.join(' ')
+
+    puts "Step #1:" if verbose
+    puts command if verbose
+
+    # Execute the command
+    if @update then
+      stdout, stderr = [], []
+      status = POpen4::popen4(command) do |out,err|
+        stdout = out.readlines
+        stderr = err.readlines
+      end
+
+      if status == nil
+        message = "Cannot execute " + ENV['APES_CC1']
+        message += ", no such file or directory"
+        raise ObjectError.new message
+      elsif status != 0
+        # Here We Try the Normal Build
+        puts "###### Split Compilation Failed in CC1 ######" if verbose
+        self.build(verbose)
+        return
+      end
+
+      print verbose ? stdout.join : ' '.on_green
+    else
+      print "\e[C".on_green unless verbose
+    end
+
+    # Build the command array CC2
+    cmd_array = [ENV['APES_CC2']]
+    cmd_array << "#{@object}.1 -o #{@object}.2"
+    cmd_array << ENV['APES_CC2_FLAGS']
+    command = cmd_array.join(' ')
+
+    puts "Step #2:" if verbose
+    puts command if verbose
+
+    # Execute the command
+    if @update then
+      stdout, stderr = [], []
+      status = POpen4::popen4(command) do |out,err|
+        stdout = out.readlines
+        stderr = err.readlines
+      end
+
+      if status == nil
+        message = "Cannot execute " + ENV['APES_CC2']
+        message += ", no such file or directory"
+        raise ObjectError.new message
+      elsif status != 0
+        # Here We Try the Normal Build
+        puts "###### Split Compilation Failed in CC2 ######" if verbose
+        self.build(verbose)
+        return
+      end
+
+      print verbose ? stdout.join : ' '.on_green
+    else
+      print "\e[C".on_green unless verbose
+    end
+
+    # Assemble the Objects
+    cmd_array = [ENV['APES_ASSEMBLER']]
+    cmd_array << "#{@object}.2 -o #{@object}"
+    command = cmd_array.join(' ')
+
+    puts "Step #3:" if verbose
+    puts command if verbose
+
+    # Execute the command
+    if @update then
+      stdout, stderr = [], []
+      status = POpen4::popen4(command) do |out,err|
+        stdout = out.readlines
+        stderr = err.readlines
+      end
+
+      if status == nil
+        message = "Cannot execute " + ENV['APES_ASSEMBLER']
+        message += ", no such file or directory"
+        raise ObjectError.new message
+      elsif status != 0
+        # Here We Try the Normal Build
+        puts "###### Split Compilation Failed in CC2 ######" if verbose
+        self.build(verbose)
+        return
+      end
+
+      print verbose ? stdout.join : ' '.on_green
+    else
+      print "\e[C".on_green unless verbose
+    end
+  end
+
   def delete(verbose)
     if File.exist?(@object) then
       File.delete(@object)
@@ -218,6 +326,18 @@ class APEObjectFile
     end
 
     Dir.delete(@sandbox)
+  end
+
+  def splitdelete(verbose)
+    if File.exist?(@object.to_s + ".1") then
+      File.delete(@object.to_s + ".1")
+    end
+
+    if File.exist?(@object.to_s + ".2") then
+      File.delete(@object.to_s + ".2")
+    end
+
+    self.delete(verbose)
   end
 
   private

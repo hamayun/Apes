@@ -2,12 +2,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -45,8 +45,20 @@ class APECompilationUnit
 
   def APECompilationUnit.createWith(interface, locals, globals)
     # Check if the necessary env variables are present
-    if ENV['APES_CC_FLAGS'] == nil
-      raise CompilationError.new "Undefined APES_CC_FLAGS variable."
+    if ENV['APES_SPLIT_CC'] != nil
+      # Split Compilation
+      if ENV['APES_CC1_FLAGS'] == nil
+        raise CompilationError.new "Undefined APES_CC1_FLAGS variable."
+      end
+
+      if ENV['APES_CC2_FLAGS'] == nil
+        raise CompilationError.new "Undefined APES_CC2_FLAGS variable."
+      end
+    else
+      # Normal Compilation
+      if ENV['APES_CC_FLAGS'] == nil
+        raise CompilationError.new "Undefined APES_CC_FLAGS variable."
+      end
     end
 
     if ENV['APES_CC_OPTIMIZATIONS'] == nil
@@ -80,7 +92,11 @@ class APECompilationUnit
       @objects.each do |o|
         if o.update(@locals) then
           begin
-            o.build(verbose)
+            if ENV['APES_SPLIT_CC'] != nil
+              o.splitbuild(verbose)
+            else
+              o.build(verbose)
+            end
           rescue APEObjectFile::ObjectError => e
             path_array = @interface.path.split('/')
             path_array.delete_at(-1)
@@ -103,7 +119,11 @@ class APECompilationUnit
 
   def clean(verbose)
     @objects.each do |o|
-      o.delete(verbose)
+      if ENV['APES_SPLIT_CC'] != nil
+        o.splitdelete(verbose)
+      else
+        o.delete(verbose)
+      end
     end
   end
 end
