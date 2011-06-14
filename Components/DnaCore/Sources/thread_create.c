@@ -132,6 +132,15 @@ status_t thread_create (thread_handler_t handler, void * arguments,
      * Initialize the context.
      */
 
+    /*
+    dna_printf("**** Initialize New Thread Context ****\n");
+    dna_printf("& thread -> context = 0x%x\n", & thread -> context);
+    dna_printf("thread -> info . stack_base = 0x%x\n", thread -> info . stack_base);
+    dna_printf("thread -> info . stack_size = 0x%x\n", thread -> info . stack_size);
+    dna_printf("thread_bootstrap = 0x%x\n", thread_bootstrap);
+    dna_printf("& thread -> signature = 0x%x\n", & thread -> signature);
+    */
+
     cpu_context_init (& thread -> context, thread -> info . stack_base,
         thread -> info . stack_size, thread_bootstrap, & thread -> signature);
 

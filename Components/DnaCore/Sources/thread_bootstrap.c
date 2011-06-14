@@ -19,7 +19,7 @@
 
 /****f* ThreadPrivate/thread_bootstrap
  * SUMMARY
- * The code required to boostrap a thead.
+ * The code required to boostrap a thread.
  *
  * SYNOPSIS
  */

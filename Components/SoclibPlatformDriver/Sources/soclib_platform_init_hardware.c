@@ -20,16 +20,17 @@
 
 status_t soclib_platform_init_hardware (void)
 {
-  soclib_timer_port_t timer;
+// Removed by Hao
+//  soclib_timer_port_t timer;
 
-  //cpu_write (UINT32, & (PLATFORM_AICU_BASE -> control), 0x1);
+//  cpu_write (UINT32, & (PLATFORM_AICU_BASE -> control), 0x1);
 
-  for (int32_t i = 0; i < cpu_mp_count (); i += 1)
-  {
-    timer = & PLATFORM_TIMER_BASE[i];
-    cpu_write(UINT32, & (timer -> mode), 1); 
-    //cpu_write (UINT32, & (PLATFORM_AICU_BASE -> slot[i] . mask), 0x3);
-  }
+//  for (int32_t i = 0; i < cpu_mp_count (); i += 1)
+//  {
+//    timer = & PLATFORM_TIMER_BASE[i];
+//    cpu_write(UINT32, & (timer -> mode), 1); 
+//    cpu_write (UINT32, & (PLATFORM_AICU_BASE -> slot[i] . mask), 0x3);
+//  }
 
   return DNA_OK;
 }
