@@ -1,0 +1,528 @@
+#!/bin/bash
+#
+# DNAOS Cross-compile toolchain compilation script                     
+# Copyright (C) 2009 nfournel, TIMA Laboratory                         
+#                                                                      
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or    
+# (at your option) any later version.                                  
+#                                                                      
+# This program is distributed in the hope that it will be useful,      
+# but WITHOUT ANY WARRANTY; without even the implied warranty of       
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
+# GNU General Public License for more details.                         
+#                                                                      
+# You should have received a copy of the GNU General Public License    
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# Binutils version
+# Tested versions : 2.18
+#
+
+BINUTILS_VER=2.18
+BINUTILS_CFLAGS=
+
+#
+# GCC version
+# Tested versions : 4.3.2, 4.4.2
+#
+
+GCC_VER=4.4.2
+GCC_CFLAGS=
+
+#
+# Newlib version
+# Tested versions : 1.17.0, 1.18.0
+#
+
+NEWLIB_VER=1.18.0
+#NEWLIB_CFLAGS="-ffunction-sections -fdata-sections"
+
+#
+# GDB version
+# Tested versions : 6.8, 7.0.1
+#
+
+GDB_VER=7.0.1
+GDB_CFLAGS="-DHAVE_DECL_STPCPY=1"
+
+#
+# Define the temporary directories
+#
+
+HERE=`pwd`
+
+TMP_DIR=$PWD/build
+DLS_DIR=$PWD/sources
+STAMPS_DIR=${TMP_DIR}/stamps
+
+#
+# Sources definitions
+#
+
+PATCH_URL=git://tima-sls.imag.fr
+PATCH_REPOSITORY=GnuPatches
+
+# binutils stuffs
+BINUTILS_BASE=binutils-${BINUTILS_VER}
+BINUTILS_DIR=${BINUTILS_BASE}
+BINUTILS_ARCHIVE=${BINUTILS_BASE}.tar.bz2
+BINUTILS_REPOSITORY="http://ftp.gnu.org/gnu/binutils"
+
+# GCC stuffs
+GCC_BASE=gcc-${GCC_VER}
+GCC_DIR=${GCC_BASE}
+GCC_ARCHIVE=${GCC_BASE}.tar.bz2
+GCC_REPOSITORY="ftp://ftp.gnu.org/gnu/gcc/gcc-"${GCC_VER}
+
+# Newlib stuffs
+NEWLIB_BASE=newlib-${NEWLIB_VER}
+NEWLIB_DIR=${NEWLIB_BASE}
+NEWLIB_ARCHIVE=${NEWLIB_BASE}.tar.gz
+NEWLIB_REPOSITORY="ftp://sources.redhat.com/pub/newlib"
+
+# gdb stuffs
+GDB_BASE=gdb-${GDB_VER}
+GDB_DIR=${GDB_BASE}
+GDB_ARCHIVE=${GDB_BASE}.tar.bz2
+GDB_REPOSITORY="ftp://ftp.gnu.org/gnu/gdb"
+
+#
+# Outputs Functions
+#
+
+print_greatings()
+{
+    echo "==================================="
+    echo -en "="
+    echo -en "\033[01;32m Installing DNAOS Toolchain      \033[00m"
+    echo "="
+    echo "==================================="
+
+    echo "Install dir  : "${INSTALL_DIR}
+    echo "Build dir    : "${TMP_DIR}
+    echo "Download dir : "${DLS_DIR}
+    echo "To autopsy failed steps, you can find logs in 'logs' dir of each build dir"
+}
+
+print_step()
+{
+    echo "==================================="
+    echo -en "\033[01;32m"
+    echo " "$1
+    echo -en "\033[00m"
+    echo "==================================="
+}
+
+print_substep()
+{
+    echo "* "$1
+}
+
+print_error()
+{
+    echo -en "\033[01;31m"
+    echo "!---------------------------------!"
+    echo "! "$1
+    echo "!---------------------------------!"
+    echo -en " \033[00m"
+}
+
+install_error(){
+    print_error "Error in installation ..."
+    exit
+}
+
+#
+# Getter functions
+#
+
+get_patches()
+{
+  print_substep "Downloading GNU patches"
+
+  #
+  # Getting the patches
+  #
+
+  if [ ! -e ${DLS_DIR}/${PATCH_REPOSITORY} ] ; then
+    git clone ${PATCH_URL}/${PATCH_REPOSITORY}.git ${DLS_DIR}/${PATCH_REPOSITORY} &> ${TMP_DIR}/git_clone.log || exit -1 ;
+  else
+    pushd ${DLS_DIR}/${PATCH_REPOSITORY}
+    git pull
+    popd
+  fi ;
+
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/patches_installed
+}
+
+get_binutils()
+{
+  #
+  # Getting binutils
+  #
+
+  cd ${DLS_DIR}
+  print_substep "Downloading binutils"
+  wget -Nq ${BINUTILS_REPOSITORY}/${BINUTILS_ARCHIVE}
+
+  #
+  # Patching binutils
+  #
+
+  cd ${TMP_DIR}
+  rm -rf ${BINUTILS_ARCHIVE}
+  print_substep "Decompressing binutils"
+  tar jxf ${DLS_DIR}/${BINUTILS_ARCHIVE}
+
+  cd ${BINUTILS_DIR}
+  print_substep "Patching binutils"
+  mkdir -p logs
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/binutils &> logs/binutils-patch.log
+
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/binutils_sources_installed
+}
+
+get_gcc()
+{
+  #
+  # Getting GCC
+  #
+
+  cd ${DLS_DIR}
+  print_substep "Downloading GCC"
+  wget -Nq ${GCC_REPOSITORY}/${GCC_ARCHIVE}
+
+  #
+  # Patching GCC
+  #
+
+  cd ${TMP_DIR}
+  rm -rf ${GCC_ARCHIVE}
+  print_substep "Decompressing GCC"
+  tar jxf ${DLS_DIR}/${GCC_ARCHIVE}
+
+  cd ${GCC_DIR}
+  print_substep "Patching GCC"
+  mkdir -p logs
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/gcc  &> logs/gcc-patch.log
+
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/gcc_sources_installed
+}
+
+get_newlib()
+{
+  #
+  # Getting Newlib
+  #
+
+  cd ${DLS_DIR}
+  print_substep "Downloading NewlibC"
+  wget -Nq ${NEWLIB_REPOSITORY}/${NEWLIB_ARCHIVE}
+
+  #
+  # Patching Newlib
+  #
+
+  cd ${TMP_DIR}
+  rm -rf ${NEWLIB_ARCHIVE}
+  print_substep "Decompressing NewlibC"
+  tar zxf ${DLS_DIR}/${NEWLIB_ARCHIVE}
+
+  cd ${NEWLIB_DIR}
+  print_substep "Patching NewlibC"
+  mkdir -p logs
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/newlib &> logs/newlib-patch.log
+
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/newlib_sources_installed
+}
+
+get_gdb()
+{
+  #
+  # Getting Gdb
+  #
+
+  cd ${DLS_DIR}
+  print_substep "Downloading GDB"
+  wget -Nq ${GDB_REPOSITORY}/${GDB_ARCHIVE}
+
+  #
+  # Patching GDB
+  #
+
+  cd ${TMP_DIR}
+  rm -rf ${GDB_ARCHIVE}
+  print_substep "Decompressing GDB"
+  tar jxf ${DLS_DIR}/${GDB_ARCHIVE}
+
+  cd ${GDB_DIR}
+  print_substep "Patching GDB"
+  mkdir -p logs
+  patch -p1 < ${DLS_DIR}/${PATCH_REPOSITORY}/gdb  &> logs/newlib-patch.log
+
+  #
+  # Done ...
+  #
+
+  touch ${STAMPS_DIR}/gdb_sources_installed
+}
+
+#
+# Installation functions
+#
+
+binutils_install()
+{
+  print_step "Installing "${BINUTILS_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr binutils_build
+  mkdir -p binutils_build
+  cd binutils_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${BINUTILS_CFLAGS}             \
+  ${TMP_DIR}/${BINUTILS_DIR}/configure  \
+  --prefix=${INSTALL_DIR}               \
+  --target=${TARGET}                    \
+  --disable-nls                         \
+  --disable-werror                      \
+  --enable-multilib     &> logs/configure.log || return
+
+  print_substep "compiling ..."
+  make                  &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install          &> logs/install.log   || return
+
+  touch ${STAMPS_DIR}/binutils_installed
+}
+
+gcc_1_install()
+{
+  print_step "Installing "${GCC_BASE}" bootstrap"
+
+  cd ${TMP_DIR}
+
+  rm -fr gcc_build
+  mkdir -p gcc_build
+  cd gcc_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${GCC_CFLAGS}              \
+  ${TMP_DIR}/${GCC_DIR}/configure   \
+  --prefix=${INSTALL_DIR}           \
+  --target=${TARGET}                \
+  --disable-nls                     \
+  --enable-multilib                 \
+  --with-newlib                     \
+  --enable-interwork                \
+  --enable-languages=c      &> logs/configure.log || return
+
+  print_substep "compiling ..."
+  make all-gcc              &> logs/make_1.log    || return
+
+  print_substep "installing ..."
+  make install-gcc          &> logs/install_1.log || return
+
+  touch ${STAMPS_DIR}/gcc_1_installed
+}
+
+newlib_install()
+{
+  print_step "Installing "${NEWLIB_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr newlib_build
+  mkdir -p newlib_build
+  cd newlib_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${NEWLIB_CFLAGS}                 \
+  ${TMP_DIR}/${NEWLIB_DIR}/configure      \
+  --prefix=${INSTALL_DIR}                 \
+  --target=${TARGET}                      \
+  --disable-nls                           \
+  --enable-multilib                       \
+  --enable-interwork                      \
+  --enable-newlib-io-long-long            \
+  --enable-newlib-io-long-double          \
+  --enable-newlib-io-c99-formats          \
+  --disable-newlib-may-supply-syscalls    \
+  --enable-newlib-multithread             \
+  --disable-newlib-supplied-syscalls      &> logs/configure.log || return
+
+  print_substep "compiling ..." 
+  make                                    &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install                            &> logs/install.log   || return
+
+  touch ${STAMPS_DIR}/newlib_installed
+}
+
+gcc_2_install()
+{
+  print_step "Installing "${GCC_DIR}" final"
+
+  cd ${TMP_DIR}/gcc_build
+
+  print_substep "compiling ..." 
+  make all                              &> logs/make_2.log    || return
+
+  print_substep "installing ..."
+  make install                          &> logs/install_2.log || return
+
+  touch ${STAMPS_DIR}/gcc_2_installed
+}
+
+gdb_install()
+{
+  print_step "Installing "${GDB_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr gdb_build
+  mkdir -p gdb_build
+  cd gdb_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${GDB_CFLAGS}            \
+  ${TMP_DIR}/${GDB_DIR}/configure \
+  --prefix=${INSTALL_DIR}     \
+  --target=${TARGET}          \
+  --disable-nls               \
+  --disable-builtins          \
+  --enable-multilib           &> logs/configure.log || return
+
+  print_substep "compiling ..." 
+  make                          &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install                  &> logs/install.log || return
+
+  touch ${STAMPS_DIR}/gdb_installed
+}
+
+print_usage()
+{
+  echo "Usage : build-xtool {arm, mips, native} INSTALL_DIR"
+  exit
+}
+
+#
+# Main
+#
+
+if [ $# -lt 2 ]; then 
+   print_usage $0
+fi
+
+case "$1" in
+arm*)
+ARCH=arm
+TARGET=arm-sls-dnaos
+;;
+
+native*)
+ARCH=i386
+TARGET=i386-sls-dnaos
+;;
+
+mips*)
+ARCH=mips
+TARGET=mips-sls-dnaos
+;;
+
+*)
+print_usage $0
+;;
+
+esac
+
+if [ "${2:0:1}" = "/" ] ; then
+  INSTALL_DIR=$2 ;
+else
+  INSTALL_DIR=$PWD/$2 ;
+fi ;
+
+print_greatings
+
+mkdir -p ${TMP_DIR}
+mkdir -p ${DLS_DIR}
+mkdir -p ${INSTALL_DIR}
+mkdir -p ${STAMPS_DIR}
+
+#
+# Check the validity of the sources and patches
+#
+
+print_step "Getting and preparing sources"
+
+[ -e ${STAMPS_DIR}/patches_installed ] || \
+    get_patches || install_error
+
+[ -e ${STAMPS_DIR}/binutils_sources_installed ] || \
+    get_binutils || install_error
+
+[ -e ${STAMPS_DIR}/gcc_sources_installed ] || \
+    get_gcc || install_error
+
+[ -e ${STAMPS_DIR}/newlib_sources_installed ] || \
+    get_newlib || install_error
+
+[ -e ${STAMPS_DIR}/gdb_sources_installed ] || \
+    get_gdb || install_error
+
+#
+# Perform the installation process
+#
+
+[ -e ${STAMPS_DIR}/binutils_installed ] || \
+    binutils_install || install_error
+
+[ -e ${STAMPS_DIR}/gcc_1_installed ] || \
+    gcc_1_install    || install_error
+
+export PATH=$PATH:${INSTALL_DIR}/bin
+
+[ -e ${STAMPS_DIR}/newlib_installed ] || \
+    newlib_install   || install_error
+
+[ -e ${STAMPS_DIR}/gcc_2_installed ] || \
+    gcc_2_install    || install_error
+
+[ -e ${STAMPS_DIR}/gdb_installed ] || \
+    gdb_install      || install_error
+
+print_step "Done."

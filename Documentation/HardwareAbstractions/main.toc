@@ -1,0 +1,11 @@
+\contentsline {chapter}{\numberline {1}Platform Abstraction Layer}{2}
+\contentsline {section}{\numberline {1.1}\textit {Endianness} management}{2}
+\contentsline {section}{\numberline {1.2}Multiprocessor management}{2}
+\contentsline {chapter}{\numberline {2}CPU Abstraction Layer}{3}
+\contentsline {section}{\numberline {2.1}\textit {Endianness} management}{3}
+\contentsline {section}{\numberline {2.2}Execution context management}{4}
+\contentsline {section}{\numberline {2.3}I/O management}{4}
+\contentsline {section}{\numberline {2.4}Interrupts management}{5}
+\contentsline {section}{\numberline {2.5}Exception management}{6}
+\contentsline {section}{\numberline {2.6}Multiprocessor management}{6}
+\contentsline {section}{\numberline {2.7}Synchronization management}{7}
