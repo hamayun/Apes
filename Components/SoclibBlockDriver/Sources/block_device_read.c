@@ -12,6 +12,8 @@ status_t block_device_read (void * handler, void * destination,
   uint32_t block_size ;
   uint32_t lba ;
   uint32_t local_offset, local_p_count, remaining_bytes, quot;
+  status_t access_status = DNA_OK;
+  int32_t ret_block_count = 0;
 
   block_device_control_t * block_device = (block_device_control_t *) handler ;
 
@@ -19,10 +21,15 @@ status_t block_device_read (void * handler, void * destination,
       *p_count, (uint32_t) offset, destination) ;
   watch (status_t)
   {
-
+#if 0
     ensure (offset + *p_count <= 
-        block_device -> block_count * block_device -> block_size, 
+        (block_device -> block_count) * (block_device -> block_size), 
         DNA_BAD_ARGUMENT) ;
+#else
+    ensure (offset <=
+        (block_device -> block_count) * (block_device -> block_size),
+        DNA_BAD_ARGUMENT) ;
+#endif
     block_size = block_device -> block_size ;
 
     semaphore_acquire (block_device -> semaphore_id, 1, 0, -1) ;
@@ -38,18 +45,19 @@ status_t block_device_read (void * handler, void * destination,
     read_buffer_base_address = read_buffer ;
     ensure (read_buffer != NULL, DNA_OUT_OF_MEM) ;
     
-    ensure (access_device_blocks(block_device, 
-                                 read_buffer,
-                                 lba,
-                                 nb_blocks,
-                                 READ) 
-        == DNA_OK,
-        DNA_ERROR) ;
+    access_status = access_device_blocks(block_device, 
+                                         read_buffer,
+                                         lba,
+                                         nb_blocks,
+                                         READ,
+                                         & ret_block_count); 
+    check (read_err, access_status == DNA_OK, access_status) ;
 
     cpu_cache_invalidate (CPU_CACHE_DATA, read_buffer,
         block_size * nb_blocks) ;
 
     // Trimming the blocks to fit the p_count size and the block offset
+    *p_count = ret_block_count;
     remaining_bytes = *p_count ;
 
     // Remainder from first block
@@ -84,5 +92,12 @@ status_t block_device_read (void * handler, void * destination,
     kernel_free (read_buffer_base_address) ;
     semaphore_release (block_device -> semaphore_id, 1, DNA_NO_RESCHEDULE) ;
     return DNA_OK ;
+  }
+
+  rescue (read_err)
+  {
+    kernel_free (read_buffer_base_address) ;
+    semaphore_release (block_device -> semaphore_id, 1, DNA_NO_RESCHEDULE) ;
+	return access_status;
   }
 }

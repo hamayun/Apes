@@ -52,11 +52,11 @@ status_t vfs_open (char * restrict path, int32_t mode,
 {
   int16_t fd = -1;
   file_t file = NULL;
-  int64_t vnid = -1; /*file_vnid = -1; */
+  int64_t vnid = -1; /*, file_vnid = -1; */
   vnode_t vnode = NULL;
   volume_t volume = NULL;
   void * data = NULL, * file_data = NULL;
-  char buffer[DNA_PATH_LENGTH]; /*token[DNA_FILENAME_LENGTH];*/
+  char buffer[DNA_PATH_LENGTH]; /*, token[DNA_FILENAME_LENGTH];*/
   interrupt_status_t it_status = 0;
   status_t status = DNA_OK;
 

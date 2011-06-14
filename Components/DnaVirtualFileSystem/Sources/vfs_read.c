@@ -50,7 +50,8 @@ status_t vfs_read (int16_t fd, void * data, int32_t count, int32_t * p_ret)
   file_t file = NULL;
   int32_t n_data = count;
   interrupt_status_t it_status;
-  status_t status = DNA_OK;
+  status_t file_status = DNA_OK;
+  status_t read_status = DNA_OK;
 
   watch (status_t)
   {
@@ -61,18 +62,18 @@ status_t vfs_read (int16_t fd, void * data, int32_t count, int32_t * p_ret)
      * Get the file associated to the fd.
      */
 
-    status = file_get (fd, & file);
-    ensure (status == DNA_OK, status);
+    file_status = file_get (fd, & file);
+    ensure (file_status == DNA_OK, file_status);
 
     /*
      * Read the file.
      */
 
-    status = file -> vnode -> volume -> cmd -> read
+    read_status = file -> vnode -> volume -> cmd -> read
       (file -> vnode -> volume -> data, file -> vnode -> data, file -> data,
        data, file -> offset, & n_data);
 
-    check (read_error, status == DNA_OK, status);
+    check (read_error, read_status == DNA_OK, read_status);
 
     /*
      * If everything went well, increasing the file offset.
@@ -90,8 +91,8 @@ status_t vfs_read (int16_t fd, void * data, int32_t count, int32_t * p_ret)
      * Release the file and return.
      */
 
-    status = file_put (fd);
-    panic (status != DNA_OK);
+    file_status = file_put (fd);
+    panic (file_status != DNA_OK);
 
     *p_ret = n_data;
     return DNA_OK;
@@ -99,9 +100,8 @@ status_t vfs_read (int16_t fd, void * data, int32_t count, int32_t * p_ret)
 
   rescue (read_error)
   {
-    status = file_put (fd);
-    panic (status != DNA_OK);
-
+    file_status = file_put (fd);
+    panic (file_status != DNA_OK);
     *p_ret = -1;
     leave;
   }

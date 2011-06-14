@@ -34,7 +34,8 @@ status_t block_device_write (void * handler, void * source,
                            bulk_buffer, 
                            offset / block_device -> block_size, 
                            nb_blocks,
-                           READ) 
+                           READ, 
+                           NULL) 
         == DNA_OK, DNA_ERROR) ;
 
     cpu_cache_invalidate (CPU_CACHE_DATA, bulk_buffer, 
@@ -76,7 +77,8 @@ status_t block_device_write (void * handler, void * source,
                                   bulk_buffer_base_address,
                                   block_start,
                                   nb_blocks,
-                                  WRITE)
+                                  WRITE, 
+                                  NULL)
         == DNA_OK, DNA_ERROR) ;
 
     log (VERBOSE_LEVEL, "Wrote %d block(s) from block %d, using 0x%x as a source address", 

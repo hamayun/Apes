@@ -15,6 +15,7 @@ typedef struct _block_device_register_map
   uint32_t  BLOCK_DEVICE_IRQ_ENABLE ;
   uint32_t  BLOCK_DEVICE_SIZE ;
   uint32_t  BLOCK_DEVICE_BLOCK_SIZE ;
+  uint32_t  BLOCK_DEVICE_FINISHED_BLOCK_COUNT ;
 } * block_device_register_map_t ;
 
 typedef struct _block_device_control
@@ -70,6 +71,6 @@ extern status_t block_device_control (void * handler, int32_t function,
 
 extern status_t access_device_blocks(block_device_control_t * block_device, 
     void * access, int64_t block_offset, int32_t block_count,
-    block_device_access_t read_or_write) ;
+    block_device_access_t read_or_write, int32_t * finished_block_count) ;
 
 #endif

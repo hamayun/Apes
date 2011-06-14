@@ -53,12 +53,14 @@ status_t vfs_lseek (int16_t fd, int64_t offset, int32_t whence, int64_t * p_ret)
   file_t file = NULL;
   status_t status = DNA_OK;
   interrupt_status_t it_status = 0;
+  int64_t size;
+  int32_t ret;
 
   watch (status_t)
   {
     ensure (fd >= 0 && fd < DNA_MAX_FILE, DNA_INVALID_FD);
-    ensure (whence == DNA_SEEK_SET ||
-        whence == DNA_SEEK_FROM_CURRENT, DNA_INVALID_WHENCE);
+    ensure (whence == DNA_SEEK_SET || whence == DNA_SEEK_FROM_CURRENT ||
+            whence == DNA_SEEK_FROM_END, DNA_INVALID_WHENCE);
 
     /*
      * Get the file associated to the fd.
@@ -83,6 +85,16 @@ status_t vfs_lseek (int16_t fd, int64_t offset, int32_t whence, int64_t * p_ret)
       case DNA_SEEK_FROM_CURRENT :
         file -> offset += offset;
         break;
+
+      case DNA_SEEK_FROM_END :
+        status = file -> vnode -> volume -> cmd -> ioctl
+          (file -> vnode -> volume -> data, file -> vnode -> data, file -> data,
+           DNA_GET_DEVICE_SIZE, (va_list)(&size), &ret);
+
+        check (error, status == DNA_OK, status);
+
+        file -> offset = size + offset;
+        break;
     }
 
     /*
@@ -98,6 +110,15 @@ status_t vfs_lseek (int16_t fd, int64_t offset, int32_t whence, int64_t * p_ret)
     panic (status != DNA_OK);
 
     return DNA_OK;
+  }
+
+  rescue (error)
+  {
+    status = file_put (fd);
+    panic (status != DNA_OK);
+
+    *p_ret = -1;
+    leave;
   }
 }
 

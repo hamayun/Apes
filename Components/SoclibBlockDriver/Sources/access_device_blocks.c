@@ -5,7 +5,7 @@
 
 status_t access_device_blocks(block_device_control_t * block_device, 
     void * access, int64_t block_offset, int32_t block_count,
-    block_device_access_t read_or_write) 
+    block_device_access_t read_or_write, int32_t * finished_block_count) 
 {
   uint32_t operation_status ;
   interrupt_status_t it_status ;
@@ -50,9 +50,15 @@ status_t access_device_blocks(block_device_control_t * block_device,
         log (VERBOSE_LEVEL, "Op status is %d.", operation_status) ;
       } while (operation_status == BLOCK_DEVICE_BUSY) ;
 
+      if (finished_block_count){
+        cpu_read(UINT32, & (block_device -> port -> BLOCK_DEVICE_FINISHED_BLOCK_COUNT), *finished_block_count);
+      }
+
       cpu_trap_restore (it_status) ;
-      ensure (operation_status == BLOCK_DEVICE_READ_SUCCESS ||
-          operation_status == BLOCK_DEVICE_WRITE_SUCCESS, DNA_ERROR) ;
+      ensure (operation_status == BLOCK_DEVICE_READ_SUCCESS  ||
+              operation_status == BLOCK_DEVICE_WRITE_SUCCESS ||
+              operation_status == BLOCK_DEVICE_READ_EOF,        DNA_ERROR) ;
+
     }
     return DNA_OK ;
   }
