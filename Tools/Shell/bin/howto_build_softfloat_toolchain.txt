@@ -1,0 +1,57 @@
+
+Step #1:
+========
+Build the toolchain using the default 'apes-build-xtools' script. 
+
+Step #2:
+========
+Search for t-i386dnaos file in gcc sources; Update its contents to the following:
+
+--------------------------------------------------------------------------------
+# For svr4 we build crtbegin.o and crtend.o which serve to add begin and
+# end labels to the .ctors and .dtors section when we link using gcc.
+
+EXTRA_PARTS=crtbegin.o crtend.o
+
+# We want fine grained libraries, so use the new code to build the
+# floating point emulation libraries.
+FPBIT = fp-bit.c
+DPBIT = dp-bit.c
+
+fp-bit.c: $(srcdir)/config/fp-bit.c
+	echo '#define FLOAT' > fp-bit.c
+	cat $(srcdir)/config/fp-bit.c >> fp-bit.c
+
+dp-bit.c: $(srcdir)/config/fp-bit.c
+	cat $(srcdir)/config/fp-bit.c > dp-bit.c
+
+MULTILIB_OPTIONS     = mhard-float/msoft-float
+MULTILIB_DIRNAMES    = fpu soft
+MULTILIB_EXCEPTIONS  = 
+MULTILIB_MATCHES     =
+
+LIBGCC = stmp-multilib
+INSTALL_LIBGCC = install-multilib
+--------------------------------------------------------------------------------
+
+Step #3:
+========
+Search for the file 'config.gcc' in gcc sources and modify lines #1327-29 
+From:
+i[34567]86-*-dnaos*)
+  tm_file="elfos.h ${tm_file} i386/unix.h i386/att.h dbxelf.h i386/i386elf.h dnaos.h"
+  tmake_file="i386/t-i386elf i386/t-dnaos"
+
+To:
+i[34567]86-*-dnaos*)
+  tm_file="elfos.h ${tm_file} i386/unix.h i386/att.h dbxelf.h i386/i386elf.h dnaos.h"
+  tmake_file="i386/t-i386elf i386/t-i386dnaos"
+
+Step #4:
+========
+Add the '--enable-softfloat' option to gcc configure command and rebuild gcc only.
+i.e. gcc bootstrap and gcc final by removing the gcc_build directory and 
+stamps/gcc_1_installed stamps/gcc_2_installed.
+
+Now the resultant toolchain should have softfloat and hardfloat support enabled.
+
