@@ -87,7 +87,7 @@ NEWLIB_REPOSITORY="ftp://sources.redhat.com/pub/newlib"
 # gdb stuffs
 GDB_BASE=gdb-${GDB_VER}
 GDB_DIR=${GDB_BASE}
-GDB_ARCHIVE=${GDB_BASE}.tar.bz2
+GDB_ARCHIVE=${GDB_BASE}a.tar.bz2
 GDB_REPOSITORY="ftp://ftp.gnu.org/gnu/gdb"
 
 #
