@@ -67,7 +67,10 @@ status_t system_kickstart (void)
       ensure (status == DNA_OK, status);
 
       status = vfs_component . start ();
-      ensure (status == DNA_OK, status);
+//      ensure (status == DNA_OK, status);
+      if (status != DNA_OK)
+        log (INFO_LEVEL, "status != DNA_OK");
+
     }
     else cpu_mp_wait();
 

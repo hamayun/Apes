@@ -42,21 +42,24 @@ status_t ipi_handler (int32_t command, void * cookie)
  */
 
 {
+  queue_t * queue;
+  bool invoke_scheduler = false;
+  thread_t target = (thread_t)cookie;
+  int32_t cpuid = cpu_mp_id ();
   status_t status = DNA_OK;
-  lock_release (& cpu_pool . cpu[cpu_mp_id ()] . ipi_lock);
+  thread_t self = cpu_pool . cpu[cpuid] . current_thread;
+  lock_release (& cpu_pool . cpu[cpuid] . ipi_lock);
+
+  //log (VERBOSE_LEVEL, "MMH: Inside ipi_handler\n");
 
   switch (command)
   {
     case DNA_IPI_DISPATCH :
       {
-        bool invoke_scheduler = false;
-        thread_t target = (thread_t)cookie;
-        thread_t self = cpu_pool . cpu[cpu_mp_id ()] . current_thread;
-
         log (VERBOSE_LEVEL, "%d DISPATCH %s",
             cpu_mp_id (), target -> info . name);
 
-        if (self == cpu_pool . cpu[cpu_mp_id ()] . idle_thread)
+        if (self == cpu_pool . cpu[cpuid] . idle_thread)
         {
           invoke_scheduler = true;
         }
@@ -66,21 +69,14 @@ status_t ipi_handler (int32_t command, void * cookie)
           invoke_scheduler = (status != DNA_NO_AVAILABLE_THREAD);
         }
 
-        if (invoke_scheduler)
-        {
-          lock_acquire (& self -> lock);
-          self -> info . status = DNA_THREAD_READY;
-          status = scheduler_switch (target, NULL);
-        }
-
-        break;
+       break;
       }
 
     case DNA_IPI_SUSPEND :
       {
         int32_t thread_id = (int32_t) cookie;
 
-        log (VERBOSE_LEVEL, "%d SUSPEND %d", cpu_mp_id (), thread_id);
+        log (VERBOSE_LEVEL, "%d SUSPEND %d", cpuid, thread_id);
 
         thread_suspend (thread_id);
         break;
@@ -90,7 +86,7 @@ status_t ipi_handler (int32_t command, void * cookie)
       {
         int32_t id = (int32_t) cookie;
 
-        log (VERBOSE_LEVEL, "%d ENABLE %d", cpu_mp_id (), id);
+        log (VERBOSE_LEVEL, "%d ENABLE %d", cpuid, id);
 
         cpu_trap_enable (id);
         break;
@@ -100,7 +96,7 @@ status_t ipi_handler (int32_t command, void * cookie)
       {
         int32_t id = (int32_t) cookie;
 
-        log (VERBOSE_LEVEL, "%d DISABLE %d", cpu_mp_id (), id);
+        log (VERBOSE_LEVEL, "%d DISABLE %d", cpuid, id);
 
         cpu_trap_disable (id);
         break;
@@ -110,6 +106,26 @@ status_t ipi_handler (int32_t command, void * cookie)
       log (PANIC_LEVEL, "Unknown command: %d", command);
       status = DNA_ERROR;
       break;
+  }
+
+  if (invoke_scheduler && target != NULL)
+  {
+    lock_acquire (& self -> lock);
+    self -> info . status = DNA_THREAD_READY;
+
+    if (self != cpu_pool . cpu[cpuid] . idle_thread)
+    {
+      queue = & scheduler . queue[self -> info . affinity];
+
+      lock_acquire (& queue -> lock);
+      queue_add (queue, self);
+    }
+    else
+    {
+      queue = NULL;
+    }
+
+    status = scheduler_switch (target, queue);
   }
 
   return status;

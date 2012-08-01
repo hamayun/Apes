@@ -38,7 +38,7 @@ status_t alarm_handler (void)
  */
 
 {
-  queue_t alarm_garbage = DNA_QUEUE_DEFAULTS;
+  queue_t alarm_garbage;
   alarm_t current_alarm = NULL, next_alarm = NULL;
   status_t status = DNA_OK;
   int32_t current_cpuid = cpu_mp_id (), liveness = 10;
@@ -50,6 +50,8 @@ status_t alarm_handler (void)
 
   watch (status_t)
   {
+    DNA_QUEUE_SET_DEFAULTS (alarm_garbage);
+
     do
     {
       cpu_timer_get (cpu -> id, & start_time);

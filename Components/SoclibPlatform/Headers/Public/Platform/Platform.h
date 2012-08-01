@@ -7,4 +7,7 @@
 #include <Platform/Ipi.h>
 #include <Platform/Timer.h>
 
+#define LOCAL_TIMER_DIVISOR 1
+
 #endif
+

@@ -48,7 +48,7 @@ status_t core_create (void)
   cpu_t * cpu = NULL;
   thread_t thread;
   thread_id_t tid;
-  thread_info_t thread_info = DNA_THREAD_DEFAULTS;
+  thread_info_t thread_info;
 
   watch (status_t)
   {
@@ -110,6 +110,8 @@ status_t core_create (void)
     /*
      * Initialize the CPUs
      */
+
+    DNA_THREAD_SET_DEFAULTS (thread_info);
 
     for (int32_t cpu_i = 0; cpu_i < cpu_mp_count (); cpu_i++)
     {

@@ -19,16 +19,28 @@
 #include <DnaTools/DnaTools.h>
 #include <Processor/Processor.h>
 
+extern int vsprintf(char *buf, const char *fmt, va_list args);
+
 status_t soclib_tty_write (void * handler, void * source,
     int64_t offset, int32_t * p_count)
 {
-  soclib_tty_t * tty = (soclib_tty_t *) handler;
+    soclib_tty_t * tty = (soclib_tty_t *) handler;
 
-  for (uint32_t i = 0; i < * p_count; i++)
-  {
-    cpu_write (UINT8, (& tty -> port -> write), ((char *)source)[i]);
-  }
+    for (uint32_t i = 0; i < * p_count; i++)
+    {
+        cpu_write (UINT8, & (tty -> port -> write), ((char *)source)[i]);
+    }
+    return DNA_OK;
+}
 
-  return DNA_OK;
+void tty_print_info (char *fmt, ...)
+{
+    char        msg[150];
+    va_list     vl;
+    
+    va_start(vl, fmt);
+    vsprintf (msg, fmt, vl);
+    platform_debug_puts(msg);
+    va_end(vl);
 }
 

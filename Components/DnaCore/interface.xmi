@@ -10,6 +10,10 @@
 
   <id name="DnaCore" version="1.0"/>
 
+  <restrict>
+    <id name="DnaTools" version="1.0"/>
+  </restrict>
+
   <provide>
     <context name="LifeCycle">
       <method name="core_create" result="status_t"/>
@@ -114,6 +118,11 @@
 
       <method name="thread_resume" result="status_t">
         <argument name="id" type="int32_t" direction="In"/>
+      </method>
+
+      <method name="thread_from_id" result="status_t">
+        <argument name="id" type="int32_t" direction="In"/>
+        <argument name="thread" type="uint32_t*" direction="Out"/>
       </method>
 
       <method name="thread_wait" result="status_t">

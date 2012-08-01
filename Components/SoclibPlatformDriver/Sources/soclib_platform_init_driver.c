@@ -19,8 +19,10 @@
 #include <Core/Core.h>
 #include <MemoryManager/MemoryManager.h>
 #include <DnaTools/DnaTools.h>
+#include <Processor/apic_regs.h>
 
 soclib_tty_t * TTY = NULL;
+volatile unsigned long *local_apic_mem = (unsigned long *) LOCAL_APIC_BASE;
 
 status_t soclib_platform_init_driver (void)
 {
@@ -33,6 +35,9 @@ status_t soclib_platform_init_driver (void)
   for (int32_t i = 0; i < cpu_mp_count (); i += 1)
   {
     interrupt_attach (i, 0, 0x0, soclib_ipi_isr, true);
+
+	//__asm__ volatile ("int     $0xED"); // Test the IPI Interrupt Handler 
+
     interrupt_attach (i, 1, 0x0, soclib_timer_isr, false);
   }
 

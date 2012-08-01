@@ -20,33 +20,29 @@
 #include <Processor/Processor.h>
 #include <Platform/Platform.h>
 
-int32_t soclib_ipi_isr (void * data)
+int32_t soclib_ipi_isr (void * unused_par)
 {
-  int32_t value, command, status;
-  int32_t current_cpuid = cpu_mp_id ();
+    int32_t     cpu = cpu_mp_id ();
 
-  cpu_read (UINT32, & (PLATFORM_IPI_BASE[current_cpuid] . data), value);
-  cpu_read (UINT32, & (PLATFORM_IPI_BASE[current_cpuid] . command), command);
+    //log (VERBOSE_LEVEL, "MMH: Inside soclib_ipi_isr\n");
 
-  cpu_read (UINT32, & (PLATFORM_IPI_BASE[current_cpuid] . reset), status);
-  
-  if (status != 0)
-  {
-    cpu_write (UINT32, & (PLATFORM_IPI_BASE[current_cpuid] . reset), 0);
-
-    switch (ipi_handler (command, (void *)value))
+    if (cpu_ipi_pars[cpu].status != 0)
     {
-      case DNA_OK :
-        return DNA_HANDLED_INTERRUPT;
+        cpu_ipi_pars[cpu].status = 0;
 
-      case DNA_INVOKE_SCHEDULER :
-        return DNA_INVOKE_SCHEDULER;
+        switch (ipi_handler (cpu_ipi_pars[cpu].command, cpu_ipi_pars[cpu].data))
+        {
+        case DNA_OK :
+            return DNA_HANDLED_INTERRUPT;
 
-      default :
-        return DNA_UNHANDLED_INTERRUPT;
+        case DNA_INVOKE_SCHEDULER :
+            return DNA_INVOKE_SCHEDULER;
+
+        default :
+            return DNA_UNHANDLED_INTERRUPT;
+        }
     }
-  }
 
-  return DNA_UNHANDLED_INTERRUPT;
+    return DNA_UNHANDLED_INTERRUPT;
 }
 

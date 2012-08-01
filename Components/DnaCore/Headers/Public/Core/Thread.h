@@ -53,25 +53,28 @@
 
 /****d* Thread/DNA_THREAD_DEFAULTS
  * SUMMARY
- * Default values for the thread_info structure.
+ * Set default values for the thread_info structure.
  *
  * SOURCE
  */
 
-#define DNA_THREAD_DEFAULTS \
-{                           \
-  "thread",                 \
-  0,                        \
-  DNA_KERNEL_GROUP,         \
-  DNA_NO_AFFINITY,          \
-  0,                        \
-  DNA_THREAD_SUSPENDED,     \
-  DNA_NO_RESOURCE,          \
-  -1,                       \
-  0,                        \
-  0,                        \
-  NULL,                     \
-  0x8000                    \
+#define DNA_THREAD_SET_DEFAULTS(_i)     \
+{                                       \
+  dna_strcpy (_i . name, "thread");     \
+  _i . cpu_id = 0;                      \
+  _i . group = DNA_KERNEL_GROUP;        \
+  _i . affinity = DNA_NO_AFFINITY;      \
+  _i . sem_tokens = 0;                  \
+                                        \
+  _i . status = DNA_THREAD_SUSPENDED;   \
+  _i . resource = DNA_NO_RESOURCE;      \
+  _i . resource_id = -1;                \
+                                        \
+  _i . kernel_time = 0;                 \
+  _i . user_time = 0;                   \
+                                        \
+  _i . stack_base = NULL;               \
+  _i . stack_size = 0x8000;             \
 };
 
 /****t* Thread/thread_status_t
@@ -170,6 +173,8 @@ extern void thread_exit (int32_t value);
 
 extern status_t thread_find (char * name, int32_t * tid);
 extern status_t thread_get_info (int32_t id, thread_info_t * info);
+
+extern status_t thread_from_id (int32_t id, uint32_t *thread);
 
 #endif
 

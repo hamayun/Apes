@@ -18,6 +18,41 @@
 #include <Private/Core.h>
 #include <DnaTools/DnaTools.h>
 
+
+status_t thread_from_id (int32_t id, uint32_t *thread)
+{
+  thread_id_t tid = { .raw = id };
+  interrupt_status_t it_status = 0;
+
+  watch (status_t)
+  {
+    ensure (tid . s . group >= 0, DNA_BAD_ARGUMENT);
+    ensure (tid . s . group < DNA_MAX_GROUP, DNA_BAD_ARGUMENT);
+    ensure (tid . s . index >= 0, DNA_BAD_ARGUMENT);
+    ensure (tid . s . index < DNA_MAX_THREAD, DNA_BAD_ARGUMENT);
+
+    it_status = cpu_trap_mask_and_backup();
+    lock_acquire (& thread_pool . lock);
+
+    *thread = (uint32_t) & thread_pool . data[tid . s . group][tid . s . index];
+
+    check (bad_thread, thread != NULL &&
+        ((thread_t) *thread) -> id . raw == tid . raw , DNA_INVALID_THREAD_ID);
+
+    lock_release (& thread_pool . lock);
+
+    cpu_trap_restore (it_status);
+    return DNA_OK;
+  }
+
+  rescue (bad_thread)
+  {
+    cpu_trap_restore (it_status);
+    lock_release (& thread_pool . lock);
+    leave;
+  }
+}
+
 /****f* Thread/thread_find
  * SUMMARY
  * Finds a thread by its name.

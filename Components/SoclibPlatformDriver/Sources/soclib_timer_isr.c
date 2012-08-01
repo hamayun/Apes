@@ -22,16 +22,6 @@
 
 int32_t soclib_timer_isr (void * data)
 {
-  int32_t is_irq = 0, current_cpuid = cpu_mp_id ();
-  soclib_timer_port_t timer = & PLATFORM_TIMER_BASE[current_cpuid];
-
-  cpu_read (UINT32, & (timer -> irq_ack), is_irq);
-
-  if (is_irq != 0)
-  {
-    cpu_write(UINT32, & (timer -> irq_ack), 0);
-    cpu_write(UINT32, & (timer -> mode), 1);
-
     switch (alarm_handler ())
     {
       case DNA_OK :
@@ -43,8 +33,5 @@ int32_t soclib_timer_isr (void * data)
       default :
         return DNA_UNHANDLED_INTERRUPT;
     }
-  }
-
-  return DNA_UNHANDLED_INTERRUPT;
 }
 

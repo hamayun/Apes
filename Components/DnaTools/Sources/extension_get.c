@@ -31,16 +31,21 @@ status_t extension_get (char * name, extension_t ** p_ext)
  */
 
 {
-  for (int32_t i = 0; i < OS_N_EXTENSIONS; i++)
+  watch (status_t)
   {
-    if (dna_strcmp (OS_EXTENSIONS_LIST[i] -> name, name) == 0)
+    for (int32_t i = 0; i < OS_N_EXTENSIONS; i++)
     {
-      *p_ext = OS_EXTENSIONS_LIST[i];
-      return (*p_ext) -> initialize ();
-    }
-  }
+      if (dna_strcmp (OS_EXTENSIONS_LIST[i] -> name, name) == 0)
+      {
+        *p_ext = OS_EXTENSIONS_LIST[i];
+        ensure ((*p_ext) -> initialize != NULL, DNA_ERROR);
 
-  return DNA_ERROR;
+        return (*p_ext) -> initialize ();
+      }
+    }
+
+    return DNA_ERROR;
+  }
 }
 
 /*

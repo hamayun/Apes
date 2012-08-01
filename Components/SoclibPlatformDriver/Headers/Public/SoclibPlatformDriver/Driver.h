@@ -21,6 +21,9 @@
 #include <DnaTools/DnaTools.h>
 
 extern driver_t soclib_platform_module;
+void tty_print_info (char *fmt, ...);
+
+extern volatile unsigned long *local_apic_mem;
 
 #endif
 

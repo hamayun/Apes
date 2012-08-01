@@ -36,12 +36,12 @@
  * SOURCE
  */
 
-#define DNA_QUEUE_DEFAULTS  \
-{                           \
-  0,                        \
-  NULL,                     \
-  NULL,                     \
-  0                         \
+#define DNA_QUEUE_SET_DEFAULTS(_q)  \
+{                                   \
+  _q . lock = 0;                    \
+  _q . head = NULL;                 \
+  _q . tail = NULL;                 \
+  _q . status = 0;                  \
 }
 
 /*

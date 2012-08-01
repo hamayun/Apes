@@ -12,7 +12,7 @@ int pthread_create (pthread_t *thread, pthread_attr_t *attr,
   pthread_t new;
   char * default_name = "pthread";
   void * stack_base;
-  thread_info_t thread_info = DNA_THREAD_DEFAULTS;
+  thread_info_t thread_info;
 
   ASSERT_RETURN( (thread == NULL), EINVAL );
 
@@ -71,6 +71,8 @@ int pthread_create (pthread_t *thread, pthread_attr_t *attr,
   /*
    * Create the thread.
    */
+
+  DNA_THREAD_SET_DEFAULTS (thread_info);
 
   strcpy (thread_info . name, new -> attributs -> name);
   thread_info . affinity = new -> attributs -> procid;
