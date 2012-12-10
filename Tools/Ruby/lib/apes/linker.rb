@@ -50,7 +50,6 @@ class APELinkUnit
     cmd << ENV['APES_LINKER_FLAGS']
     objects.each { |o| cmd << "#{o.object}" }
     command = cmd.join(' ')
-    command += " -lm"
 
     #
     # Deal with calling the linker
