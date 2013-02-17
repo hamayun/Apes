@@ -35,10 +35,10 @@ status_t soclib_platform_init_driver (void)
   for (int32_t i = 0; i < cpu_mp_count (); i += 1)
   {
     interrupt_attach (i, 0, 0x0, soclib_ipi_isr, true);
-
 	//__asm__ volatile ("int     $0xED"); // Test the IPI Interrupt Handler 
 
     interrupt_attach (i, 1, 0x0, soclib_timer_isr, false);
+	//__asm__ volatile ("int     $0xEF");  // Test the timer interrupt Handler
   }
 
   /*
