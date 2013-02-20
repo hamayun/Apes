@@ -124,3 +124,6 @@
 [submodule "Components/DalLibrary"]
 	path = Components/DalLibrary
 	url = ../DalLibrary.git
+[submodule "Components/DnpRdmaDriver"]
+	path = Components/DnpRdmaDriver
+	url = ../DnpRdmaDriver.git
