@@ -121,3 +121,6 @@
 [submodule "Components/PCPlatformDriver"]
 	path = Components/PCPlatformDriver
 	url = ../PCPlatformDriver.git
+[submodule "Components/DalLibrary"]
+	path = Components/DalLibrary
+	url = ../DalLibrary.git
