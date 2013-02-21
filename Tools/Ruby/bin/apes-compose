@@ -16,4 +16,6 @@
 require 'apes/compose'
 
 app = APEComposeApplication.new
-app.run(ARGV)
+res = app.run(ARGV)
+exit res
+
