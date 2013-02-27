@@ -57,11 +57,15 @@ class APELinkUnit
 
     puts command if verbose
 
+    before = Time.now
+
     stdout, stderr = [], []
     status = POpen4::popen4(command) do |out,err|
       stdout = out.readlines
       stderr = err.readlines
     end
+
+    success = File.exist?(name) ? (File.mtime(name) > before) : false 
 
     #
     # Deal with the errors
@@ -73,7 +77,7 @@ class APELinkUnit
       message = "Cannot execute " + ENV['APES_LINKER']
       message += ", no such file or directory"
       raise LinkError.new message
-    elsif status != 0
+    elsif status != 0 || !success
       raise LinkError.new(stderr.join)
     end
   end
