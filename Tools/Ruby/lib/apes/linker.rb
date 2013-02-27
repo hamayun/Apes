@@ -65,7 +65,7 @@ class APELinkUnit
       stderr = err.readlines
     end
 
-    success = File.exist?(name) ? (File.mtime(name) > before) : false 
+    success = File.exist?(name) ? (File.mtime(name).to_i >= before.to_i) : false 
 
     #
     # Deal with the errors
