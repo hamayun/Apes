@@ -189,10 +189,12 @@ class APEObjectFile
     # Execute the command
     if @update then
       stdout, stderr = [], []
+      GC.disable
       status = POpen4::popen4(command) do |out,err|
         stdout = out.readlines
         stderr = err.readlines
       end
+      GC.enable
 
       if status == nil
         message = "Cannot execute " + ENV['APES_COMPILER']

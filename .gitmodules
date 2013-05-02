@@ -121,3 +121,9 @@
 [submodule "Components/PCPlatformDriver"]
 	path = Components/PCPlatformDriver
 	url = ../PCPlatformDriver.git
+[submodule "Components/DalLibrary"]
+	path = Components/DalLibrary
+	url = ../DalLibrary.git
+[submodule "Components/DnpRdmaDriver"]
+	path = Components/DnpRdmaDriver
+	url = ../DnpRdmaDriver.git
