@@ -20,6 +20,11 @@ include Term::ANSIColor
 
 class APEGraphApplication < APEApplication
 
+  def initialize
+    super
+    @optparse.banner = "Usage: apes-graph [options]"
+  end
+
   def run(arguments = "")
     super(arguments)
     self.displayHelpAndExit unless @arguments.empty? or @arguments.count == 2
@@ -71,10 +76,4 @@ class APEGraphApplication < APEApplication
     return -1
   end
 
-  def displayHelpAndExit
-    puts "USAGE"
-    puts "    apes-graph {<name> <version>}"
-    puts
-    super
-  end
 end
