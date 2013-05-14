@@ -21,22 +21,24 @@ include Term::ANSIColor
 
 class APECacheApplication < APEApplication
 
-  def extendOptions
-    self << Option.new(:names => %w(--show),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Shows the cache's content.",
-                       :opt_found => lambda { |*arg| @cmd = :show } )
-
-    self << Option.new(:names => %w(--purge),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Purges the cache.",
-                       :opt_found => lambda { |*arg| @cmd = :purge } )
-
-    self << Option.new(:names => %w(--prune),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Prunes invalid cache entries.",
-                       :opt_found => lambda { |*arg| @cmd = :prune } )
+  def initialize
     super
+    @optparse.banner = "Usage: apes-cache [options]"
+
+    @optparse.on("-s", "--show",
+                 "Shows the cache's content.") do |s|
+      @cmd = :show
+    end
+
+    @optparse.on("-p", "--purge",
+                 "Purges the cache.") do |p|
+      @cmd = :purge
+    end
+
+    @optparse.on("-x", "--prune",
+                 "Prunes invalid cache entries.") do |x|
+      @cmd = :prune
+    end
   end
 
 
@@ -88,13 +90,6 @@ class APECacheApplication < APEApplication
     end
 
     return -1
-  end
-
-  def displayHelpAndExit
-    puts "USAGE"
-    puts "    apes-cache {<name> <version>}"
-    puts
-    super
   end
 
   private

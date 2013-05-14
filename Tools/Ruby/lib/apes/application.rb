@@ -12,41 +12,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'commandline/optionparser'
-include CommandLine
+require 'optparse'
 
-class APEApplication < OptionParser
+class APEApplication
 
-  def initialize(*arguments)
-    super(*arguments)
+  def initialize
     @arguments = []
-    @verbose = true
+    @verbose = false
+    @optparse = OptionParser.new
+
+    @optparse.on("-v", "--verbose",
+                 "Enables verbose mode.") do |v|
+      @verbose = true
+    end
+
+    @optparse.on("-h", "--help",
+                 "Displays this help.") do |h|
+      @help = true
+    end
   end
 
-  def extendOptions
-    self << Option.new(:names => %w(--verbose -v),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Enables verbose mode.",
-                       :opt_found => lambda { |*arg| @verbose = true},
-                       :opt_not_found => lambda { |*arg| @verbose = false })
-
-    self << Option.new(:names => %w(--help -h),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Displays this help.",
-                       :opt_found => lambda { |*arg|@help = true },
-                       :opt_not_found => lambda { |*arg| @help = false })
-
-  end
-
-  def self.new
-    parser = super(:unknown_options_action => :raise)
-    parser.extendOptions
-    return parser
-  end
-
-  def run(arguments)
+  def run(args)
     begin
-      @arguments = self.parse(arguments).args
+      @arguments = @optparse.parse!(args)
     rescue Exception => e
       puts "\r\e[2K[#{e.class}]".red
       puts e.message
@@ -56,10 +44,12 @@ class APEApplication < OptionParser
 
     self.displayHelpAndExit if @help
     return 0
+
+
   end
 
   def displayHelpAndExit
-    puts self.to_s
+    puts @optparse
     exit 0
   end
 

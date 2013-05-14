@@ -25,12 +25,13 @@ include Term::ANSIColor
 
 class APEComposeApplication < APEApplication
 
-  def extendOptions
-    self << Option.new(:names => %w(--clean -c),
-                       :arg_arity => [ 0, 0 ],
-                       :opt_description => "Clean the interface graph objects.",
-                       :opt_found => lambda { |*arg| @clean = true } )
+  def initialize
     super
+    @optparse.banner = "Usage: apes-compose [options] {<name> <version>}"
+    @optparse.on("-c", "--clean",
+                 "Clean the interface graph objects.") do |c|
+      @clean = true
+    end
   end
 
   def run(arguments = "")
@@ -119,13 +120,6 @@ class APEComposeApplication < APEApplication
     end
 
     return -1
-  end
-
-  def displayHelpAndExit
-    puts "USAGE"
-    puts "    apes-compose {<name> <version>}"
-    puts
-    super
   end
 
   private
