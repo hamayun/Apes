@@ -44,10 +44,7 @@ class APEObjectFile
     @update = false
   end
 
-  def APEObjectFile.createWith(source, interface, cache, includes)
-    interface_var = interface.id.name.upcase + '_CC_FLAGS'
-    flags = ENV['APES_CC_OPTIMIZATIONS'] + ' ' +
-      (ENV[interface_var] != nil ? ENV[interface_var] : "");
+  def APEObjectFile.createWith(source, interface, cache, includes, flags, downClass)
 
     #
     # Compute the object SHA1
@@ -88,7 +85,7 @@ class APEObjectFile
     # Create the object file
     #
 
-    APEObjectFile.new(source, interface.id.name, interface.id.version,
+    return downClass.new(source, interface.id.name, interface.id.version,
                       sandbox, includes, flags)
   end
 

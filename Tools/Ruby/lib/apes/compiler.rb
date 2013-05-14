@@ -12,7 +12,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'ocm/interface'
-require 'apes/object'
+require 'apes/cobject'
+require 'apes/asmobject'
+require 'apes/cxxobject'
+
 require 'rubygems'
 require 'term/ansicolor'
 include Term::ANSIColor
@@ -44,13 +47,23 @@ class APECompilationUnit
   end
 
   def APECompilationUnit.createWith(interface, locals, globals)
-    # Check if the necessary env variables are present
-    if ENV['APES_CC_FLAGS'] == nil
-      raise CompilationError.new "Undefined APES_CC_FLAGS variable."
-    end
+    envs = []
 
-    if ENV['APES_CC_OPTIMIZATIONS'] == nil
-      raise CompilationError.new "Undefined APES_CC_OPTIMIZATIONS variable."
+    envs += APEASMObjectFile.envs() unless
+      Dir.glob(interface.path + '/Sources/**/*.{s,S}').length == 0 
+
+    envs += APECObjectFile.envs() unless
+      Dir.glob(interface.path + '/Sources/**/*.c').length == 0 
+
+    envs += APECXXObjectFile.envs() unless
+      Dir.glob(interface.path + '/Sources/**/*.cpp').length == 0 
+
+    envs.each do |env|
+
+      if ENV[env] == nil
+        raise CompilationError.new "Undefined #{env} variable."
+      end
+
     end
 
     # If everything is OK, return an instance of the CcUnit
@@ -58,8 +71,18 @@ class APECompilationUnit
   end
 
   def updateObjectCache(cache)
-    Dir.glob(@interface.path + '/Sources/**/*.{c,S}').each do |file|
-      object = APEObjectFile.createWith(file, @interface, cache, @globals)
+    Dir.glob(@interface.path + '/Sources/**/*.{s,S}').each do |file|
+      object = APEASMObjectFile.createWith(file, @interface, cache, @globals)
+      @update = @update || object.update(@locals)
+      @objects << object
+    end
+    Dir.glob(@interface.path + '/Sources/**/*.c').each do |file|
+      object = APECObjectFile.createWith(file, @interface, cache, @globals)
+      @update = @update || object.update(@locals)
+      @objects << object
+    end
+    Dir.glob(@interface.path + '/Sources/**/*.cpp').each do |file|
+      object = APECXXObjectFile.createWith(file, @interface, cache, @globals)
       @update = @update || object.update(@locals)
       @objects << object
     end
