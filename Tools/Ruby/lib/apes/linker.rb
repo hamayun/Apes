@@ -61,8 +61,26 @@ class APELinkUnit
 
     stdout, stderr = [], []
     status = POpen4::popen4(command) do |out,err|
-      stdout = out.readlines
-      stderr = err.readlines
+      eof_out = eof_err = false
+      stdout = stderr = String.new
+
+      while (!eof_out && !eof_err) do
+        begin
+          stdout += out.read_nonblock(128) if !eof_out
+        rescue EOFError
+          eof_out = true
+        rescue Errno::EAGAIN
+          # retrying
+        end
+
+        begin
+          stderr += err.read_nonblock(128) if !eof_err
+        rescue EOFError
+          eof_err = true
+        rescue Errno::EAGAIN 
+          # retrying
+        end
+      end
     end
 
     success = File.exist?(name) ? (File.mtime(name).to_i >= before.to_i) : false 
@@ -78,7 +96,7 @@ class APELinkUnit
       message += ", no such file or directory"
       raise LinkError.new message
     elsif status != 0 || !success
-      raise LinkError.new(stderr.join)
+      raise LinkError.new(stderr)
     end
   end
 end
